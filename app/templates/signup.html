@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans relative">
+
+  
+
+  <!-- Signup Form -->
+  <div class="bg-[#E5E4E2] p-6 rounded-xl shadow-lg md:w-[480px] sm:w-96 z-10">
+    <form id="signupForm" class="space-y-4" onsubmit="return handleSignUp(event)">
+      <div class="flex flex-col items-center mb-4">
+        <h1 class="text-3xl font-bold text-teal-900">FEEDBACK SYSTEM</h1>
+      </div>
+      <h2 class="text-center text-lg font-bold text-black">Create Account</h2>
+
+      <!-- Toggle Buttons -->
+      <div class="flex justify-between gap-2">
+        <button type="button" onclick="setUserType('studentStaff')" id="studentBtn"
+          class="flex-1 p-2 rounded-lg bg-indigo-900 text-white font-medium">Student/Staff</button>
+        <button type="button" onclick="setUserType('general')" id="generalBtn"
+          class="flex-1 p-2 rounded-lg bg-gray-300 text-black font-medium">Public</button>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-sm font-semibold text-black mb-1">Email Address</label>
+        <input type="email" id="email" name="email" required
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- Full Name -->
+      <div>
+        <label for="fullname" class="block text-sm font-semibold text-black mb-1">Full Name</label>
+        <input type="text" id="fullname" name="fullname" required
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- ID Number -->
+      <div id="idField">
+        <label for="idnumber" class="block text-sm font-semibold text-black mb-1">ID Number</label>
+        <input type="text" id="idnumber" name="idnumber"
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Enter your ID">
+      </div>
+      <!-- Date of Birth -->
+      <div id="dobField" >
+        <label for="dob" class="block text-sm font-semibold text-black mb-1">Date of Birth</label>
+        <input type="text" id="dob" name="dob"
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Enter your Date of Birth">
+      </div>
+
+
+      <!-- Designation Field -->
+      <div id="designationField">
+        <label for="designation" class="block text-sm font-semibold text-black mb-1">Designation</label>
+        <input type="text" id="designation" name="designation"
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Student, Lecturer, Librarian etc.">
+      </div>
+
+      <!-- Username -->
+      <div>
+        <label for="username" class="block text-sm font-semibold text-black mb-1">Username</label>
+        <input type="text" id="username" name="username" required
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="block text-sm font-semibold text-black mb-1">Password</label>
+        <input type="password" id="password" name="password" required
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- Submit -->
+      <button type="submit"
+        class="w-full p-3 bg-indigo-900 text-white rounded-lg text-base font-medium cursor-pointer hover:bg-teal-600 shadow-md transition">
+        Sign Up
+      </button>
+
+      <!-- Already have account -->
+      <div class="text-center mt-3">
+        <a href="login.html" class="text-sm text-black hover:underline">Already have an account? <p class="text-blue-600">Login here</p></a>
+      </div>
+    </form>
+
+    <!-- Error Modal -->
+    <div id="errorOverlay" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-xl shadow-xl text-center max-w-sm w-full">
+        <h2 class="text-2xl font-bold text-red-600 mb-4">❌ Password Error</h2>
+        <p id="errorMessage" class="text-black text-base mb-6"></p>
+        <button onclick="closeErrorModal()" class="px-4 py-2 bg-indigo-900 text-white rounded hover:bg-teal-600 transition">OK</button>
+      </div>
+    </div>
+
+  </div>
+  <!-- Success Modal -->
+  <div id="successOverlay" class="hidden absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-xl text-center w-96">
+      <h2 class="text-xl font-bold mb-2 text-indigo-900" id="successMessage">Account Created Successfully!</h2>
+      <button onclick="closeSuccessModal()" class="mt-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-teal-600">OK</button>
+    </div>
+  </div>
+
+  <script>
+    let userType = "studentStaff";
+
+    function setUserType(type) {
+      userType = type;
+      const studentBtn = document.getElementById("studentBtn");
+      const generalBtn = document.getElementById("generalBtn");
+      const idField = document.getElementById("idField");
+      const designationField = document.getElementById("designationField");
+      const dobField=document.getElementById("dobField");
+
+      studentBtn.className = type === 'studentStaff' ?
+        "flex-1 p-2 rounded-lg font-medium bg-indigo-900 text-white" :
+        "flex-1 p-2 rounded-lg font-medium bg-gray-300 text-black";
+
+      generalBtn.className = type === 'general' ?
+        "flex-1 p-2 rounded-lg font-medium bg-indigo-900 text-white" :
+        "flex-1 p-2 rounded-lg font-medium bg-gray-300 text-black";
+
+      idField.classList.toggle("hidden", type === "general");
+      designationField.classList.toggle("hidden", type === "general");
+      dobField.classList.toggle("hidden", type === "general");
+
+    }
+
+    function handleSignUp(event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const fullName = document.getElementById("fullname").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const idNumber = document.getElementById("idnumber").value.trim();
+      const designation = document.getElementById("designation").value.trim();
+
+      if (!email || !fullName || !username || !password) {
+        alert(" Please fill in all required fields.");
+        return false;
+      }
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$/;
+      if (!passwordRegex.test(password)) {
+        showErrorModal("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character (e.g., @, #, $).");
+        return false;
+      }
+
+      if (userType !== "general") {
+        if (!idNumber) {
+          alert(" ID Number is required for Student/Staff.");
+          return false;
+        }
+
+        if (!designation) {
+          alert(" Designation is required for Student/Staff.");
+          return false;
+        }
+      }
+
+      let message = "";
+      if (userType === "general") {
+        message = "General account created successfully!";
+      } else if (designation.toLowerCase() === "student") {
+        message = "Student account created successfully!";
+      } else {
+        message = "Staff account created successfully!";
+      }
+
+      document.getElementById("successMessage").innerText = message;
+      document.getElementById("successOverlay").classList.remove("hidden");
+
+      // Clear form
+      document.getElementById("signupForm").reset();
+      setUserType("studentStaff"); // Reset to default
+
+      return false;
+    }
+// for handling error message 
+    function showErrorModal(message) {
+      document.getElementById("errorMessage").innerText = message;
+      document.getElementById("errorOverlay").classList.remove("hidden");
+    }
+
+    function closeErrorModal() {
+      document.getElementById("errorOverlay").classList.add("hidden");
+    }
+
+    function closeSuccessModal() {
+      document.getElementById("successOverlay").classList.add("hidden");
+    }
+
+    // Set default
+    window.onload = () => setUserType("studentStaff");
+  </script>
+</body>
+</html>

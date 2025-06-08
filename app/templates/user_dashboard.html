@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> User Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="user_dashboard.js" defer></script>
+
+</head>
+
+<body class="bg-gray-100 font-roboto min-h-screen grid grid-rows-[auto_1fr_auto]">
+
+  <header class="row-start-1 row-end-2 shadow p-4 grid-cols-2 bg-white rounded shadow flex justify-between items-center shadow-md sticky top-0">
+    <h1 class="text-xl font-bold text-teal-900">FEEDBACK SYSTEM</h1>
+    <button class="md:hidden text-black text-3xl relative z-20" onclick="toggleMenu()" id="menuBtn">
+      &#9776;
+    </button>
+  </header>
+
+  <div class="row-start-2 row-end-3 grid md:grid-cols-[1fr_3fr] gap-6 p-6">
+    <!-- Sidebar -->
+    <aside class="col-start-1 bg-white rounded w-64 shadow p-4 hidden md:block">
+      <nav class="gap-4">
+        <a onclick="showSection('home')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer ">📨 Home</a>
+        <a onclick="showSection('profile')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">👤 Profile</a>
+        <a onclick="showSection('Reports')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">📄 Reports</a>
+        <a onclick="showSection('Contacts')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">📞 Contacts</a>
+
+        <div>
+          <div onclick="toggleSubmenu('settingsSubmenuSidebar')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">⚙️ Settings ⯆</div>
+          <ul id="settingsSubmenuSidebar" class="ml-4 hidden space-y-1">
+            <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all rounded hover:pl-4 transition-all" onclick="showSection('changePassword')">🔐 Change Password</li>
+          </ul>
+        </div>
+        <a onclick="logout()" class="block p-2 hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">🔓 Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Mobile Popup Menu -->
+    <div id="popupMenu" class="md:hidden absolute top-16 right-4 bg-white text-black w-56 rounded shadow-lg z-50 hidden p-4">
+      <ul class="space-y-3">
+        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('home')">📨 Home</li>
+        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('profile')">👤 Profile</li>
+        <!-- <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('status')">📄 View Feedback Status</li> -->
+        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('Reports')">📄 Reports</li>
+        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('Contacts')">📞 Contacts</li>
+
+        <li class="cursor-pointer hover:bg-indigo-100 rounded hover:pl-4 transition-all" onclick="toggleSubmenu('settingsSubmenuPopup')">⚙️ Settings ⯆</li>
+        <ul id="settingsSubmenuPopup" class="ml-4 hidden space-y-1">
+          <li class="cursor-pointer hover:bg-indigo-100 rounded hover:pl-2 transition-all" onclick="showSection('changePassword')">🔐 Change Password</li>
+        </ul>
+        <li class="cursor-pointer hover:bg-indigo-100 p-2 rounded hover:pl-3 transition-all flex items-center" onclick="logout()">
+            <span class="mr-2">🔓</span> Logout      </ul>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="grid gap-6">
+
+      <!-- Home Section -->
+      <section id="home" class="section  min-h-screen p-5 md:pr-[130px] ">
+        <div class="bg-white p-6 rounded shadow">
+          <h2 class="text-2xl font-semibold text-indigo-900 text-center  md:h-20">Welcome, User!</h2>
+          <p class="text-gray-600 text-center">Here you can submit new feedback and track existing submissions.</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 mt-4 md:h-80 md:mt-40 md:w-100 text-center ">
+          <a  onclick="showSection('subfeedback')" class=" bg-teal-600 text-white p-6 rounded shadow hover:bg-teal-500">
+            <h3 class="text-xl font-bold mb-2">Submit Feedback</h3>
+            <p>Create a new feedback entry.</p>
+          </a>
+          <a onclick="showSection('history')" class="block bg-indigo-900 text-white p-6 rounded shadow hover:bg-indigo-800">
+            <h3 class="text-xl font-bold mb-2">View History</h3>
+            <p>Review status of your past submissions.</p>
+          </a>
+        </div>
+      </section>
+
+
+      <!-- Profile Section -->
+      <section id="profile" class="section hidden">
+        <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md ">
+          <h2 class="text-xl font-bold mb-4">Your Profile</h2>
+          <p><strong>Name:</strong> Jasmir</p>
+          <p><strong>Email:</strong> userkoo@example.com</p>
+          <p><strong>Username:</strong> user</p>
+          <p><strong>ID:</strong> 821008</p>
+        </div>
+      </section>
+
+      <!-- Report Section -->
+      <section id="Reports" class="section hidden text-center">
+        <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md">
+          <h2 class="text-xl font-bold mb-4">Feedback Reports</h2>
+          <p> In this section we will display graphs as Report</p>
+        </div>
+      </section>
+
+<!-- submit section -->
+      <section id="subfeedback" class="section hidden md:pr-24 md:pt:4 ">
+        <h2 class="text-2xl font-semibold text-indigo-900 mb-4 ">Submit Feedback</h2>
+        <form class="grid gap-4">
+          <div>
+            <label for="title" class="block text-gray-700 ">Title</label>
+            <input type="text" id="title" name="title" class=" mt-1 block w-full border-gray-300 rounded p-2" required />
+          </div>
+          <div>
+            <label for="details" class="block text-gray-700  ">Details</label>
+            <textarea id="details" name="details" rows="4" class="mt-1 block w-full border-gray-300 rounded p-2"
+              required></textarea>
+          </div>
+          <div>
+            <label for="attachment" class="block text-gray-700">Attachment</label>
+            <input type="file" id="attachment" name="attachment" class="mt-1 block w-full text-gray-600" />
+          </div>
+          <div class="flex items-center gap-2 mb-3 ">
+            <input type="checkbox" id="hideDetails" class="h-4 w-4">
+            <label for="hideDetails" class="text-sm ">Hide my details</label>
+          </div>
+          <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-500">Submit</button>
+        </form>
+        </section>
+
+
+    
+
+<!-- history section -->
+        <section id="history" class="section hidden ">
+          <div class="bg-white rounded shadow p-6 space-y-4">
+            <div class="grid grid-cols-[1fr_auto] items-center border rounded p-4">
+              <div>
+                <h3 class="text-lg font-medium">Issue with Library Wi‑Fi</h3>
+                <p class="text-sm text-gray-500">Submitted on May 10, 2025</p>
+              </div>
+              <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Under Review</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Contacts Section -->
+      <section id="Contacts" class="section hidden">
+        <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-2xl font-bold mb-4 text-center text-indigo-900">📞 Contact Us</h2>
+          <p class="mb-2 text-gray-700 text-center">If you have any questions or need help, feel free to reach out to us:</p>
+          <div class="mt-4 space-y-2 text-gray-600">
+            <p><strong>Email:</strong> support@feedbacksystem.com</p>
+            <p><strong>Phone:</strong> +977-9800000000</p>
+            <p><strong>Office Hours:</strong> 10:00 AM – 5:00 PM (Sun–Fri)</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- Change Password Section -->
+      <section id="changePassword" class="section hidden">
+        <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md md:pr-[24px]">
+          <h2 class="text-xl font-bold mb-4 text-center">Change Password</h2>
+          <form onsubmit="return changePassword(event)" class="space-y-4">
+            <input type="password" id="currentPassword" placeholder="Current Password" required class="w-full p-3 border rounded-2xl" />
+            <input type="password" id="newPassword" placeholder="New Password" required class="w-full p-3 border rounded-2xl" />
+            <input type="password" id="confirmPassword" placeholder="Confirm New Password" required class="w-full p-3 border rounded-2xl" />
+            <button type="submit" class="w-full bg-indigo-900 text-white font-semibold py-2 rounded-2xl hover:bg-teal-600">Change Password</button>
+          </form>
+        </div>
+      </section>
+
+
+
+      <!-- Logout Confirmation Modal -->
+      <div id="logoutOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-80 text-center">
+          <h2 class="text-xl font-semibold mb-4">Confirm Logout</h2>
+          <p class="mb-6">Are you sure you want to logout?</p>
+          <div class="flex justify-center gap-4">
+            <button onclick="confirmLogout()" class="bg-green-300 text-black px-4 py-2 rounded hover:bg-green-400 transition">Yes</button>
+            <button onclick="hideLogoutModal()" class="bg-red-400  px-4 py-2 rounded hover:bg-red-700 transition">No</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+  <!-- Notification Modal -->
+      <div id="notificationOverlay" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+        <div id="notificationModal" class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+          <p id="notificationMessage" class="text-lg mb-4"></p>
+          <button onclick="hideNotification()" class="bg-indigo-900 text-white font-semibold py-2 px-4 rounded hover:bg-teal-600">OK</button>
+        </div>
+      </div>
+
+  <footer class="pt-5 row-start-3 row-end-4 bg-gray-300 text-center text-sm text-gray-600 rounded shadow h-16 shadow-md sticky bottom-0" >
+    &copy; FEEDBACK SYSTEM.
+  </footer>
+</body>
+</html>
