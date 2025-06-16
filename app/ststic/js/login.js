@@ -1,3 +1,7 @@
+function closeModal() {
+  document.getElementById("errorModal").classList.add("hidden");
+}
+
 function handleLogin(event) {
   event.preventDefault(); // prevent form submission
 
@@ -5,15 +9,12 @@ function handleLogin(event) {
   const password = document.getElementById("password").value.trim();
 
   if (username === "admin" && password === "admin123") {
-    window.location.href = "admin_dashboard.html";
+      window.location.href = window.ROUTES.admin;
   } else if (username === "user" && password === "user123") {
-    window.location.href = "user_dashboard.html";
+      window.location.href = window.ROUTES.user;
   } else {
-    // Show the modal for invalid login
-    document.getElementById("errorModal").classList.remove("hidden");
+      // Show the modal for invalid login
+      document.getElementById("errorModal").classList.remove("hidden");
   }
 }
 
-function closeModal() {
-  document.getElementById("errorModal").classList.add("hidden");
-}

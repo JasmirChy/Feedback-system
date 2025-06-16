@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign Up</title>
+  <!-- 1. Preconnect for fastest DNS/TCP/TLS setup -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+
+  <!-- 2. Preload the Tailwind script so the browser fetches it ASAP -->
+  <link rel="preload" as="script" href="https://cdn.tailwindcss.com">
+
+  <!-- 3. Load Tailwind *synchronously* so its CSS is injected before the first paint -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans relative">
@@ -12,7 +19,7 @@
 
   <!-- Signup Form -->
   <div class="bg-[#E5E4E2] p-6 rounded-xl shadow-lg md:w-[480px] sm:w-96 z-10">
-    <form id="signupForm" class="space-y-4" onsubmit="return handleSignUp(event)">
+    <form id="signupForm" class="space-y-4" method="post" onsubmit="return handleSignUp(event)">
       <div class="flex flex-col items-center mb-4">
         <h1 class="text-3xl font-bold text-teal-900">FEEDBACK SYSTEM</h1>
       </div>
@@ -74,7 +81,14 @@
       <!-- Password -->
       <div>
         <label for="password" class="block text-sm font-semibold text-black mb-1">Password</label>
-        <input type="password" id="password" name="password" required
+        <input type="password" id="password" name="password1" required
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      !-- Confirm_Password -->
+      <div>
+        <label for="password" class="block text-sm font-semibold text-black mb-1">Conform Password</label>
+        <input type="password" id="confirm_password" name="password1" required
           class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
       </div>
 
@@ -84,7 +98,7 @@
         Sign Up
       </button>
 
-      <!-- Already have account -->
+      <!-- Already have an account -->
       <div class="text-center mt-3">
         <a href="login.html" class="text-sm text-black hover:underline">Already have an account? <p class="text-blue-600">Login here</p></a>
       </div>
@@ -108,98 +122,6 @@
     </div>
   </div>
 
-  <script>
-    let userType = "studentStaff";
-
-    function setUserType(type) {
-      userType = type;
-      const studentBtn = document.getElementById("studentBtn");
-      const generalBtn = document.getElementById("generalBtn");
-      const idField = document.getElementById("idField");
-      const designationField = document.getElementById("designationField");
-      const dobField=document.getElementById("dobField");
-
-      studentBtn.className = type === 'studentStaff' ?
-        "flex-1 p-2 rounded-lg font-medium bg-indigo-900 text-white" :
-        "flex-1 p-2 rounded-lg font-medium bg-gray-300 text-black";
-
-      generalBtn.className = type === 'general' ?
-        "flex-1 p-2 rounded-lg font-medium bg-indigo-900 text-white" :
-        "flex-1 p-2 rounded-lg font-medium bg-gray-300 text-black";
-
-      idField.classList.toggle("hidden", type === "general");
-      designationField.classList.toggle("hidden", type === "general");
-      dobField.classList.toggle("hidden", type === "general");
-
-    }
-
-    function handleSignUp(event) {
-      event.preventDefault();
-
-      const email = document.getElementById("email").value.trim();
-      const fullName = document.getElementById("fullname").value.trim();
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value;
-      const idNumber = document.getElementById("idnumber").value.trim();
-      const designation = document.getElementById("designation").value.trim();
-
-      if (!email || !fullName || !username || !password) {
-        alert(" Please fill in all required fields.");
-        return false;
-      }
-
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$/;
-      if (!passwordRegex.test(password)) {
-        showErrorModal("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character (e.g., @, #, $).");
-        return false;
-      }
-
-      if (userType !== "general") {
-        if (!idNumber) {
-          alert(" ID Number is required for Student/Staff.");
-          return false;
-        }
-
-        if (!designation) {
-          alert(" Designation is required for Student/Staff.");
-          return false;
-        }
-      }
-
-      let message = "";
-      if (userType === "general") {
-        message = "General account created successfully!";
-      } else if (designation.toLowerCase() === "student") {
-        message = "Student account created successfully!";
-      } else {
-        message = "Staff account created successfully!";
-      }
-
-      document.getElementById("successMessage").innerText = message;
-      document.getElementById("successOverlay").classList.remove("hidden");
-
-      // Clear form
-      document.getElementById("signupForm").reset();
-      setUserType("studentStaff"); // Reset to default
-
-      return false;
-    }
-// for handling error message 
-    function showErrorModal(message) {
-      document.getElementById("errorMessage").innerText = message;
-      document.getElementById("errorOverlay").classList.remove("hidden");
-    }
-
-    function closeErrorModal() {
-      document.getElementById("errorOverlay").classList.add("hidden");
-    }
-
-    function closeSuccessModal() {
-      document.getElementById("successOverlay").classList.add("hidden");
-    }
-
-    // Set default
-    window.onload = () => setUserType("studentStaff");
-  </script>
+ <script src="{{url_for('static',filename='js/signup.js.js')}}"></script>
 </body>
 </html>
