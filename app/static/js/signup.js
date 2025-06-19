@@ -1,7 +1,11 @@
 
 let userType = "studentStaff";
 
-    function setUserType(type) {
+window.initSignup = function() {
+    setUserType(userType);
+  };
+
+    window.setUserType = function(type) {
       userType = type;
       const studentBtn = document.getElementById("studentBtn");
       const generalBtn = document.getElementById("generalBtn");
@@ -17,13 +21,19 @@ let userType = "studentStaff";
         "flex-1 p-2 rounded-lg font-medium bg-indigo-900 text-white" :
         "flex-1 p-2 rounded-lg font-medium bg-gray-300 text-black";
 
-      idField.classList.toggle("hidden", type === "general");
-      designationField.classList.toggle("hidden", type === "general");
-      dobField.classList.toggle("hidden", type === "general");
-
+      // Show/hide fields explicitly
+      if (type === "general") {
+        idField.classList.add("hidden");
+        designationField.classList.add("hidden");
+        dobField.classList.add("hidden");
+      } else {
+        idField.classList.remove("hidden");
+        designationField.classList.remove("hidden");
+        dobField.classList.remove("hidden");
+      }
     }
 
-    function handleSignUp(event) {
+    window.handleSignUp = function(event) {
       event.preventDefault();
 
       const email = document.getElementById("email").value.trim();
@@ -32,6 +42,13 @@ let userType = "studentStaff";
       const password = document.getElementById("password").value;
       const idNumber = document.getElementById("idnumber").value.trim();
       const designation = document.getElementById("designation").value.trim();
+      const confirmPassword = document.getElementById('confirm_password').value;
+
+      if (password !== confirmPassword) {
+        document.getElementById('errorMessage').innerText = "Passwords do not match.";
+        document.getElementById('errorOverlay').classList.remove('hidden');
+        return false;
+      }
 
       if (!email || !fullName || !username || !password) {
         alert(" Please fill in all required fields.");

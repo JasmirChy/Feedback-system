@@ -1,29 +1,90 @@
-from flask import Blueprint, render_template, url_for, request
+
+import random, mysql.connector
+from datetime import datetime, timedelta
+from flask import Blueprint, render_template, url_for, request, redirect, flash
+from app.models.db import get_db_connection
+from app.services.email import generate_unique_user_id, send_otp_email
 
 auth = Blueprint('auth', __name__)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    data = request.form
-    user = request.form['username']
-    password = request.form['password']
     if request.method == 'POST':
-
-        return
+        user = request.form['username']
+        password = request.form['password']
+        if user == 'user' and password == 'user123':
+            return redirect(url_for('views.user_dashboard'))
+        elif user == 'admin' and password == 'admin123':
+            return redirect(url_for('views.admin_dashboard'))
+        else:
+            return render_template('login.html')
     return render_template('login.html')
 
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        email = request.form.get('emil')
-        full_name = request.form.get('fullname')
-        id_number = request.form.get('idnumber')
-        d_o_b = request.form.get('dob')
-        designation = request.form.get('designation')
-        user_name = request.form.get('username')
-        password = request.form.get('password1')
-        c_password = request.form.get('password2')
-        pass
+        data = request.form
+        user_type = data.get('usertype')
+        email = data.get('emil')
+        full_name = data.get('fullname')
+        id_number = data.get('idnumber')
+        d_o_b = data.get('dob')
+        designation = data.get('designation')
+        user_name = data.get('username')
+        password = data.get('password1')
+        role_id = 2
+        status = 1
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        try:
+            if user_type == 'studentStaff':
+                user_id = id_number
+                designation_user = designation
+
+                cursor.execute(
+                    'select 1 from student_table where student_id = %s union select 1 from staff_table where staff_id = %s',
+                    (user_id, user_id))
+
+                if cursor.fetchone() is None:
+                    if designation_user.capitalize() == "STUDENT":
+                        flash("No such Student record found", 'error')
+                    else:
+                        flash("No such Student record found", 'error')
+                    return render_template('signup.html')
+
+                cursor.execute("""insert into fd_user( user_id, full_name, username, password, email, designation, dob, role_id, status) values( %s, %s, %s, %s, %s, %s, %s, %s, %s)""", ( user_id, full_name, user_name, password, email, designation, d_o_b, role_id, status))
+
+                flash("Account created!", "success")
+                return redirect(url_for('auth.login'))
+
+            else:
+                user_id = generate_unique_user_id(cursor)
+
+                otp = f"{random.randint(0,999999):06d}"
+                expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+                cursor.execute("""insert into email_verifications( email, otp, expires_at) values( %s, %s, %s) on duplicate key update otp=%s, expires_at=%s""", ( email, otp, expires_at, otp, expires_at))
+                conn.commit()
+
+                send_otp_email( email, otp)
+
+                request.session['pending_user'] = {
+                    'user_id': user_id,
+                    'full_name': full_name,
+                    'user_name': user_name,
+                    'password': password,
+                    'email': email,
+                    'role_id': role_id,
+                    'status': status
+                }
+
+                return redirect(url_for('auth.verify_otp'))
+        except mysql.connector.Error as err:
+            flash(f'Database error: {err.msg}', 'error')
+            return render_template('signup.html')
+
     return render_template('signup.html')
