@@ -1,5 +1,2 @@
-import mysql.connector
-from flask import Flask
+from db import get_db_connection
 
-def create_db():
-    db = Flask(__name__)
