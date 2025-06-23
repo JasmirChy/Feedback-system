@@ -1,7 +1,7 @@
 
 import random, mysql.connector
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, url_for, request, redirect, flash
+from flask import Blueprint, render_template, url_for, request, redirect, flash, session
 from app.models.db import get_db_connection
 from app.services.email import generate_unique_user_id, send_otp_email
 
@@ -72,7 +72,7 @@ def signup():
 
                 send_otp_email( email, otp)
 
-                request.session['pending_user'] = {
+                session['pending_user'] = {
                     'user_id': user_id,
                     'full_name': full_name,
                     'user_name': user_name,
@@ -88,3 +88,45 @@ def signup():
             return render_template('signup.html')
 
     return render_template('signup.html')
+
+@auth.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp():
+    pending = session.get('pending_user')
+    if not pending:
+        return redirect(url_for('auth.signup'))
+
+    if request.method == 'POST':
+        entered_otp = request.form.get('otp')
+        stored_otp = pending.get('otp')
+        expires_at = pending.get('expires_at')
+
+        if entered_otp == stored_otp and datetime.utcnow() < expires_at:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            try:
+                cursor.execute("""
+                    INSERT INTO fd_user (user_id, full_name, username, password, email, designation, dob, role_id, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    pending['user_id'],
+                    pending['full_name'],
+                    pending['user_name'],
+                    pending['password'],
+                    pending['email'],
+                    pending['designation'],
+                    pending['dob'],
+                    pending['role_id'],
+                    pending['status']
+                ))
+                conn.commit()
+                flash("Account created successfully!", "success")
+                return redirect(url_for('auth.login'))
+            except mysql.connector.Error as err:
+                flash(f"Database error: {err.msg}", "error")
+                return render_template('verify_otp.html')
+        else:
+            flash("Invalid or expired OTP. Please try again.", "error")
+            return render_template('verify_otp.html')
+
+    return render_template('verify_otp.html')
