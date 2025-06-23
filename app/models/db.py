@@ -91,7 +91,7 @@ table_statements = [
     """
     CREATE TABLE fd_user (
       user_id  INT(11) NOT NULL,
-      full_name VARCHAR(3o) NOT NULL,
+      full_name VARCHAR(30) NOT NULL,
       username VARCHAR(20) NOT NULL UNIQUE,
       password VARCHAR(255) NOT NULL,
       email    VARCHAR(60) NOT NULL UNIQUE,

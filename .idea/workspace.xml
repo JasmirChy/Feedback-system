@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3c5ff483-3a76-48ad-86a2-6945b23928e9" name="Changes" comment="database creation and table creation code in model.py file">
+    <list default="true" id="3c5ff483-3a76-48ad-86a2-6945b23928e9" name="Changes" comment="small changes and file structure betterment">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/db.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,6 +49,8 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Feedback System\app\models" />
+      <recent name="D:\Feedback System\app\routes" />
       <recent name="D:\Feedback System\app\ststic\js" />
     </key>
   </component>
@@ -85,7 +85,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750333131818</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="small changes and file structure betterment">
+      <option name="closed" value="true" />
+      <created>1750659825315</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1750659825315</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -136,6 +144,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="database creation and table creation code in model.py file" />
-    <option name="LAST_COMMIT_MESSAGE" value="database creation and table creation code in model.py file" />
+    <MESSAGE value="small changes and file structure betterment" />
+    <option name="LAST_COMMIT_MESSAGE" value="small changes and file structure betterment" />
   </component>
 </project>
