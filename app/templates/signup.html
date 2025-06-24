@@ -4,29 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign Up</title>
-  <!-- 1. Preconnect for fastest DNS/TCP/TLS setup -->
+
+  <!-- Preconnect for fastest DNS/TCP/TLS setup -->
   <link rel="preconnect" href="https://cdn.tailwindcss.com">
-
-  <!-- 2. Preload the Tailwind script so the browser fetches it ASAP -->
-  <link rel="preload" as="script" href="https://cdn.tailwindcss.com">
-
-  <!-- 3. Load Tailwind *synchronously* so its CSS is injected before the first paint -->
   <script src="https://cdn.tailwindcss.com"></script>
+
 </head>
-<body class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans relative">
+<body onload="initSignup()" class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans relative">
 
   
 
   <!-- Signup Form -->
   <div class="bg-[#E5E4E2] p-6 rounded-xl shadow-lg md:w-[480px] sm:w-96 z-10">
-    <form id="signupForm" class="space-y-4 " method="post" onsubmit="return handleSignUp(event)">
+    <form id="signupForm" class="space-y-4 " method="post" action="{{ url_for('auth.signup') }}">
       <div class="flex flex-col items-center mb-4">
         <h1 class="text-3xl font-bold text-teal-900">FEEDBACK SYSTEM</h1>
       </div>
       <h2 class="text-center text-lg font-bold text-black">Create Account</h2>
 
       <!-- Hidden userType -->
-      <input type="hidden" id="userType" name="userType" value="studentStaff">
+      <input type="hidden" id="userType" name="usertype" value="studentStaff">
 
       <!-- Toggle Buttons -->
       <div class="flex justify-between gap-2">
@@ -58,7 +55,7 @@
           placeholder="Enter your ID">
       </div>
       <!-- Date of Birth -->
-      <div id="dobField" >
+      <div>
         <label for="dob" class="block text-sm font-semibold text-black mb-1">Date of Birth</label>
         <input type="text" id="dob" name="dob"
           class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -83,15 +80,15 @@
 
       <!-- Password -->
       <div>
-        <label for="password" class="block text-sm font-semibold text-black mb-1">Password</label>
-        <input type="password" id="password" name="password1" required
+        <label for="password1" class="block text-sm font-semibold text-black mb-1">Password</label>
+        <input type="password" id="password1" name="password1" required
           class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
       </div>
 
       <!-- Confirm_Password -->
       <div>
-        <label for="confirm_password" class="block text-sm font-semibold text-black mb-1">Confirm Password</label>
-        <input type="password" id="confirm_password" name="password2" required
+        <label for="password2" class="block text-sm font-semibold text-black mb-1">Confirm Password</label>
+        <input type="password" id="password2" name="password2" required
           class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
       </div>
 
@@ -103,7 +100,7 @@
 
       <!-- Already have an account -->
       <div class="text-center mt-3">
-        <a href="login.html" class="text-sm text-black hover:underline">Already have an account? <p class="text-blue-600">Login here</p></a>
+        <a href="{{url_for('auth.login')}}" class="text-sm text-black hover:underline">Already have an account? <p class="text-blue-600">Login here</p></a>
       </div>
     </form>
 

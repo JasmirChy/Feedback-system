@@ -1,6 +1,5 @@
 import smtplib,random
-from app.models.db import get_db_connection
-
+from flask import current_app
 
 def generate_unique_user_id(curser):
     while True:
@@ -11,11 +10,16 @@ def generate_unique_user_id(curser):
 
 
 def send_otp_email(to_email, otp):
-    smtp = smtplib.SMTP_SSL(get_db_connection().SMTP_HOST, get_db_connection().SMTP_PORT)
-    smtp.login(get_db_connection().SMTP_USER, get_db_connection().SMTP_PASS)
-    message = f"""\
-Subject: Your Verification Code
+    cfg = current_app.config
+    msg = (
+        f"Subject: Your Verification Code\r\n"
+        f"\r\n"
+        f"Your OTP is {otp}. It expires in 15 minutes."
+    )
 
-Your OTP is {otp}. It expires in 15 minutes."""
-    smtp.sendmail(get_db_connection().SMTP_FROM, to_email, message)
-    smtp.quit()
+    try:
+        with smtplib.SMTP_SSL(cfg['SMTP_HOST'], cfg['SMTP_PORT']) as smtp:
+            smtp.login(cfg['SMTP_USER'], cfg['SMTP_PASS'])
+            smtp.sendmail(cfg['SMTP_FROM'], to_email, msg)
+    except Exception as e:
+        current_app.logger.warning(f"Could not send real email, OTP is {otp}: {e}")
