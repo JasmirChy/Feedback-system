@@ -3,200 +3,848 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> User Dashboard</title>
-
- <!-- 1. Preconnect for fastest DNS/TCP/TLS setup -->
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
-  <script src="https://cdn.tailwindcss.com"></script>
-
+  <title>User Dashboard</title>
   <script src="user_dashboard.js" defer></script>
 
+  <script src="https://cdn.tailwindcss.com"></script>
+
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      --accent-gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%);
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .desktop-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      gap: 0;
+    }
+    
+    .desktop-header {
+      grid-column: 1 / -1;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(20px);
+      background: var(--glass-bg);
+      border-bottom: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .desktop-sidebar {
+      grid-row: 2;
+      position: sticky;
+      top: 80px;
+      height: calc(100vh - 80px);
+      overflow-y: auto;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border-right: 1px solid #e2e8f0;
+      z-index: 40;
+    }
+    
+    .desktop-main {
+      grid-row: 2;
+      padding: 2rem;
+      overflow-y: auto;
+      height: calc(100vh - 80px);
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+    }
+    
+    @media (max-width: 767px) {
+      .desktop-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+      
+      .desktop-sidebar {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+      }
+      
+      .desktop-main {
+        padding: 1rem;
+        height: calc(100vh - 80px);
+      }
+      
+      .desktop-header {
+        padding: 0 1rem;
+      }
+      
+      .premium-card {
+        padding: 1.5rem;
+      }
+      
+      .grid-cols-12, .md\\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+      }
+      
+      .form-input, textarea {
+        padding: 0.75rem !important;
+      }
+      
+      .dashboard-card, .premium-card {
+        border-radius: 12px !important;
+      }
+      
+      .text-3xl {
+        font-size: 1.5rem !important;
+      }
+      
+      .text-2xl {
+        font-size: 1.25rem !important;
+      }
+      
+      .w-16 {
+        width: 3rem !important;
+        height: 3rem !important;
+      }
+      
+      .w-14 {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+      }
+      
+      .w-20 {
+        width: 4rem !important;
+        height: 4rem !important;
+      }
+      
+      .w-24 {
+        width: 4.5rem !important;
+        height: 4.5rem !important;
+      }
+      
+      .text-lg {
+        font-size: 0.875rem !important;
+      }
+      
+      .p-8 {
+        padding: 1.5rem !important;
+      }
+      
+      .p-6 {
+        padding: 1.25rem !important;
+      }
+      
+      .text-sm {
+        font-size: 0.75rem !important;
+      }
+      
+      .space-y-8 {
+        gap: 1.5rem !important;
+      }
+      
+      .space-y-6 {
+        gap: 1.25rem !important;
+      }
+      
+      .space-y-4 {
+        gap: 1rem !important;
+      }
+      
+      .px-8 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+      
+      .py-6 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+      }
+      
+      .flex.items-center.space-x-4 {
+        gap: 0.75rem;
+      }
+      
+      .flex.items-center.space-x-3 {
+        gap: 0.5rem;
+      }
+      
+      .w-12 {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+      }
+      
+      .rounded-2xl {
+        border-radius: 0.75rem !important;
+      }
+      
+      .text-xl {
+        font-size: 1rem !important;
+      }
+      
+      .btn-primary {
+        padding: 0.75rem 1.5rem !important;
+      }
+      
+      .flex.space-x-2 {
+        gap: 0.5rem;
+      }
+      
+      .px-4 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+      }
+      
+      .py-2 {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+      }
+    }
+    
+    .glass-effect {
+      backdrop-filter: blur(20px);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+    }
+    
+    .glass-dark {
+      backdrop-filter: blur(20px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .premium-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 16px;
+    }
+    
+    .premium-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+      border-color: #0d9488;
+    }
+    
+    .nav-item {
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 12px;
+      margin: 4px 0;
+    }
+    
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 0;
+      background: var(--accent-gradient);
+      border-radius: 0 4px 4px 0;
+      transition: height 0.2s ease;
+    }
+    
+    .nav-item:hover::before {
+      height: 60%;
+    }
+    
+    .nav-item:hover {
+      background: linear-gradient(90deg, rgba(13, 148, 136, 0.1) 0%, transparent 50%);
+      transform: translateX(8px);
+    }
+    
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(13, 148, 136, 0.1) 0%, white 100%);
+      color: #0d9488;
+      border: 1px solid rgba(13, 148, 136, 0.2);
+      transform: translateX(8px);
+    }
+    
+    .nav-item.active::before {
+      height: 60%;
+      background: var(--accent-gradient);
+    }
+    
+    .nav-item.active:hover {
+      transform: translateX(8px);
+    }
+    
+    .btn-primary {
+      background: var(--accent-gradient);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
+    }
+    
+    .form-input {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid #e2e8f0;
+      background: white;
+    }
+    
+    .form-input:focus {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+      background: #fefefe;
+    }
+    
+    .section {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .section:not(.hidden) {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .status-indicator {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .status-indicator::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0d9488, #06b6d4);
+      border-radius: 3px;
+    }
+    
+    .dashboard-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .dashboard-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--accent-gradient);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .dashboard-card:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .dashboard-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .rotate-180 {
+      transform: rotate(180deg);
+    }
+  </style>
 </head>
 
-<body class="bg-gray-100 font-roboto min-h-screen grid grid-rows-[auto_1fr_auto]">
-
-  <header class="row-start-1 row-end-2 shadow p-4 grid-cols-2 bg-white rounded shadow flex justify-between items-center shadow-md sticky top-0">
-    <h1 class="text-xl font-bold text-teal-900">FEEDBACK SYSTEM</h1>
-    <button class="md:hidden text-black text-3xl relative z-20" onclick="toggleMenu()" id="menuBtn">
-      &#9776;
-    </button>
-  </header>
-
-  <div class="row-start-2 row-end-3 grid md:grid-cols-[1fr_3fr] gap-6 p-6">
-    <!-- Sidebar -->
-    <aside class="col-start-1 bg-white rounded w-64 shadow p-4 hidden md:block">
-      <nav class="gap-4">
-        <a onclick="showSection('home')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer ">📨 Home</a>
-        <a onclick="showSection('profile')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">👤 Profile</a>
-        <a onclick="showSection('Reports')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">📄 Reports</a>
-        <a onclick="showSection('Contacts')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">📞 Contacts</a>
-
-        <div>
-          <div onclick="toggleSubmenu('settingsSubmenuSidebar')" class="block p-2 rounded hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">⚙️ Settings ⯆</div>
-          <ul id="settingsSubmenuSidebar" class="ml-4 hidden space-y-1">
-            <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all rounded hover:pl-4 transition-all" onclick="showSection('changePassword')">🔐 Change Password</li>
-          </ul>
-        </div>
-        <a onclick="logout()" class="block p-2 hover:bg-indigo-100 hover:pl-4 transition-all cursor-pointer">🔓 Logout</a>
-      </nav>
-    </aside>
-
-    <!-- Mobile Popup Menu -->
-    <div id="popupMenu" class="md:hidden absolute top-16 right-4 bg-white text-black w-56 rounded shadow-lg z-50 hidden p-4">
-      <ul class="space-y-3">
-        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('home')">📨 Home</li>
-        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('profile')">👤 Profile</li>
-        <!-- <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('status')">📄 View Feedback Status</li> -->
-        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('Reports')">📄 Reports</li>
-        <li class="cursor-pointer hover:bg-indigo-100 hover:pl-2 transition-all" onclick="showSection('Contacts')">📞 Contacts</li>
-
-        <li class="cursor-pointer hover:bg-indigo-100 rounded hover:pl-4 transition-all" onclick="toggleSubmenu('settingsSubmenuPopup')">⚙️ Settings ⯆</li>
-        <ul id="settingsSubmenuPopup" class="ml-4 hidden space-y-1">
-          <li class="cursor-pointer hover:bg-indigo-100 rounded hover:pl-2 transition-all" onclick="showSection('changePassword')">🔐 Change Password</li>
-        </ul>
-        <li class="cursor-pointer hover:bg-indigo-100 p-2 rounded hover:pl-3 transition-all flex items-center" onclick="logout()">
-            <span class="mr-2">🔓</span> Logout      </ul>
-    </div>
-
-    <!-- Main Content Area -->
-    <main class="grid gap-6">
-
-      <!-- Home Section -->
-      <section id="home" class="section  min-h-screen p-5 md:pr-[130px] ">
-        <div class="bg-white p-6 rounded shadow">
-          <h2 class="text-2xl font-semibold text-indigo-900 text-center  md:h-20">Welcome, User!</h2>
-          <p class="text-gray-600 text-center">Here you can submit new feedback and track existing submissions.</p>
-        </div>
-        <div class="grid md:grid-cols-2 gap-4 mt-4 md:h-80 md:mt-40 md:w-100 text-center ">
-          <a  onclick="showSection('subfeedback')" class=" bg-teal-600 text-white p-6 rounded shadow hover:bg-teal-500">
-            <h3 class="text-xl font-bold mb-2">Submit Feedback</h3>
-            <p>Create a new feedback entry.</p>
-          </a>
-          <a onclick="showSection('history')" class="block bg-indigo-900 text-white p-6 rounded shadow hover:bg-indigo-800">
-            <h3 class="text-xl font-bold mb-2">View History</h3>
-            <p>Review status of your past submissions.</p>
-          </a>
-        </div>
-      </section>
-
-
-      <!-- Profile Section -->
-      <section id="profile" class="section hidden">
-        <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md ">
-          <h2 class="text-xl font-bold mb-4">Your Profile</h2>
-          <p><strong>Name:</strong> Jasmir</p>
-          <p><strong>Email:</strong> userkoo@example.com</p>
-          <p><strong>Username:</strong> user</p>
-          <p><strong>ID:</strong> 821008</p>
-        </div>
-      </section>
-
-      <!-- Report Section -->
-      <section id="Reports" class="section hidden text-center">
-        <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md">
-          <h2 class="text-xl font-bold mb-4">Feedback Reports</h2>
-          <p> In this section we will display graphs as Report</p>
-        </div>
-      </section>
-
-<!-- submit section -->
-      <section id="subfeedback" class="section hidden md:pr-24 md:pt:4 ">
-        <h2 class="text-2xl font-semibold text-indigo-900 mb-4 ">Submit Feedback</h2>
-        <form class="grid gap-4">
-          <div>
-            <label for="title" class="block text-gray-700 ">Title</label>
-            <input type="text" id="title" name="title" class=" mt-1 block w-full border-gray-300 rounded p-2" required />
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 font-medium">
+  <div class="desktop-grid">
+    <header class="desktop-header">
+      <div class="px-8 py-6 flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center shadow-lg">
+            <i class="fas fa-comments text-white text-xl"></i>
           </div>
           <div>
-            <label for="details" class="block text-gray-700  ">Details</label>
-            <textarea id="details" name="details" rows="4" class="mt-1 block w-full border-gray-300 rounded p-2"
-              required></textarea>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              Feedback System
+            </h1>
+            <p class="text-sm text-slate-500 font-medium">User Dashboard</p>
           </div>
-          <div>
-            <label for="attachment" class="block text-gray-700">Attachment</label>
-            <input type="file" id="attachment" name="attachment" class="mt-1 block w-full text-gray-600" />
+        </div>
+        
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-3 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+              <a onclick="showSection('profile')" class="fas fa-user  text-sm"> </a>
+            </div>
+            <div class="text-sm hidden sm:block">
+              <div class="font-semibold text-slate-800" >Jasmir</div>
+              <div class="text-slate-500">User ID: #821008</div>
+            </div>
           </div>
-          <div class="flex items-center gap-2 mb-3 ">
-            <input type="checkbox" id="hideDetails" class="h-4 w-4">
-            <label for="hideDetails" class="text-sm ">Hide my details</label>
-          </div>
-          <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-500">Submit</button>
-        </form>
-        </section>
-
-
+          <button id="hamburger-button" onclick="toggleMobileMenu()" class="md:hidden text-slate-700 hover:text-teal-600 p-2">
+            <i id="hamburger-icon" class="fas fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </header>
     
-
-<!-- history section -->
-        <section id="history" class="section hidden ">
-          <div class="bg-white rounded shadow p-6 space-y-4">
-            <div class="grid grid-cols-[1fr_auto] items-center border rounded p-4">
-              <div>
-                <h3 class="text-lg font-medium">Issue with Library Wi‑Fi</h3>
-                <p class="text-sm text-gray-500">Submitted on May 10, 2025</p>
+    <aside id="mobile-sidebar" class="desktop-sidebar custom-scrollbar">
+      <div class="p-6">
+        <nav class="space-y-2">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Main Menu</div>
+          
+          <a onclick="showSection('home')" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+            <i class="fas fa-home w-5 text-lg"></i>
+            <span class="font-semibold">Dashboard</span>
+          </a>
+          
+          <a onclick="showSection('subfeedback')" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+            <i class="fas fa-plus-circle w-5 text-lg"></i>
+            <span class="font-semibold">Submit Feedback</span>
+          </a>
+          
+          <a onclick="showSection('history')" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+            <i class="fas fa-history w-5 text-lg"></i>
+            <span class="font-semibold">Feedback History</span>
+          </a>
+          
+          <!-- <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3 mt-8">Management</div> -->
+          
+          <a onclick="showSection('profile')" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+            <i class="fas fa-user-circle w-5 text-lg"></i>
+            <span class="font-semibold">Profile Settings</span>
+          </a>
+          
+          
+          <div >
+            <div onclick="toggleSubmenu('settingsSubmenuSidebar')" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+              <div class="flex items-center space-x-3">
+                <i class="fas fa-cog w-5 text-lg"></i>
+                <span class="font-semibold">System Settings</span>
               </div>
-              <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded">Under Review</span>
+              <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+            </div>
+            <ul id="settingsSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
+              <li class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all" onclick="showSection('changePassword')">
+                <i class="fas fa-shield-alt text-sm mr-3"></i>Security & Password
+              </li>
+            </ul>
+          </div>
+          
+          <div class="pt-8 border-t border-slate-200 mt-8">
+            <a onclick="logout()" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50" href="login.html">
+              <i class="fas fa-sign-out-alt w-5 text-lg"></i>
+
+              <span class="font-semibold">Sign Out</span>
+            </a>
+          </div>
+        </nav>
+      </div>
+    </aside>
+    
+    <main class="desktop-main custom-scrollbar">
+      <div class="max-w-6xl mx-auto space-y-8">
+        <section id="home" class="section fade-in">
+          <div class="grid grid-cols-12 gap-8">
+            <div class="col-span-12 lg:col-span-12"> <!-- Changed to lg:col-span-12 -->
+              <div class="premium-card p-8 h-full">
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-2">Welcome back, User</h2>
+                    <p class="text-slate-600 text-lg">Here's what's happening with your feedback today</p>
+                  </div>
+                  <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-chart-line text-white text-2xl"></i>
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-6">
+                  <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                    <div class="text-2xl font-bold text-blue-600">
+                      <span id="totalSubmissionsCount">0</span>
+                    </div>
+                    <div class="text-sm text-blue-700 font-medium">Total Submissions</div>
+                  </div>
+                  <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
+                    <div class="text-2xl font-bold text-yellow-600">
+                      <span id="pendingSubmissionsCount">0</span>
+                    </div>
+                    <div class="text-sm text-yellow-700 font-medium">Pending</div>
+                  </div>
+                  <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                    <div class="text-2xl font-bold text-green-600">
+                      <span id="resolvedSubmissionsCount">0</span>
+                    </div>
+                    <div class="text-sm text-green-700 font-medium">Resolved</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Removed Quick Actions section -->
+            
+            <div class="col-span-12">
+              <div class="grid md:grid-cols-2 gap-8">
+                <div onclick="showSection('subfeedback')" class="dashboard-card cursor-pointer p-8 rounded-2xl">
+                  <div class="flex items-center justify-between mb-6">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                      <i class="fas fa-edit text-white text-2xl"></i>
+                    </div>
+                    <i class="fas fa-arrow-right text-slate-400 text-xl"></i>
+                  </div>
+                  <h3 class="text-2xl font-bold text-slate-800 mb-3">Submit New Feedback</h3>
+                  <p class="text-slate-600 leading-relaxed">Share your thoughts, suggestions, or report issues. Your feedback helps us improve our services continuously.</p>
+                </div>
+                
+                <div onclick="showSection('history')" class="dashboard-card cursor-pointer p-8 rounded-2xl">
+                  <div class="flex items-center justify-between mb-6">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+                      <i class="fas fa-clock text-white text-2xl"></i>
+                    </div>
+                    <i class="fas fa-arrow-right text-slate-400 text-xl"></i>
+                  </div>
+                  <h3 class="text-2xl font-bold text-slate-800 mb-3">Track Your Submissions</h3>
+                  <p class="text-slate-600 leading-relaxed">Monitor the progress of your feedback submissions and see how they're being addressed by our team.</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- Contacts Section -->
-      <section id="Contacts" class="section hidden">
-        <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-          <h2 class="text-2xl font-bold mb-4 text-center text-indigo-900">📞 Contact Us</h2>
-          <p class="mb-2 text-gray-700 text-center">If you have any questions or need help, feel free to reach out to us:</p>
-          <div class="mt-4 space-y-2 text-gray-600">
-            <p><strong>Email:</strong> support@feedbacksystem.com</p>
-            <p><strong>Phone:</strong> +977-9800000000</p>
-            <p><strong>Office Hours:</strong> 10:00 AM – 5:00 PM (Sun–Fri)</p>
+        <section id="subfeedback" class="section hidden">
+          <div class="premium-card p-10 max-w-4xl mx-auto border border-slate-200 rounded-3xl shadow-xl bg-white">
+            <div class="text-center mb-10">
+              <div class="w-20 h-20 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fas fa-paper-plane text-white text-3xl"></i>
+              </div>
+              <h2 class="text-4xl font-extrabold text-slate-900 mb-2">Share Your Feedback</h2>
+              <p class="text-lg text-slate-600">Your insights drive our improvements. We appreciate your input!</p>
+            </div>
+            
+            <form id="submitFeedbackForm" class="space-y-8" enctype="multipart/form-data">
+              <div class="grid md:grid-cols-2 gap-8">
+                <div class="md:col-span-2">
+                  <label for="title" class="block text-base font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-lightbulb mr-2 text-teal-600"></i>Feedback Title
+                  </label>
+                  <input type="text" id="title" name="title" 
+                         class="form-input w-full p-4 rounded-xl border border-slate-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium text-slate-800 placeholder-slate-400" 
+                         placeholder="A concise summary of your feedback..." required />
+                </div>
+                
+                <div class="md:col-span-2">
+                  <label for="category" class="block text-base font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-tags mr-2 text-teal-600"></i>Category
+                  </label>
+                  <select id="category" name="category" 
+                          class="form-input w-full p-4 rounded-xl border border-slate-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium text-slate-800" required>
+                    <!-- Options will be dynamically populated by JavaScript -->
+                  </select>
+                </div>
+
+                <div class="md:col-span-2">
+                  <label for="details" class="block text-base font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-pencil-alt mr-2 text-teal-600"></i>Detailed Description
+                  </label>
+                  <textarea id="details" name="details" rows="8" 
+                            class="form-input w-full p-4 rounded-xl border border-slate-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium text-slate-800 resize-y placeholder-slate-400"
+                            placeholder="Please provide all relevant details. For bugs, include steps to reproduce. For features, explain the benefit..." required></textarea>
+                </div>
+                
+                <div class="md:col-span-2">
+                  <label for="attachment" class="block text-base font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-paperclip mr-2 text-teal-600"></i>Attachments (Optional)
+                  </label>
+                  <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 transition-colors bg-slate-50 cursor-pointer">
+                    <input type="file" id="attachment" name="attachment" class="hidden" multiple />
+                    <label for="attachment" class="cursor-pointer block">
+                      <i class="fas fa-cloud-upload-alt text-5xl text-slate-400 mb-4"></i>
+                      <p class="text-slate-700 font-semibold text-lg">Drag & Drop files here or <span class="text-teal-600 underline">Browse</span></p>
+                      <p class="text-sm text-slate-500 mt-2">Max file size: 10MB per file. Accepted: Images, PDFs, Documents.</p>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3">
+                  <input type="checkbox" id="hideDetails" class="w-5 h-5 text-teal-600 rounded-md border-slate-300 focus:ring-teal-500 focus:ring-2 accent-teal-600">
+                  <label for="hideDetails" class="text-base font-medium text-slate-700 cursor-pointer">
+                    <i class="fas fa-mask mr-2 text-slate-500"></i>Submit anonymously
+                  </label>
+                </div>
+                <button type="submit" class="btn-primary px-10 py-4 text-white font-semibold rounded-xl text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                  <i class="fas fa-paper-plane mr-3"></i>Send Feedback
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
-      </section>
+        </section>
 
-
-      <!-- Change Password Section -->
-      <section id="changePassword" class="section hidden">
-        <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md md:pr-[24px]">
-          <h2 class="text-xl font-bold mb-4 text-center">Change Password</h2>
-          <form onsubmit="return changePassword(event)" class="space-y-4">
-            <input type="password" id="currentPassword" placeholder="Current Password" required class="w-full p-3 border rounded-2xl" />
-            <input type="password" id="newPassword" placeholder="New Password" required class="w-full p-3 border rounded-2xl" />
-            <input type="password" id="confirmPassword" placeholder="Confirm New Password" required class="w-full p-3 border rounded-2xl" />
-            <button type="submit" class="w-full bg-indigo-900 text-white font-semibold py-2 rounded-2xl hover:bg-teal-600">Change Password</button>
-          </form>
-        </div>
-      </section>
-
-
-
-      <!-- Logout Confirmation Modal -->
-      <div id="logoutOverlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-xl shadow-xl p-6 w-80 text-center">
-          <h2 class="text-xl font-semibold mb-4">Confirm Logout</h2>
-          <p class="mb-6">Are you sure you want to logout?</p>
-          <div class="flex justify-center gap-4">
-            <button onclick="confirmLogout()" class="bg-green-300 text-black px-4 py-2 rounded hover:bg-green-400 transition">Yes</button>
-            <button onclick="hideLogoutModal()" class="bg-red-400  px-4 py-2 rounded hover:bg-red-700 transition">No</button>
+        <section id="history" class="section hidden">
+          <div class="premium-card p-8">
+            <div class="flex items-center justify-between mb-8">
+              <div class="flex items-center">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mr-6 shadow-lg">
+                  <i class="fas fa-history text-white text-xl"></i>
+                </div>
+                <div>
+                  <h2 class="text-3xl font-bold text-slate-800">Feedback History</h2>
+                  <p class="text-slate-600 mt-1">Track the status of your submissions</p>
+                </div>
+              </div>
+              </div>
+            
+            <div id="userFeedbackHistoryContainer" class="space-y-4">
+              <!-- Feedback cards will be rendered here by JavaScript -->
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section id="userFeedbackDetails" class="section hidden">
+          <div class="premium-card p-8 max-w-4xl mx-auto">
+            <div class="flex items-center mb-8">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                <i class="fas fa-info-circle text-white text-xl"></i>
+              </div>
+              <div>
+                <h2 class="text-3xl font-bold text-slate-800">Feedback Details</h2>
+                <p class="text-slate-600 mt-1">Detailed view of your submitted feedback</p>
+              </div>
+            </div>
+            
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Title: <span id="detailUserTitle" class="font-normal text-slate-600"></span></h3>
+              </div>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <p class="text-base font-semibold text-slate-700">Submitter: <span id="detailUserSubmitter" class="font-normal text-slate-600"></span></p>
+                </div>
+                <div>
+                  <p class="text-base font-semibold text-slate-700">Category: <span id="detailUserCategory" class="font-normal text-slate-600"></span></p>
+                </div>
+                <div>
+                  <p class="text-base font-semibold text-slate-700">Status: <span id="detailUserStatus" class="font-normal text-slate-600 px-3 py-1 rounded-full text-sm"></span></p>
+                </div>
+                <div>
+                  <p class="text-base font-semibold text-slate-700">Date: <span id="detailUserDate" class="font-normal text-slate-600"></span></p>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Message:</h3>
+                <p id="detailUserMessage" class="text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-200"></p>
+              </div>
+            </div>
+            
+            <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
+              <button type="button" onclick="goBackToFeedbackHistory()" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to History
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section id="profile" class="section hidden">
+          <div class="premium-card p-8 max-w-4xl mx-auto">
+            <div class="flex items-center mb-8">
+              <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                <i class="fas fa-user text-white text-2xl"></i>
+              </div>
+              <div>
+                <h2 class="text-3xl font-bold text-slate-800">Profile Settings</h2>
+                <p class="text-slate-600 mt-1">Manage your account information and preferences</p>
+              </div>
+            </div>
+            
+            <div id="prof" class="grid md:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-user-circle mr-2 text-teal-600"></i>Profile Picture
+                  </label>
+                  <div class="flex items-center space-x-6">
+                    <div class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
+                      <i class="fas fa-user text-slate-400 text-3xl"></i>
+                    </div>
+                    <div class="space-y-2">
+                      <button class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
+                        <i class="fas fa-upload mr-2"></i>Upload New
+                      </button>
+                      <button class="px-4 py-2 bg-slate-100 text-red-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
+                        <i class="fas fa-trash mr-2"></i>Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
+                  </label>
+                  <input type="text" id="fullName" class="form-input w-full p-3 rounded-lg" value="Jasmir User">
+                </div>
+                
+                <div>
+                  <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
+                  </label>
+                  <input type="email" id="email" class="form-input w-full p-3 rounded-lg" value="jasmir@example.com">
+                </div>
+              </div>
+              
+              <div class="space-y-6">
+                <div>
+                  <label for="department" class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-building mr-2 text-teal-600"></i>Department
+                  </label>
+                  <select id="department" class="form-input w-full p-3 rounded-lg">
+                    <option>Information Technology</option>
+                    <option>Human Resources</option>
+                    <option>Finance</option>
+                    <option>Operations</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="position" class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-briefcase mr-2 text-teal-600"></i>Position
+                  </label>
+                  <input type="text" id="position" class="form-input w-full p-3 rounded-lg" value="Software Developer">
+                </div>
+                
+                <div>
+                  <label for="phone" class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-phone mr-2 text-teal-600"></i>Phone Number
+                  </label>
+                  <input type="tel" id="phone" class="form-input w-full p-3 rounded-lg" value="+1 (555) 123-4567">
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
+              <button onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                Cancel
+              </button>
+              <button class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                <i class="fas fa-save mr-2"></i>Save Changes
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Removed Support Center Section -->
+
+        <section id="changePassword" class="section hidden">
+          <div class="premium-card p-8 max-w-4xl mx-auto">
+            <div class="flex items-center mb-8">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                <i class="fas fa-shield-alt text-white text-xl"></i>
+              </div>
+              <div>
+                <h2 class="text-3xl font-bold text-slate-800">Security & Password</h2>
+                <p class="text-slate-600 mt-1">Update your password and security settings</p>
+              </div>
+            </div>
+            
+            <form class="space-y-6">
+              <div>
+                <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                  <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
+                </label>
+                <input type="password" id="currentPassword" class="form-input w-full p-3 rounded-lg" placeholder="Enter current password">
+              </div>
+              
+              <div>
+                <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                  <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
+                </label>
+                <input type="password" id="newPassword" class="form-input w-full p-3 rounded-lg" placeholder="Enter new password">
+              </div>
+              
+              <div>
+                <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                  <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
+                </label>
+                <input type="password" id="confirmPassword" class="form-input w-full p-3 rounded-lg" placeholder="Confirm new password">
+              </div>
+              
+              <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200">
+                <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                  <i class="fas fa-save mr-2"></i>Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
       </div>
-
     </main>
   </div>
-  <!-- Notification Modal -->
-      <div id="notificationOverlay" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center">
-        <div id="notificationModal" class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
-          <p id="notificationMessage" class="text-lg mb-4"></p>
-          <button onclick="hideNotification()" class="bg-indigo-900 text-white font-semibold py-2 px-4 rounded hover:bg-teal-600">OK</button>
-        </div>
-      </div>
-
-  <footer class="pt-5 row-start-3 row-end-4 bg-gray-300 text-center text-sm text-gray-600 rounded shadow h-16 shadow-md sticky bottom-0" >
-    &copy; FEEDBACK SYSTEM.
-  </footer>
 </body>
 </html>
-
-
-
-

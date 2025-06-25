@@ -4,124 +4,185 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign Up</title>
-
-  <!-- Preconnect for fastest DNS/TCP/TLS setup -->
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Import Inter font from Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    /* Define CSS variables for consistent styling */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      --accent-gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%);
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Universal box-sizing for consistent layout */
+    * { box-sizing: border-box; }
+    
+    /* Base body styles */
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%); /* Consistent background */
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
 
+    /* Primary button styling with hover and shimmer effects */
+    .btn-primary {
+      background: var(--accent-gradient);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden; /* For shimmer effect */
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%; /* Start off-screen */
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn-primary:hover::before {
+      left: 100%; /* Slide across button */
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
+    }
+
+    /* Form input styling with focus effects */
+    .form-input {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid #e2e8f0;
+      background: white;
+    }
+    
+    .form-input:focus {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+      background: #fefefe;
+    }
+
+    /* Specific styles for the user type toggle buttons */
+    .btn-toggle {
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-toggle.active {
+        background-color: #0d9488; /* Accent color */
+        color: white;
+        box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+    }
+    .btn-toggle:not(.active) {
+        background-color: #e2e8f0; /* Light gray */
+        color: #475569; /* Slate 600 */
+    }
+  </style>
 </head>
-<body onload="initSignup()" class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans relative">
+<body class="min-h-screen grid place-items-center font-sans relative">
 
-  
-
-  <!-- Signup Form -->
-  <div class="bg-[#E5E4E2] p-6 rounded-xl shadow-lg md:w-[480px] sm:w-96 z-10">
-    <form id="signupForm" class="space-y-4 " method="post" action="{{ url_for('auth.signup') }}">
+  <div class="bg-white px-4 py-6 rounded-xl shadow-lg md:w-[480px] sm:w-96 z-10 border border-slate-200">
+    <form id="signupForm" class="space-y-4" method="post" action="{{ url_for('auth.signup') }}" onsubmit="return handleSignUp(event)">
       <div class="flex flex-col items-center mb-4">
-        <h1 class="text-3xl font-bold text-teal-900">FEEDBACK SYSTEM</h1>
+        <h1 class="text-3xl font-bold text-slate-800">FEEDBACK SYSTEM</h1>
       </div>
-      <h2 class="text-center text-lg font-bold text-black">Create Account</h2>
+      <h2 class="text-center text-2xl font-bold text-slate-800">Create Account</h2>
 
-      <!-- Hidden userType -->
       <input type="hidden" id="userType" name="usertype" value="studentStaff">
 
-      <!-- Toggle Buttons -->
-      <div class="flex justify-between gap-2">
-        <button type="button" onclick="setUserType('studentStaff')" id="studentBtn" name="studentBtn"
-          class="flex-1 p-2 rounded-lg bg-indigo-900 text-white font-medium">Student/Staff</button>
-        <button type="button" onclick="setUserType('general')" id="generalBtn" name="generalBtn"
-          class="flex-1 p-2 rounded-lg bg-gray-300 text-black font-medium">Public</button>
+      <div class="flex justify-between gap-2 p-1 bg-gray-100 rounded-lg">
+        <button type="button" onclick="setUserType('studentStaff')" id="studentBtn"
+          class="btn-toggle flex-1 p-2 rounded-md font-medium">Student/Staff</button>
+        <button type="button" onclick="setUserType('general')" id="generalBtn"
+          class="btn-toggle flex-1 p-2 rounded-md font-medium">Public</button>
       </div>
 
-      <!-- Email -->
       <div>
-        <label for="email" class="block text-sm font-semibold text-black mb-1">Email Address</label>
+        <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Email Address</label>
         <input type="email" id="email" name="email" required
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <span id="emailError" class="text-red-500 text-sm mt-1 hidden"></span>
       </div>
 
-      <!-- Full Name -->
       <div>
-        <label for="fullname" class="block text-sm font-semibold text-black mb-1">Full Name</label>
+        <label for="fullname" class="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
         <input type="text" id="fullname" name="fullname" required
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <span id="fullnameError" class="text-red-500 text-sm mt-1 hidden"></span>
       </div>
 
-      <!-- ID Number -->
       <div id="idField">
-        <label for="idnumber" class="block text-sm font-semibold text-black mb-1">ID Number</label>
+        <label for="idnumber" class="block text-sm font-semibold text-slate-700 mb-1">ID Number</label>
         <input type="text" id="idnumber" name="idnumber"
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400"
           placeholder="Enter your ID">
+        <span id="idnumberError" class="text-red-500 text-sm mt-1 hidden"></span>
       </div>
-      <!-- Date of Birth -->
-      <div>
-        <label for="dob" class="block text-sm font-semibold text-black mb-1">Date of Birth</label>
-        <input type="text" id="dob" name="dob"
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      <div id="dobField" >
+        <label for="dob" class="block text-sm font-semibold text-slate-700 mb-1">Date of Birth</label>
+        <input type="date" id="dob" name="dob"
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400"
           placeholder="Enter your Date of Birth">
+        <span id="dobError" class="text-red-500 text-sm mt-1 hidden"></span>
       </div>
 
 
-      <!-- Designation Field -->
       <div id="designationField">
-        <label for="designation" class="block text-sm font-semibold text-black mb-1">Designation</label>
+        <label for="designation" class="block text-sm font-semibold text-slate-700 mb-1">Designation</label>
         <input type="text" id="designation" name="designation"
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400"
           placeholder="Student, Lecturer, Librarian etc.">
+        <span id="designationError" class="text-red-500 text-sm mt-1 hidden"></span>
       </div>
 
-      <!-- Username -->
       <div>
-        <label for="username" class="block text-sm font-semibold text-black mb-1">Username</label>
+        <label for="username" class="block text-sm font-semibold text-slate-700 mb-1">Username</label>
         <input type="text" id="username" name="username" required
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <span id="usernameError" class="text-red-500 text-sm mt-1 hidden"></span>
       </div>
 
-      <!-- Password -->
       <div>
-        <label for="password1" class="block text-sm font-semibold text-black mb-1">Password</label>
-        <input type="password" id="password1" name="password1" required
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+        <input type="password" id="password" name="password" required
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <span id="passwordError" class="text-red-500 text-sm mt-1 hidden"></span>
       </div>
 
-      <!-- Confirm_Password -->
-      <div>
-        <label for="password2" class="block text-sm font-semibold text-black mb-1">Confirm Password</label>
-        <input type="password" id="password2" name="password2" required
-          class="w-full p-3 rounded-lg border border-gray-300 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-
-      <!-- Submit -->
       <button type="submit"
-        class="w-full p-3 bg-indigo-900 text-white rounded-lg text-base font-medium cursor-pointer hover:bg-teal-600 shadow-md transition">
+        class="btn-primary w-full p-3 text-white rounded-lg text-base font-medium cursor-pointer shadow-md">
         Sign Up
       </button>
 
-      <!-- Already have an account -->
-      <div class="text-center mt-3">
-        <a href="{{url_for('auth.login')}}" class="text-sm text-black hover:underline">Already have an account? <p class="text-blue-600">Login here</p></a>
+      <div class="text-center mt-6">
+        <p class="text-sm text-slate-600">Already have an account? 
+          <a href="{{url_for('auth.login')}}" class="font-medium text-teal-600 hover:underline hover:text-teal-700 transition">Login here</a>
+        </p>
       </div>
     </form>
-
-    <!-- Error Modal -->
-    <div id="errorOverlay" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-xl shadow-xl text-center max-w-sm w-full">
-        <h2 class="text-2xl font-bold text-red-600 mb-4">❌ Password Error</h2>
-        <p id="errorMessage" class="text-black text-base mb-6"></p>
-        <button onclick="closeErrorModal()" class="px-4 py-2 bg-indigo-900 text-white rounded hover:bg-teal-600 transition">OK</button>
-      </div>
-    </div>
-
   </div>
-  <!-- Success Modal -->
-  <div id="successOverlay" class="hidden absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+  <div id="successOverlay" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white p-6 rounded-lg shadow-xl text-center w-96">
-      <h2 class="text-xl font-bold mb-2 text-indigo-900" id="successMessage">Account Created Successfully!</h2>
-      <button onclick="closeSuccessModal()" class="mt-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-teal-600">OK</button>
+      <h2 class="text-xl font-bold mb-2 text-slate-800" id="successMessage">Account Created Successfully!</h2>
+      <button onclick="closeSuccessModal()" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">OK</button>
     </div>
   </div>
 
- <script src="{{url_for('static',filename='js/signup.js')}}"></script>
+  <script src="signup.js"></script>
 </body>
 </html>
