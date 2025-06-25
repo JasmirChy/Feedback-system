@@ -4,20 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login</title>
-  <!-- 1. Preconnect for fastest DNS/TCP/TLS setup -->
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
 
-  <!-- 2. Preload the Tailwind script so the browser fetches it ASAP -->
-  <link rel="preload" as="script" href="https://cdn.tailwindcss.com">
-
-  <!-- 3. Load Tailwind *synchronously* so its CSS is injected before first paint -->
+  <!-- Preconnect for fastest DNS/TCP/TLS setup -->
+   <link rel="preconnect" href="https://cdn.tailwindcss.com">
   <script src="https://cdn.tailwindcss.com"></script>
+
 </head>
 <body class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans relative overflow-hidden bg-opacity-100" id="page">
 
   <!-- Login Form -->
   <div id="loginContainer" class=" bg-[#E5E4E2] p-10 rounded-xl shadow-lg md:w-[480px]  sm:w-96 z-10">
-    <form class="space-y-5" onsubmit="return handleLogin(event)" method="post">
+    <form class="space-y-5" action="{{url_for('auth.login')}}" method="post">
       <!-- Logo / System Name -->
       <div class="flex flex-col items-center mb-4">
         <h1 class="text-3xl font-bold text-teal-900">FEEDBACK SYSTEM</h1>
@@ -60,7 +57,21 @@
       admin: "{{ url_for('views.admin_dashboard') }}",
       user:  "{{ url_for('views.user_dashboard') }}"
     };
+
+    // Hide the modal when "Close" is clicked
+    function closeModal() {
+      document.getElementById('errorModal').classList.add('hidden');
+    }
+
+    // If Flask flashed an "error", show the modal on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      {% with errs = get_flashed_messages(category_filter=['error']) %}
+        {% if errs %}
+          document.getElementById('errorModal').classList.remove('hidden');
+        {% endif %}
+      {% endwith %}
+    });
+
   </script>
-  <script src="{{url_for('static',filename='js/login.js')}}"></script>
 </body>
 </html>

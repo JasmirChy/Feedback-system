@@ -11,14 +11,34 @@ auth = Blueprint('auth', __name__)
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = request.form['username']
+        username = request.form['username']
         password = request.form['password']
-        if user == 'user' and password == 'user123':
-            return redirect(url_for('views.user_dashboard'))
-        elif user == 'admin' and password == 'admin123':
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT user_id, full_name, role_id FROM fd_user WHERE username = %s AND password = %s AND status = 1",
+            (username, password)
+        )
+        user = cursor.fetchone()
+        cursor.close()
+
+        if not user:
+            flash("Invalid username or password", "error")
+            return render_template('login.html')
+
+        # store minimal session info
+        session['user_id'] = user['user_id']
+        session['username'] = username
+        session['full_name'] = user['full_name']
+        session['role_id'] = user['role_id']
+
+        # redirect based on role
+        if user['role_id'] == 1:
             return redirect(url_for('views.admin_dashboard'))
         else:
-            return render_template('login.html')
+            return redirect(url_for('views.user_dashboard'))
+
     return render_template('login.html')
 
 
