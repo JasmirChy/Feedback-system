@@ -5,17 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3c5ff483-3a76-48ad-86a2-6945b23928e9" name="Changes" comment="signup completed">
-      <change afterPath="$PROJECT_DIR$/app/templates/n.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/templates/signup.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/user dash claude.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/static/js/admin_dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/admin_dashboard.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/templates/reset_password.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/auth.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/static/js/forgot.js" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/static/js/signup.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/signup.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/static/js/user_dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/user_dashboard.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/admin_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/admin_dashboard.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/forgot_password.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/forgot_password.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/n.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/images/n.jpg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/signup.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/signup.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/user_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/user_dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/flask_session/2029240f6d1128be89ddc32729463129" beforeDir="false" afterPath="$PROJECT_DIR$/flask_session/2029240f6d1128be89ddc32729463129" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,26 +44,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.__init__.executor": "Run",
-    "Python.auth.executor": "Run",
-    "Python.db.executor": "Run",
-    "Python.models.executor": "Run",
-    "Python.run.executor": "Run",
-    "Python.signup.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Merging database",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/Feedback System",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.auth.executor&quot;: &quot;Run&quot;,
+    &quot;Python.db.executor&quot;: &quot;Run&quot;,
+    &quot;Python.models.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.signup.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;database&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Feedback System&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Feedback System\app\static\images" />
       <recent name="D:\Feedback System\app" />
       <recent name="D:\Feedback System\app\models" />
       <recent name="D:\Feedback System\app\routes" />
