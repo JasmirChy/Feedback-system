@@ -1,0 +1,11 @@
+# Python virtual environments
+venv/
+myyenv/
+flask_session/
+
+# Other common ignore patterns
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+.vscode/
