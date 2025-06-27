@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verify OTP</title>
+
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans">
+
+  <div class="bg-[#E5E4E2] p-6 rounded-xl shadow-lg md:w-[400px] w-full mx-4">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-teal-900">Verify Your Email</h1>
+      <p class="text-sm text-gray-700">Enter the 6-digit OTP we sent to your email.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+          {% for category, msg in messages %}
+            <div class="px-4 py-2 rounded
+                {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" class="space-y-4">
+      <div>
+        <label for="otp" class="block text-sm font-semibold text-black mb-1">OTP Code</label>
+        <input id="otp" name="otp" type="text" maxlength="6" required
+          class="w-full p-3 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      </div>
+
+      <button type="submit"
+        class="w-full p-3 bg-indigo-900 text-white rounded-lg font-medium hover:bg-teal-600 transition">
+        Verify
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-4">
+      Didn’t receive it? <a href="{{ url_for('auth.signup') }}" class="text-blue-600 hover:underline">Resend OTP</a>
+    </p>
+  </div>
+
+</body>
+</html>

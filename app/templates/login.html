@@ -114,13 +114,13 @@
                  class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded">
           <label for="remember_me" class="ml-2 block text-slate-700">Remember me</label>
         </div>
-        <a href="forgot_password.html" class="font-medium text-teal-600 hover:underline transition hover:text-teal-700">Forgot Password?</a>
+        <a href="{{url_for('auth.forget_password')}}" class="font-medium text-teal-600 hover:underline transition hover:text-teal-700">Forgot Password?</a>
       </div>
 
       <button type="submit" class="btn-primary w-full p-3 text-white rounded-lg text-base cursor-pointer">Login</button>
       <div class="text-center mt-6">
         <p class="text-sm text-slate-600">Don't have an account? 
-          <a href="signup.html" class="font-medium text-teal-600 hover:underline hover:text-teal-700 transition">Sign up here</a>
+          <a href="{{url_for('auth.signup')}}" class="font-medium text-teal-600 hover:underline hover:text-teal-700 transition">Sign up here</a>
         </p>
       </div>
     </form>

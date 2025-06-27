@@ -8,7 +8,7 @@
   <style>
     /* Import Inter font from Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
+
     /* Define CSS variables for consistent styling */
     :root {
       --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
@@ -20,12 +20,12 @@
       --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
       --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
-    
+
     /* Universal box-sizing for consistent layout */
     * { box-sizing: border-box; }
-    
+
     /* Base body styles */
-    body { 
+    body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-font-smoothing: antialiased; /* Smoother font rendering */
       -moz-osx-font-smoothing: grayscale;
@@ -44,7 +44,7 @@
       position: relative;
       overflow: hidden; /* For shimmer effect */
     }
-    
+
     .btn-gradient::before {
       content: '';
       position: absolute;
@@ -55,11 +55,11 @@
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
       transition: left 0.5s;
     }
-    
+
     .btn-gradient:hover::before {
       left: 100%; /* Slide across button */
     }
-    
+
     .btn-gradient:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
@@ -79,8 +79,8 @@
       <h1 class="text-3xl font-bold text-black-800 mb-5">Welcome to the Feedback System 🎉</h1>
       <p class="text-base text-black mb-7"><b>We're glad you're here! Please log in or create an account to continue. </b></p>
       <div class="flex justify-center gap-5">
-        <a href="login.html" class="btn-gradient text-white py-3 px-6 rounded-lg font-medium">Login</a>
-        <a href="signup.html" class="btn-gradient text-white py-3 px-6 rounded-lg font-medium">Sign Up</a>
+        <a href="{{url_for('auth.login')}}" class="btn-gradient text-white py-3 px-6 rounded-lg font-medium">Login</a>
+        <a href="{{url_for('auth.signup')}}" class="btn-gradient text-white py-3 px-6 rounded-lg font-medium">Sign Up</a>
       </div>
     </div>
   </div>
