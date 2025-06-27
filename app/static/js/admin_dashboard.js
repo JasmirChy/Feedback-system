@@ -3,7 +3,7 @@ const feedbacks = [
   {
     id: 'f001',
     title: "Install AC in classrooms",
-    submitter: "Harendra Shah",
+    submitter: "Sunil Bahadur Singh",
     status: "Pending",
     date: "2025-05-16",
     message: "Please install AC to make summer chill.",
@@ -12,7 +12,7 @@ const feedbacks = [
   {
     id: 'f002',
     title: "Need Smart Boards",
-    submitter: "Sunil Bahadur Bist",
+    submitter: "Nabin Bhatta",
     status: "Resolved",
     date: "2025-05-14",
     message: "Smart boards will improve teaching efficiency.",
@@ -20,26 +20,17 @@ const feedbacks = [
   },
   {
     id: 'f003',
-    title: 'Website navigation unclear',
-    submitter: 'Alice Smith',
+    title: 'Website navigation issue',
+    submitter: 'Sumitra  Thagunna',
     status: 'Pending',
     date: '2025-06-20',
     message: 'The new navigation menu is confusing, especially on mobile. It\'s hard to find specific pages.',
     category: "Technical" // Updated category
   },
   {
-    id: 'f004',
-    title: 'Feature request: Dark mode',
-    submitter: 'Bob Johnson',
-    status: 'Resolved',
-    date: '2025-06-18',
-    message: 'Please add a dark mode option for better eye comfort during night usage.',
-    category: "General Suggestion" // Updated category
-  },
-  {
     id: 'f005',
     title: 'Bug report: Login issue',
-    submitter: 'Charlie Brown',
+    submitter: 'Dasarath Ayer',
     status: 'Pending',
     date: '2025-06-15',
     message: 'Unable to log in using correct credentials. Getting an "invalid credentials" error.',
@@ -58,22 +49,22 @@ const users = [
   },
   {
     id: 'u002',
-    name: 'Alice Wonderland',
-    email: 'alice@example.com',
+    name: 'Nabin Bhatta',
+    email: 'nabin@gmail.com',
     role: 'user',
     registrationDate: '2024-03-01'
   },
   {
     id: 'u003',
-    name: 'Bob The Builder',
-    email: 'bob@example.com',
+    name: 'Sunil Singh',
+    email: 'sunil@gmail.com',
     role: 'user',
     registrationDate: '2024-04-15'
   },
   {
     id: 'u004',
-    name: 'Charlie Chaplin',
-    email: 'charlie@example.com',
+    name: 'Sumitra Thagunna',
+    email: 'sumitra@gmail.com',
     role: 'user',
     registrationDate: '2024-05-20'
   }
