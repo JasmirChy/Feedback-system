@@ -1,14 +1,26 @@
 import random, datetime, mysql.connector
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, url_for, request, redirect, flash, session
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from app.models.db import get_db_connection
 from app.services.email import generate_unique_user_id, send_otp_email
+
 
 auth = Blueprint('auth', __name__)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
+
+    # if they already have a valid session, skip the form
+    if 'user_id' in session:
+        return redirect(
+            url_for('views.admin_dashboard')
+            if session.get('role_id') == 1
+            else url_for('views.user_dashboard')
+        )
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -17,14 +29,12 @@ def login():
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            "SELECT user_id, full_name, role_id FROM fd_user WHERE username = %s AND password = %s AND status = 1",
-            (username, password)
-        )
+        cursor.execute("SELECT user_id, full_name, role_id, password FROM fd_user WHERE username = %s AND status = 1",(username,))
+
         user = cursor.fetchone()
         cursor.close()
 
-        if not user:
+        if not user or not check_password_hash(user['password'], password):
             flash("Invalid username or password", "error")
             return render_template('login.html')
 
@@ -34,18 +44,12 @@ def login():
         session['full_name'] = user['full_name']
         session['role_id'] = user['role_id']
 
-        # redirect based on role
-        if user['role_id'] == 1:
-            return redirect(url_for('views.admin_dashboard'))
-        else:
-            return redirect(url_for('views.user_dashboard'))
+        # set permanent session if “remember me” checked
+        session.permanent = bool(remember)
 
-            # if they already have a valid session, skip the form
-    if session.get('user_id'):
-        if session.get('role_id') == 1:
-            return redirect(url_for('views.admin_dashboard'))
-        else:
-            return redirect(url_for('views.user_dashboard'))
+        # redirect based on role
+        target = 'views.admin_dashboard' if user['role_id'] == 1 else 'views.user_dashboard'
+        return redirect(url_for(target))
 
     return render_template('login.html')
 
@@ -67,11 +71,13 @@ def signup():
         role_id = 2
         status = 1
 
+        passhash = generate_password_hash(password, 'pbkdf2:sha256')
+
         # 1) Basic validations
         if password != confirm:
             flash("Passwords do not match.", "error")
             return render_template('signup.html')
-        if not (email and full_name and user_name and password):
+        if not all([email, full_name, user_name, password]):
             flash("Please fill in all required fields.", "error")
             return render_template('signup.html')
 
@@ -94,7 +100,7 @@ def signup():
 
                 cur.execute(
                     """insert into fd_user( user_id, full_name, username, password, email, designation, dob, role_id, status) values( %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (id_number, full_name, user_name, password, email, designation, d_o_b, role_id, status))
+                    (id_number, full_name, user_name, passhash, email, designation, d_o_b, role_id, status))
 
                 conn.commit()
 
@@ -106,7 +112,7 @@ def signup():
                 user_id = generate_unique_user_id(cur)
 
                 otp = f"{random.randint(0, 999999):06d}"
-                expires_at = datetime.now() + timedelta(minutes=10)
+                expires_at = datetime.utcnow() + timedelta(minutes=10)
 
                 cur.execute(
                     """insert into email_verifications( email, otp, expires_at) values( %s, %s, %s) on duplicate key update otp=%s, expires_at=%s""",
@@ -120,7 +126,7 @@ def signup():
                     'user_id': user_id,
                     'full_name': full_name,
                     'user_name': user_name,
-                    'password': password,
+                    'password': passhash,
                     'email': email,
                     'designation': 'General',
                     'dob': d_o_b,
@@ -154,6 +160,10 @@ def verify_otp():
     if request.method == 'POST':
         entered_otp = request.form.get('otp', '').strip()
 
+        # if they hit submit with an empty field, just re-render without flashing
+        if not entered_otp:
+            return render_template('verify_otp.html')
+
         stored_otp = context.get('otp')
         expires_at_str = context.get('expires_at')
 
@@ -171,14 +181,21 @@ def verify_otp():
                 flash("Your password‐reset session has expired. Please request a new reset link.", "error")
                 return redirect(url_for('auth.forget_password'))
 
-        # OTP validation
-        if entered_otp != stored_otp or datetime.utcnow() > expires_at:
-            flash("Invalid or expired OTP. Please try again.", "error")
-            # expired signup‐OTP → back to signup
+        # truly expired?
+        if datetime.utcnow() > expires_at:
             if flow_name == 'signup':
+                session.pop('pending_user', None)
+                flash("Your signup OTP expired. Please register again.", "error")
                 return redirect(url_for('auth.signup'))
-            # expired reset‐OTP → back to forgot password
-            return redirect(url_for('auth.forget_password'))
+            else:
+                session.pop('reset_email', None)
+                flash("Your reset OTP expired. Please request a new link.", "error")
+                return redirect(url_for('auth.forget_password'))
+
+            # wrong but still valid → stay on this page
+        if entered_otp != stored_otp:
+            flash("Invalid OTP. Please try again.", "error")
+            return render_template('verify_otp.html')
 
         if flow_name == 'signup':
             conn = get_db_connection()
@@ -221,9 +238,11 @@ def forget_password():
     if request.method == 'POST':
         email = request.form.get('email')
         # verify this email exists
+
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("SELECT user_id FROM fd_user WHERE email=%s", (email,))
+
         row = cur.fetchone()
         if not row:
             flash("No account with that email.", "error")
@@ -254,13 +273,16 @@ def forget_password():
 
 @auth.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
-    if 'reset_verified_email' not in session:
+    email = session['reset_verified_email']
+
+    if email not in session:
         return redirect(url_for('auth.forget_password'))
 
     if request.method == 'POST':
         pw = request.form.get('password')
         pw2 = request.form.get('confirm_password')
-        email = session['reset_verified_email']
+
+        passhash = generate_password_hash(pw)
 
         if pw != pw2:
             flash("Passwords do not match.", "error")
@@ -270,7 +292,7 @@ def reset_password():
         cur = conn.cursor()
         cur.execute(
             "UPDATE fd_user SET password=%s WHERE email=%s",
-            (pw, email)
+            (passhash, email)
         )
         conn.commit()
         cur.close()
@@ -281,3 +303,9 @@ def reset_password():
         return redirect(url_for('auth.login'))
 
     return render_template('reset_password.html')
+
+@auth.route('/logout')
+def logout():
+    session.clear()
+    flash("You've been signed out.",'success')
+    return redirect(url_for('auth.login'))

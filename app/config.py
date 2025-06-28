@@ -20,4 +20,4 @@ SMTP_HOST = 'smtp.gmail.com'
 SMTP_PORT = 465
 SMTP_USER = 'nabinbhatt141@gmail.com'
 SMTP_PASS = 'zrfr najf appv zihz'
-SMTP_FROM = 'no-reply@gmail.com'
+SMTP_FROM = 'nabinbhatt141@gmail.com'

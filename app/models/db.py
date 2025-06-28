@@ -4,7 +4,6 @@ from mysql.connector import errorcode
 from .model import table_statements
 from flask import current_app
 
-conn = None
 
 # 1. Connect to MySQL (no specific database yet)
 def get_server_connection():
@@ -12,7 +11,7 @@ def get_server_connection():
     # → returns a Connection object you can use to run server-level statements
     return mysql.connector.connect(
         host = cfg['host'],
-        port = cfg['port'],
+        port = cfg.get('port', 3306),
         user = cfg['user'],
         password = cfg['password'],
         autocommit = True  # commit after each table creation automatically
@@ -46,12 +45,18 @@ def init_db():
     if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         return
 
-    global conn
     create_database()
 
     # open our shared connection
     cfg = current_app.config['MYSQL']
-    conn = mysql.connector.connect(**cfg)
+    conn = mysql.connector.connect(
+        host=cfg['host'],
+        port=cfg.get('port', 330),
+        user=cfg['user'],
+        password=cfg['password'],
+        database=cfg['database'],
+        autocommit=True
+    )
 
     cursor = conn.cursor()
     try:
@@ -65,11 +70,17 @@ def init_db():
                 print(f"✖ Error creating table: {err.msg}")
     finally:
         cursor.close()
+        conn.close()
 
 # 4. Connect *into* the newly created database
 def get_db_connection():
-    global conn
-    if conn is None:
-        cfg = current_app.config['MYSQL']
-        conn = mysql.connector.connect(**cfg)
-    return conn
+    cfg = current_app.config['MYSQL']
+    return mysql.connector.connect(
+        host=cfg['host'],
+        port=cfg.get('port', 3306),
+        user=cfg['user'],
+        password=cfg['password'],
+        database=cfg['database'],
+        autocommit=cfg.get('autocommit', False),
+        charset='utf8mb4'
+    )

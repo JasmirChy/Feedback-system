@@ -1,62 +1,8 @@
-    // Define feedback categories (from admin panel)
-    const feedbackCategories = [
-      "Academic",
-      "Administrative",
-      "Infrastructure",
-      "Faculty",
-      "Technical",
-      "Discipline",
-      "General Suggestion",
-      "Other"
-    ];
-
-    // Sample user feedbacks (this would ideally come from a database)
-    const userFeedbacks = [
-      {
-        id: 'user_f001',
-        title: "Request for new course in AI",
-        category: "Academic",
-        submitter: "Current User",
-        date: "2025-06-22",
-        status: "Pending",
-        message: "I would like to request a new elective course focusing on advanced topics in Artificial Intelligence and Machine Learning. This would greatly benefit students pursuing careers in tech."
-      },
-      {
-        id: 'user_f002',
-        title: "Improve cafeteria food quality",
-        category: "Administrative",
-        submitter: "Current User",
-        date: "2025-06-19",
-        status: "Under Review",
-        message: "The quality and variety of food options in the main cafeteria have declined. Could we explore healthier and more diverse meal choices?"
-      },
-      {
-        id: 'user_f003',
-        title: "Broken projector in Room 305",
-        category: "Infrastructure",
-        submitter: "Current User",
-        date: "2025-06-15",
-        status: "Resolved",
-        message: "The projector in lecture hall 305 is not working. It flickers constantly and makes it difficult to follow presentations."
-      },
-      {
-        id: 'user_f004',
-        title: "Suggestion for career counseling workshop",
-        category: "General Suggestion",
-        submitter: "Current User",
-        date: "2025-06-10",
-        status: "Pending",
-        message: "It would be great to have more workshops focused on career counseling and job interview preparation for final year students."
-      }
-    ];
-
     // Global variable to store the currently viewed feedback
     let currentFeedback = null;
 
     document.addEventListener('DOMContentLoaded', function() {
       showSection('home');
-      // Show welcome notification for user
-      showNotification("Welcome User!", "success");
 
       // Add event listener for clicking outside to close mobile menu
       document.addEventListener('click', function(event) {
@@ -86,6 +32,61 @@
 
       // Update dashboard counts on load
       updateDashboardCounts();
+
+      // Wire up the logout-confirmation modal buttons:
+      document.querySelectorAll('.signOutBtn').forEach(btn =>
+        btn.addEventListener('click', () => document.getElementById('logoutModal').classList.remove('hidden'))
+      );
+      document.getElementById('cancelLogoutBtn').addEventListener('click', () =>
+        document.getElementById('logoutModal').classList.add('hidden')
+      );
+      document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
+        window.location.href = "{{ url_for('auth.logout') }}";
+      });
+
+
+      // —— new drop‑zone wiring ——
+      const attachmentInput = document.getElementById('attachment');
+      const attachmentList  = document.getElementById('attachment-list');
+      const dropZone        = document.getElementById('drop-zone');
+
+      // 1) When they pick via file‑picker...
+      attachmentInput.addEventListener('change', updateFileList);
+
+      // 2) (Optional) Support dragging files directly into the drop‑zone
+      // Highlight on drag-over
+      ['dragenter','dragover'].forEach(ev =>
+        dropZone.addEventListener(ev, e => {
+          e.preventDefault();
+          dropZone.classList.add('border-teal-400', 'bg-teal-50');
+        })
+      );
+
+      // Remove highlight on drag-leave or drop
+      ['dragleave','drop'].forEach(ev =>
+        dropZone.addEventListener(ev, e => {
+          e.preventDefault();
+          dropZone.classList.remove('border-teal-400', 'bg-teal-50');
+        })
+      );
+
+      // On drop: wire files on drag-leave or drop
+      dropZone.addEventListener('drop', e => {
+        attachmentInput.files = e.dataTransfer.files;  // populate input
+        updateFileList();
+      });
+
+      function updateFileList() {
+        // clear old
+        attachmentList.innerHTML = '';
+        // for each file, append its name
+        Array.from(attachmentInput.files).forEach(file => {
+          const li = document.createElement('li');
+          li.textContent = file.name;
+          attachmentList.appendChild(li);
+        });
+      }
+
     });
     
     function showSection(sectionId) {
@@ -133,8 +134,7 @@
     function toggleSubmenu(submenuId) {
       const submenu = document.getElementById(submenuId);
       submenu.classList.toggle('hidden');
-      const icon = submenu.previousElementSibling.querySelector('.fa-chevron-down');
-      icon.classList.toggle('rotate-180');
+      submenu.previousElementSibling.querySelector('.fa-chevron-down').classList.toggle('rotate-180');
     }
 
     function toggleMobileMenu() {
@@ -147,42 +147,19 @@
       document.body.classList.toggle('overflow-hidden');
     }
 
-    function logout() {
-      console.log('Logging out...');
-      
-      if (window.innerWidth < 768 && document.getElementById('mobile-sidebar').classList.contains('translate-x-0')) {
-        toggleMobileMenu();
-      }
-      window.location.href = 'login.html'; // Redirect to login page
-    }
-
     /**
      * Displays a temporary notification message.
      * @param {string} message The message to display.
      * @param {string} type The type of notification ('success', 'error', 'info').
      */
-    function showNotification(message, type = "info") {
-      const notificationArea = document.createElement("div");
-      // Styling for centering the notification at the top
-      notificationArea.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 rounded-lg shadow-lg text-white font-semibold flex items-center space-x-2`;
-
-      if (type === "success") {
-        notificationArea.classList.add("bg-green-500");
-        notificationArea.innerHTML = `<i class="fas fa-check-circle"></i> <span>${message}</span>`;
-      } else if (type === "error") {
-        notificationArea.classList.add("bg-red-500");
-        notificationArea.innerHTML = `<i class="fas fa-times-circle"></i> <span>${message}</span>`;
-      } else {
-        notificationArea.classList.add("bg-blue-500");
-        notificationArea.innerHTML = `<i class="fas fa-info-circle"></i> <span>${message}</span>`;
-      }
-
-      document.body.appendChild(notificationArea);
-
-      setTimeout(() => {
-        notificationArea.remove();
-      }, 5000); // Remove after 5 seconds
-    }
+     function showNotification(msg, type = "info") {
+        const n = document.createElement('div');
+        n.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 rounded-lg shadow-lg text-white font-semibold flex items-center space-x-2 ${ type === 'success' ? 'bg-green-500' : type === 'error'   ? 'bg-red-500'   : 'bg-blue-500'
+        }`;
+        n.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'times-circle':'info-circle'}"></i> <span>${msg}</span>`;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 5000);
+     }
 
     /**
      * Populates the category dropdown in the submit feedback form.
@@ -196,39 +173,6 @@
         option.textContent = category;
         categorySelect.appendChild(option);
       });
-    }
-
-    /**
-     * Handles the submission of new feedback.
-     * @param {Event} event The form submission event.
-     */
-    function handleFeedbackSubmission(event) {
-      event.preventDefault();
-
-      const title = document.getElementById('title').value;
-      const category = document.getElementById('category').value;
-      const details = document.getElementById('details').value;
-      const hideDetails = document.getElementById('hideDetails').checked;
-
-      if (!title || !category || !details) {
-        showNotification("Please fill in all required fields (Title, Category, Details).", "error");
-        return;
-      }
-
-      const newFeedback = {
-        id: 'user_f' + (userFeedbacks.length + 1).toString().padStart(3, '0'),
-        title: title,
-        category: category,
-        submitter: hideDetails ? "Anonymous" : "Current User", // Simplified for demo
-        date: new Date().toISOString().split('T')[0], // Current date
-        status: "Pending", // Always pending on submission
-        message: details
-      };
-
-      userFeedbacks.push(newFeedback);
-      showNotification("Your feedback has been submitted successfully!", "success");
-      document.getElementById('submitFeedbackForm').reset(); // Clear form
-      showSection('history'); // Navigate to history to see the new feedback
     }
 
     /**
@@ -310,13 +254,9 @@
      * Updates the dashboard counts for total, pending, and resolved submissions.
      */
     function updateDashboardCounts() {
-      const totalCount = userFeedbacks.length;
-      const pendingCount = userFeedbacks.filter(fb => fb.status.toLowerCase() === 'pending' || fb.status.toLowerCase() === 'under review').length;
-      const resolvedCount = userFeedbacks.filter(fb => fb.status.toLowerCase() === 'resolved').length;
-
-      document.getElementById('totalSubmissionsCount').innerText = totalCount;
-      document.getElementById('pendingSubmissionsCount').innerText = pendingCount;
-      document.getElementById('resolvedSubmissionsCount').innerText = resolvedCount;
+      document.getElementById('totalSubmissionsCount').innerText = userFeedbacks.length;
+      document.getElementById('pendingSubmissionsCount').innerText = userFeedbacks.filter(f=>/[Pending|Under Review]/i.test(f.status)).length;
+      document.getElementById('resolvedSubmissionsCount').innerText = userFeedbacks.filter(f=>/resolved/i.test(f.status)).length;;
     }
 
 
@@ -325,37 +265,13 @@
      * @param {string} feedbackId The ID of the feedback to display.
      */
     function showUserFeedbackDetails(feedbackId) {
-      currentFeedback = userFeedbacks.find(fb => fb.id === feedbackId);
+      currentFeedback = userFeedbacks.find(f => f.id === id);
 
-      if (currentFeedback) {
-        document.getElementById("detailUserTitle").innerText = currentFeedback.title;
-        document.getElementById("detailUserSubmitter").innerText = currentFeedback.submitter;
-        document.getElementById("detailUserCategory").innerText = currentFeedback.category;
-        document.getElementById("detailUserStatus").innerText = currentFeedback.status;
-        document.getElementById("detailUserDate").innerText = currentFeedback.date;
-        document.getElementById("detailUserMessage").innerText = currentFeedback.message;
-
-        let statusClass = '';
-        let statusIcon = '';
-        if (currentFeedback.status.toLowerCase() === 'pending') {
-          statusClass = 'bg-yellow-100 text-yellow-800';
-          statusIcon = 'fas fa-clock';
-        } else if (currentFeedback.status.toLowerCase() === 'under review') {
-          statusClass = 'bg-blue-100 text-blue-800';
-          statusIcon = 'fas fa-hourglass-half';
-        } else if (currentFeedback.status.toLowerCase() === 'resolved') {
-          statusClass = 'bg-green-100 text-green-800';
-          statusIcon = 'fas fa-check-circle';
-        } else {
-          statusClass = 'bg-gray-100 text-gray-800';
-          statusIcon = 'fas fa-info-circle';
-        }
-        document.getElementById("detailUserStatus").className = `font-semibold px-3 py-1 rounded-full text-sm ${statusClass}`;
-        
-        showSection("userFeedbackDetails");
-      } else {
-        showNotification("Feedback not found.", "error");
-      }
+      if (!currentFeedback) return showNotification("Feedback not found","error");
+        [ 'Title','Submitter','Category','Status','Date','Message' ].forEach(key => {
+        document.getElementById(`detailUser${key}`).innerText = currentFeedback[key.toLowerCase()];
+      });
+      showNotification("Feedback not found.", "error");
     }
 
     // Function to go back from feedback details to history

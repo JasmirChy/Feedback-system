@@ -1,5 +1,5 @@
 
-# All of yours CREATE TABLE statements in one list
+# All of ours CREATE TABLE statements in one list
 
 table_statements = [
     # staff_table
@@ -80,6 +80,20 @@ table_statements = [
         ON DELETE RESTRICT,
       FOREIGN KEY (user_id)
         REFERENCES fd_user(user_id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    """,
+
+    #attachment store
+    """
+    CREATE TABLE attachment (
+      attach_id INT(45) NOT NULL AUTO_INCREMENT,
+      attach MEDIUMBLOB,
+      feedback_id INT(11),
+      PRIMARY KEY (attach_id),
+      FOREIGN KEY (feedback_id)
+        REFERENCES feedback(f_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4

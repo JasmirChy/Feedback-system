@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff"/>
   <title>User Dashboard</title>
   <script src="{{url_for('static', filename='js/user_dashboard.js')}}" defer></script>
 
@@ -11,6 +12,17 @@
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
+    /* ensure text-size-adjust and user-select are prefixed */
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+    * {
+      -webkit-user-select: none;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
     :root {
@@ -24,14 +36,12 @@
       --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
     
-    * { box-sizing: border-box; }
-    
     body { 
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    
+
     .desktop-grid {
       display: grid;
       grid-template-columns: 280px 1fr;
@@ -45,6 +55,8 @@
       position: sticky;
       top: 0;
       z-index: 50;
+      /* add prefixed backdrop-filter for Safari */
+      -webkit-backdrop-filter: blur(20px);
       backdrop-filter: blur(20px);
       background: var(--glass-bg);
       border-bottom: 1px solid var(--glass-border);
@@ -420,6 +432,8 @@
 
 <body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 font-medium">
   <div class="desktop-grid">
+
+    <!-- header content-->
     <header class="desktop-header">
       <div class="px-8 py-6 flex justify-between items-center">
         <div class="flex items-center space-x-4">
@@ -440,8 +454,8 @@
               <a onclick="showSection('profile')" class="fas fa-user  text-sm"> </a>
             </div>
             <div class="text-sm hidden sm:block">
-              <div class="font-semibold text-slate-800" >Jasmir</div>
-              <div class="text-slate-500">User ID: #821008</div>
+              <div class="font-semibold text-slate-800" >{{user.username}}</div>
+              <div class="text-slate-500">ID: {{user.user_id}}</div>
             </div>
           </div>
           <button id="hamburger-button" onclick="toggleMobileMenu()" class="md:hidden text-slate-700 hover:text-teal-600 p-2">
@@ -452,6 +466,7 @@
     </header>
     
     <aside id="mobile-sidebar" class="desktop-sidebar custom-scrollbar">
+                <!-- Sidebar memu-->
       <div class="p-6">
         <nav class="space-y-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Main Menu</div>
@@ -470,8 +485,7 @@
             <i class="fas fa-history w-5 text-lg"></i>
             <span class="font-semibold">Feedback History</span>
           </a>
-          
-          <!-- <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3 mt-8">Management</div> -->
+
           
           <a onclick="showSection('profile')" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-user-circle w-5 text-lg"></i>
@@ -495,16 +509,34 @@
           </div>
           
           <div class="pt-8 border-t border-slate-200 mt-8">
-            <a onclick="logout()" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50" href="{{url_for('auth.login')}}">
+            <button class="nav-item signOutBtn flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
               <i class="fas fa-sign-out-alt w-5 text-lg"></i>
-
               <span class="font-semibold">Sign Out</span>
-            </a>
+            </button>
           </div>
+
+           <!-- Logout Confirmation Modal -->
+          <div id="logoutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
+              <h2 class="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
+              <div class="flex justify-around mt-6">
+                <button id="confirmLogoutBtn"
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                  OK
+                </button>
+                <button id="cancelLogoutBtn"
+                        class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+
         </nav>
       </div>
     </aside>
-    
+
+    <!-- main dashboard sections -->
     <main class="desktop-main custom-scrollbar">
       <div class="max-w-6xl mx-auto space-y-8">
         <section id="home" class="section fade-in">
@@ -513,7 +545,7 @@
               <div class="premium-card p-8 h-full">
                 <div class="flex items-center justify-between mb-6">
                   <div>
-                    <h2 class="text-3xl font-bold text-slate-800 mb-2">Welcome back, User</h2>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-2">Welcome back, {{user.full_name}}!</h2>
                     <p class="text-slate-600 text-lg">Here's what's happening with your feedback today</p>
                   </div>
                   <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg">
@@ -524,19 +556,19 @@
                 <div class="grid grid-cols-3 gap-6">
                   <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
                     <div class="text-2xl font-bold text-blue-600">
-                      <span id="totalSubmissionsCount">0</span>
+                      {{ feedback_list | length }}
                     </div>
                     <div class="text-sm text-blue-700 font-medium">Total Submissions</div>
                   </div>
                   <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
                     <div class="text-2xl font-bold text-yellow-600">
-                      <span id="pendingSubmissionsCount">0</span>
+                      {{ feedback_list | selectattr("status", "equalto", 1) | list | length }}
                     </div>
                     <div class="text-sm text-yellow-700 font-medium">Pending</div>
                   </div>
                   <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
                     <div class="text-2xl font-bold text-green-600">
-                      <span id="resolvedSubmissionsCount">0</span>
+                      {{ feedback_list | selectattr("status", "equalto", 2) | list | length }}
                     </div>
                     <div class="text-sm text-green-700 font-medium">Resolved</div>
                   </div>
@@ -584,7 +616,7 @@
               <p class="text-lg text-slate-600">Your insights drive our improvements. We appreciate your input!</p>
             </div>
             
-            <form id="submitFeedbackForm" class="space-y-8" enctype="multipart/form-data">
+            <form id="submitFeedbackForm" action="{{ url_for('submit.submit_feedback')}}" class="space-y-8" method="post" enctype="multipart/form-data">
               <div class="grid md:grid-cols-2 gap-8">
                 <div class="md:col-span-2">
                   <label for="title" class="block text-base font-semibold text-slate-700 mb-2">
@@ -601,7 +633,10 @@
                   </label>
                   <select id="category" name="category" 
                           class="form-input w-full p-4 rounded-xl border border-slate-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium text-slate-800" required>
-                    <!-- Options will be dynamically populated by JavaScript -->
+                    <option value="">--Choose a category--</option>
+                    {% for cat in categories %}
+                      <option value="{{ cat.category_id }}">{{ cat.category }}</option>
+                    {% endfor %}
                   </select>
                 </div>
 
@@ -618,20 +653,22 @@
                   <label for="attachment" class="block text-base font-semibold text-slate-700 mb-2">
                     <i class="fas fa-paperclip mr-2 text-teal-600"></i>Attachments (Optional)
                   </label>
-                  <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 transition-colors bg-slate-50 cursor-pointer">
+
+                  <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 transition-colors bg-slate-50 cursor-pointer">
                     <input type="file" id="attachment" name="attachment" class="hidden" multiple />
                     <label for="attachment" class="cursor-pointer block">
                       <i class="fas fa-cloud-upload-alt text-5xl text-slate-400 mb-4"></i>
                       <p class="text-slate-700 font-semibold text-lg">Drag & Drop files here or <span class="text-teal-600 underline">Browse</span></p>
                       <p class="text-sm text-slate-500 mt-2">Max file size: 10MB per file. Accepted: Images, PDFs, Documents.</p>
                     </label>
+                    <ul id="attachment-list" class="mt-2 text-left text-sm text-slate-700 space-y-1 list-disc list-inside"></ul>
                   </div>
                 </div>
               </div>
               
               <div class="flex items-center justify-between p-6 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex items-center space-x-3">
-                  <input type="checkbox" id="hideDetails" class="w-5 h-5 text-teal-600 rounded-md border-slate-300 focus:ring-teal-500 focus:ring-2 accent-teal-600">
+                  <input type="checkbox" id="hideDetails" name="hideDetails" class="w-5 h-5 text-teal-600 rounded-md border-slate-300 focus:ring-teal-500 focus:ring-2 accent-teal-600">
                   <label for="hideDetails" class="text-base font-medium text-slate-700 cursor-pointer">
                     <i class="fas fa-mask mr-2 text-slate-500"></i>Submit anonymously
                   </label>
@@ -647,19 +684,27 @@
         <section id="history" class="section hidden">
           <div class="premium-card p-8">
             <div class="flex items-center justify-between mb-8">
-              <div class="flex items-center">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mr-6 shadow-lg">
-                  <i class="fas fa-history text-white text-xl"></i>
+              {% for fb in feedback_list %}
+                <div class="dashboard-card p-6">
+                  <h3 class="font-bold text-lg">{{ fb.f_title }}</h3>
+                  <p class="text-sm text-slate-600">
+                    {{ fb.category_name }} • {{ fb.f_date }}
+                  </p>
+                  <p class="mt-2">{{ fb.f_body }}</p>
+                  <p class="mt-2">
+                    {% if fb.hide %}<span class="text-red-500">Hidden</span>{% endif %}
+                    {% if fb.status==1 %}
+                      <span class="text-yellow-600">Pending</span>
+                    {% elif fb.status==2 %}
+                      <span class="text-green-600">Resolved</span>
+                    {% else %}
+                      <span class="text-red-600">Uncertain</span>
+                    {% endif %}
+                  </p>
                 </div>
-                <div>
-                  <h2 class="text-3xl font-bold text-slate-800">Feedback History</h2>
-                  <p class="text-slate-600 mt-1">Track the status of your submissions</p>
-                </div>
-              </div>
-              </div>
-            
-            <div id="userFeedbackHistoryContainer" class="space-y-4">
-              <!-- Feedback cards will be rendered here by JavaScript -->
+              {% else %}
+                  <p class="text-center text-slate-500">You have not submitted any feedback yet.</p>
+              {% endfor %}
             </div>
           </div>
         </section>
@@ -846,5 +891,25 @@
       </div>
     </main>
   </div>
+
+   <script>
+    // Show modal when any "Sign Out" is clicked
+    document.querySelectorAll('.signOutBtn').forEach(btn =>
+      btn.addEventListener('click', () => {
+        document.getElementById('logoutModal').classList.remove('hidden');
+      })
+    );
+
+    // Cancel
+    document.getElementById('cancelLogoutBtn').addEventListener('click', () => {
+      document.getElementById('logoutModal').classList.add('hidden');
+    });
+
+    // Confirm
+    document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
+      window.location.href = "{{ url_for('auth.logout') }}";
+    });
+  </script>
+
 </body>
 </html>
