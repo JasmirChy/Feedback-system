@@ -1,7 +1,7 @@
 import os
 import mysql.connector
 from mysql.connector import errorcode
-from .model import table_statements
+from .schema import table_statements
 from flask import current_app
 
 

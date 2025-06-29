@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign Up</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     /* Import Inter font from Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
+
     /* Define CSS variables for consistent styling */
     :root {
       --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
@@ -21,17 +22,21 @@
       --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
       --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
-    
+
     /* Universal box-sizing for consistent layout */
-    * { box-sizing: border-box; }
-    
+    * {
+      box-sizing: border-box;
+    }
+
     /* Base body styles */
-    body { 
+    body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-font-smoothing: antialiased; /* Smoother font rendering */
+      -webkit-font-smoothing: antialiased;
+      /* Smoother font rendering */
       -moz-osx-font-smoothing: grayscale;
       min-height: 100vh;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%); /* Consistent background */
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+      /* Consistent background */
       display: grid;
       place-items: center;
       position: relative;
@@ -43,24 +48,27 @@
       box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
-      overflow: hidden; /* For shimmer effect */
+      overflow: hidden;
+      /* For shimmer effect */
     }
-    
+
     .btn-primary::before {
       content: '';
       position: absolute;
       top: 0;
-      left: -100%; /* Start off-screen */
+      left: -100%;
+      /* Start off-screen */
       width: 100%;
       height: 100%;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
       transition: left 0.5s;
     }
-    
+
     .btn-primary:hover::before {
-      left: 100%; /* Slide across button */
+      left: 100%;
+      /* Slide across button */
     }
-    
+
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
@@ -72,7 +80,7 @@
       border: 2px solid #e2e8f0;
       background: white;
     }
-    
+
     .form-input:focus {
       border-color: #0d9488;
       box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
@@ -81,19 +89,25 @@
 
     /* Specific styles for the user type toggle buttons */
     .btn-toggle {
-        transition: all 0.2s ease-in-out;
+      transition: all 0.2s ease-in-out;
     }
+
     .btn-toggle.active {
-        background-color: #0d9488; /* Accent color */
-        color: white;
-        box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+      background-color: #0d9488;
+      /* Accent color */
+      color: white;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
     }
+
     .btn-toggle:not(.active) {
-        background-color: #e2e8f0; /* Light gray */
-        color: #475569; /* Slate 600 */
+      background-color: #e2e8f0;
+      /* Light gray */
+      color: #475569;
+      /* Slate 600 */
     }
   </style>
 </head>
+
 <body class="min-h-screen grid place-items-center font-sans relative">
 
   <div class="bg-white px-4 py-6 rounded-xl shadow-lg md:w-[480px] sm:w-96 z-10 border border-slate-200">
@@ -169,19 +183,23 @@
       </button>
 
       <div class="text-center mt-6">
-        <p class="text-sm text-slate-600">Already have an account? 
-          <a href="{{url_for('auth.login')}}" class="font-medium text-teal-600 hover:underline hover:text-teal-700 transition">Login here</a>
+        <p class="text-sm text-slate-600">Already have an account?
+          <a href="{{url_for('auth.login')}}"
+            class="font-medium text-teal-600 hover:underline hover:text-teal-700 transition">Login here</a>
         </p>
       </div>
     </form>
   </div>
-  <div id="successOverlay" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+  <div id="successOverlay"
+    class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white p-6 rounded-lg shadow-xl text-center w-96">
       <h2 class="text-xl font-bold mb-2 text-slate-800" id="successMessage">Account Created Successfully!</h2>
-      <button onclick="closeSuccessModal()" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">OK</button>
+      <button onclick="closeSuccessModal()"
+        class="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">OK</button>
     </div>
   </div>
 
   <script src="{{url_for('static',filename='js/signup.js')}}"></script>
 </body>
+
 </html>

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  initSignup();
-  document.getElementById('signupForm').addEventListener('submit', handleSignUp);
+    initSignup();
+    document.getElementById('signupForm').addEventListener('submit', handleSignUp);
 });
 
 
@@ -11,12 +11,12 @@ function initSignup() {
 };
 
 function setUserType(type) {
-  userType = type;
-  document.getElementById("userType").value = type;
-  document.getElementById("studentBtn").classList.toggle("active", type==="studentStaff");
-  document.getElementById("generalBtn").classList.toggle("active", type==="general");
-  document.getElementById("idField").classList.toggle("hidden", type==="general");
-  document.getElementById("designationField").classList.toggle("hidden", type==="general");
+    userType = type;
+    document.getElementById("userType").value = type;
+    document.getElementById("studentBtn").classList.toggle("active", type === "studentStaff");
+    document.getElementById("generalBtn").classList.toggle("active", type === "general");
+    document.getElementById("idField").classList.toggle("hidden", type === "general");
+    document.getElementById("designationField").classList.toggle("hidden", type === "general");
 }
 
 function handleSignUp(event) {
@@ -25,7 +25,7 @@ function handleSignUp(event) {
     // compute the message *before* using it
     let message = "";
 
-    const f = id=>document.getElementById(id)?.value.trim()||"";
+    const f = id => document.getElementById(id)?.value.trim() || "";
     const email = f("email"), fullName = f("fullname"), username = f("username"), dob = f("dob");
 
     // Corrected: Ensure you are getting the correct password and confirm password fields.
@@ -97,7 +97,7 @@ function handleSignUp(event) {
         // now submit the form for real
         document.getElementById("signupForm").submit();
     };
-   // and bail out without submitting right now
+    // and bail out without submitting right now
     return false;
 }
 

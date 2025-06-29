@@ -108,7 +108,7 @@ function showSection(sectionId) {
   document.querySelectorAll('.section').forEach(section => {
     section.classList.add('hidden');
   });
-  
+
   // Show the requested section
   const sectionToShow = document.getElementById(sectionId);
   if (sectionToShow) {
@@ -122,12 +122,12 @@ function showSection(sectionId) {
       document.getElementById('addAdminForm').reset();
     }
   }
-  
+
   // Set the active navigation item
   setActiveNavItem(sectionId);
   // Scroll to the top of the page
   window.scrollTo(0, 0);
-  
+
   // Close sidebar on mobile after navigation if it's open
   if (window.innerWidth < 768 && document.getElementById('mobile-sidebar').classList.contains('translate-x-0')) {
     toggleMobileMenu();
@@ -169,7 +169,7 @@ function setActiveNavItem(sectionId) {
     }
     const submenuItem = document.querySelector(`#userManagementSubmenuSidebar li[onclick="showSection('${sectionId}')"]`);
     if (submenuItem) {
-        submenuItem.classList.add('bg-teal-50', 'text-teal-600');
+      submenuItem.classList.add('bg-teal-50', 'text-teal-600');
     }
   } else if (sectionId === 'changePassword') {
     const settingsParent = document.querySelector('[onclick="toggleSubmenu(\'settingsSubmenuSidebar\')"]');
@@ -179,7 +179,7 @@ function setActiveNavItem(sectionId) {
     }
     const submenuItem = document.querySelector(`#settingsSubmenuSidebar li[onclick="showSection('${sectionId}')"]`);
     if (submenuItem) {
-        submenuItem.classList.add('bg-teal-50', 'text-teal-600');
+      submenuItem.classList.add('bg-teal-50', 'text-teal-600');
     }
   }
 }
@@ -219,7 +219,7 @@ function logout() {
     toggleMobileMenu();
   }
   // Redirect to login page or perform actual logout logic
-  window.location.href = 'login.html'; 
+  window.location.href = 'login.html';
 }
 
 
@@ -284,7 +284,7 @@ function renderFeedbacks(filter) {
  * This function is called by the `onclick` events on the filter buttons in HTML.
  * @param {string} type The status to filter by ('all', 'pending', 'resolved').
  */
-window.filterFeedback = function(type) {
+window.filterFeedback = function (type) {
   renderFeedbacks(type); // Render table with filtered data
 
   // Update button active states
@@ -308,7 +308,7 @@ function showFeedbackDetails(fb) {
 
   document.getElementById("detailTitle").innerText = fb.title;
   document.getElementById("detailSubmitter").innerText = fb.submitter;
-  document.getElementById("detailCategory").innerText = fb.category; 
+  document.getElementById("detailCategory").innerText = fb.category;
   document.getElementById("detailStatus").innerText = fb.status;
   document.getElementById("detailDate").innerText = fb.date;
   document.getElementById("detailMessage").innerText = fb.message;
@@ -326,7 +326,7 @@ function showFeedbackDetails(fb) {
 /**
  * Marks the currently viewed feedback as resolved.
  */
-window.markAsResolved = function() {
+window.markAsResolved = function () {
   if (currentFeedback && currentFeedback.status === "Pending") {
     currentFeedback.status = "Resolved";
     showNotification("Feedback marked as resolved.", "success");
@@ -376,86 +376,86 @@ function showNotification(message, type = "info") {
  * Renders the feedback reports chart.
  */
 function renderFeedbackReports() {
-    const ctx = document.getElementById('feedbackChart').getContext('2d');
+  const ctx = document.getElementById('feedbackChart').getContext('2d');
 
-    // Destroy existing chart if it exists
-    if (feedbackChartInstance) {
-        feedbackChartInstance.destroy();
+  // Destroy existing chart if it exists
+  if (feedbackChartInstance) {
+    feedbackChartInstance.destroy();
+  }
+
+  // Aggregate data
+  const categoryCounts = {};
+  feedbackCategories.forEach(cat => {
+    categoryCounts[cat] = { Pending: 0, Resolved: 0 };
+  });
+
+  feedbacks.forEach(fb => {
+    if (categoryCounts[fb.category]) {
+      categoryCounts[fb.category][fb.status]++;
     }
+  });
 
-    // Aggregate data
-    const categoryCounts = {};
-    feedbackCategories.forEach(cat => {
-        categoryCounts[cat] = { Pending: 0, Resolved: 0 };
-    });
+  const labels = Object.keys(categoryCounts);
+  const pendingData = labels.map(cat => categoryCounts[cat].Pending);
+  const resolvedData = labels.map(cat => categoryCounts[cat].Resolved);
 
-    feedbacks.forEach(fb => {
-        if (categoryCounts[fb.category]) {
-            categoryCounts[fb.category][fb.status]++;
-        }
-    });
-
-    const labels = Object.keys(categoryCounts);
-    const pendingData = labels.map(cat => categoryCounts[cat].Pending);
-    const resolvedData = labels.map(cat => categoryCounts[cat].Resolved);
-
-    feedbackChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Pending',
-                    data: pendingData,
-                    backgroundColor: 'rgba(255, 159, 64, 0.8)', // Orange-like for pending
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Resolved',
-                    data: resolvedData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.8)', // Green-like for resolved
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }
-            ]
+  feedbackChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Pending',
+          data: pendingData,
+          backgroundColor: 'rgba(255, 159, 64, 0.8)', // Orange-like for pending
+          borderColor: 'rgba(255, 159, 64, 1)',
+          borderWidth: 1
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // Allows canvas to take parent height
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Feedback Status by Category',
-                    font: { size: 18 }
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false
-                }
-            },
-            scales: {
-                x: {
-                    stacked: true,
-                    title: {
-                        display: true,
-                        text: 'Category'
-                    }
-                },
-                y: {
-                    stacked: true,
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Number of Feedbacks'
-                    },
-                    ticks: {
-                        precision: 0 // Ensure whole numbers
-                    }
-                }
-            }
+        {
+          label: 'Resolved',
+          data: resolvedData,
+          backgroundColor: 'rgba(75, 192, 192, 0.8)', // Green-like for resolved
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
         }
-    });
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false, // Allows canvas to take parent height
+      plugins: {
+        title: {
+          display: true,
+          text: 'Feedback Status by Category',
+          font: { size: 18 }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          title: {
+            display: true,
+            text: 'Category'
+          }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Number of Feedbacks'
+          },
+          ticks: {
+            precision: 0 // Ensure whole numbers
+          }
+        }
+      }
+    }
+  });
 }
 
 /**
@@ -522,13 +522,13 @@ function showUserDetails(user) {
 /**
  * Handles the "Make Admin" action for the currently viewed user.
  */
-window.makeAdmin = function() {
+window.makeAdmin = function () {
   if (currentViewingUser && currentViewingUser.role === 'user') {
     const confirmation = confirm(`Are you sure you want to make ${currentViewingUser.name} an administrator?`);
     if (confirmation) {
       currentViewingUser.role = 'admin'; // Update role
       showNotification(`${currentViewingUser.name} has been made an administrator.`, "success");
-      
+
       // Update the displayed role and hide the button immediately
       document.getElementById("detailUserRole").innerText = "Admin";
       document.getElementById("makeAdminButton").classList.add("hidden");
@@ -537,14 +537,14 @@ window.makeAdmin = function() {
       showSection('viewUsers');
     }
   } else if (currentViewingUser && currentViewingUser.role === 'admin') {
-      showNotification(`${currentViewingUser.name} is already an administrator.`, "info");
+    showNotification(`${currentViewingUser.name} is already an administrator.`, "info");
   }
 };
 
 /**
  * Handles the "Add Admin" form submission.
  */
-window.addAdmin = function(event) {
+window.addAdmin = function (event) {
   event.preventDefault(); // Prevent default form submission
 
   const name = document.getElementById("newAdminName").value;
@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
   showNotification("Welcome Admin!", "success");
 
   // Add event listener for clicking outside to close mobile menu
-  document.addEventListener('click', function(event) {
+  document.addEventListener('click', function (event) {
     const sidebar = document.getElementById('mobile-sidebar');
     const hamburger = document.getElementById('hamburger-button');
     const target = event.target;
@@ -606,6 +606,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Attach event listener to the addAdmin form's submit button
   const addAdminForm = document.getElementById('addAdminForm');
   if (addAdminForm) {
-      addAdminForm.addEventListener('submit', window.addAdmin);
+    addAdminForm.addEventListener('submit', window.addAdmin);
   }
 });

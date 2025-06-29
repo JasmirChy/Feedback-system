@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verify OTP</title>
 
   <link rel="preconnect" href="https://cdn.tailwindcss.com">
   <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
+
 <body class="min-h-screen bg-[#D3D3D3] grid place-items-center font-sans">
 
   <div class="bg-[#E5E4E2] p-6 rounded-xl shadow-lg md:w-[400px] w-full mx-4">
@@ -18,16 +20,16 @@
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="space-y-2 mb-4">
-          {% for category, msg in messages %}
-            <div class="px-4 py-2 rounded
+    {% if messages %}
+    <div class="space-y-2 mb-4">
+      {% for category, msg in messages %}
+      <div class="px-4 py-2 rounded
                 {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
-              {{ msg }}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
     {% endwith %}
 
     <form method="post" class="space-y-4">
@@ -49,4 +51,5 @@
   </div>
 
 </body>
+
 </html>
