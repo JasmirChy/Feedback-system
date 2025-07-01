@@ -27,19 +27,19 @@ def user_dashboard():
 
     # fetch their feedback submissions
     cur.execute("""
-           SELECT 
-             f.f_id, f.f_title, f.f_body, 
-             c.category    AS category_name,
+           SELECT
+             f.f_id, f.f_title, f.f_body,
+             c.category AS category_name,
              f.f_date, f.status, f.hide
            FROM feedback AS f
-           JOIN category AS c 
+           JOIN category AS c
              ON f.category = c.category_id
            WHERE f.user_id = %s
            ORDER BY f.f_date DESC
        """, (user_id,))
     feedback_list = cur.fetchall()
 
-    # fetch category list
+    # fetch a category list
     cur.execute("""SELECT category_id, category FROM category""")
     categories = cur.fetchall()
 

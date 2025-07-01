@@ -1,8 +1,5 @@
-// Global variable to store the currently viewed feedback
-let currentFeedback = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('DOM LOADES')
   showSection('home');
 
   // Add event listener for clicking outside to close mobile menu
@@ -20,10 +17,18 @@ document.addEventListener('DOMContentLoaded', function () {
     ) {
       toggleMobileMenu();
     }
+
+    const addAttachmentButton = document.getElementById('addAttachmentBtn');
+    if (addAttachmentButton) {
+        addAttachmentButton.addEventListener('click', function() {
+          const attachmentsContainer = document.getElementById('attachments-container');
+          if (attachmentsContainer) {
+            ensureNewDropZone(attachmentsContainer);
+          }
+        });
+    }
   });
 
-  // Populate category dropdown on page load
-  populateCategoryDropdown();
 
   // Update dashboard counts on load
   if (typeof userFeedbacks !== 'undefined') {
@@ -42,12 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   else {
     console.error('❌ could not find #attachments-container!');
-  }
-
-  // Add event listener for submit feedback form
-  const submitFeedbackForm = document.getElementById('submitFeedbackForm');
-  if (submitFeedbackForm) {
-    submitFeedbackForm.addEventListener('submit', handleFeedbackSubmission);
   }
 
 });
@@ -108,18 +107,38 @@ function ensureNewDropZone(container) {
 }
 
 function handleFilesSelected(files, wrapper, container) {
-  const fl = wrapper.querySelector('.file-list');
-  fl.innerHTML = '';
-  Array.from(files).forEach(f => {
-    const li = document.createElement('li');
-    li.textContent = f.name;
-    fl.appendChild(li);
+  // 1) Grab & keep the existing file-input
+  const inp = wrapper.querySelector('input[type="file"]');
+
+  // 2) Remove only the drop‑zone box, not the input
+  const dz = wrapper.querySelector('.drop-zone');
+  dz.remove();
+
+  // 3) For each selected file, add a preview row
+  Array.from(files).forEach(file => {
+    const preview = document.createElement('div');
+    preview.className = 'flex items-center justify-between bg-slate-100 p-3 rounded mb-2';
+
+    const name = document.createElement('span');
+    name.textContent = file.name;
+    name.className = 'text-slate-800';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.innerHTML = '✖️';
+    removeBtn.className = 'text-red-500 hover:text-red-700';
+    removeBtn.onclick = () => {
+      // Remove preview row
+      preview.remove();
+      // Also clear that input so it doesn’t submit
+      inp.value = '';
+    };
+
+    preview.appendChild(name);
+    preview.appendChild(removeBtn);
+    wrapper.appendChild(preview);
   });
 
-  // Convert drop-zone into a preview
-  wrapper.querySelector('.drop-zone').classList.replace('drop-zone', 'file-preview');
-
-  // Append a fresh drop-zone
+  // 4) Now inject a fresh drop‑zone (with its own input) below
   ensureNewDropZone(container);
 }
 
@@ -132,14 +151,20 @@ function showSection(sectionId) {
   const sectionToShow = document.getElementById(sectionId);
   if (sectionToShow) {
     sectionToShow.classList.remove('hidden');
-    if (sectionId === 'history') {
-      if (typeof userFeedbacks !== 'undefined') {
-        renderUserFeedbacksHistory(); // Render history when navigating to it
-      }
+
+    if (sectionId === 'history' && typeof userFeedbacks !== 'undefined') {
+      renderUserFeedbacksHistory();
     }
-    if (sectionId === 'home') {
-      if (typeof userFeedbacks !== 'undefined') {
-        updateDashboardCounts(); // Update counts when navigating to home
+
+    if (sectionId === 'home' && typeof userFeedbacks !== 'undefined') {
+      updateDashboardCounts();
+    }
+
+    // 🟢 Inject drop zone when opening submit section
+    if (sectionId === 'submitFeedback') {
+      const attachmentsContainer = document.getElementById('attachments-container');
+      if (attachmentsContainer && attachmentsContainer.childElementCount === 0) {
+        ensureNewDropZone(attachmentsContainer);
       }
     }
   }
@@ -147,7 +172,6 @@ function showSection(sectionId) {
   setActiveNavItem(sectionId);
   window.scrollTo(0, 0);
 
-  // Close sidebar on mobile after navigation
   if (window.innerWidth < 768 && document.getElementById('mobile-sidebar').classList.contains('translate-x-0')) {
     toggleMobileMenu();
   }
@@ -201,119 +225,43 @@ function showNotification(msg, type = "info") {
 }
 
 /**
- * Populates the category dropdown in the submit feedback form.
- */
-function populateCategoryDropdown() {
-  const categorySelect = document.getElementById('category');
-  categorySelect.innerHTML = '<option value="">-- Choose a category --</option>'; // Reset
-  feedbackCategories.forEach(category => {
-    const option = document.createElement('option');
-    option.value = category;
-    option.textContent = category;
-    categorySelect.appendChild(option);
-  });
-}
-
-/**
- * Renders the user's feedback history dynamically.
- */
-function renderUserFeedbacksHistory() {
-  const historyContainer = document.getElementById('userFeedbackHistoryContainer');
-  historyContainer.innerHTML = ''; // Clear existing content
-
-  if (userFeedbacks.length === 0) {
-    historyContainer.innerHTML = '<p class="text-slate-600 text-center py-8">You have not submitted any feedback yet.</p>';
-    return;
-  }
-
-  // Sort feedbacks: Resolved at the bottom, others by date descending (latest first)
-  const sortedFeedbacks = [...userFeedbacks].sort((a, b) => {
-    const statusA = a.status.toLowerCase();
-    const statusB = b.status.toLowerCase();
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-
-    if (statusA === 'resolved' && statusB !== 'resolved') {
-      return 1; // 'a' (resolved) comes after 'b' (not resolved)
-    }
-    if (statusB === 'resolved' && statusA !== 'resolved') {
-      return -1; // 'b' (resolved) comes after 'a' (not resolved)
-    }
-    // If both are resolved or both are not resolved, sort by date descending
-    return dateB - dateA;
-  });
-
-  sortedFeedbacks.forEach(fb => {
-    let statusClass = '';
-    let statusIcon = '';
-    if (fb.status.toLowerCase() === 'pending') {
-      statusClass = 'bg-yellow-100 text-yellow-800';
-      statusIcon = 'fas fa-clock';
-    } else if (fb.status.toLowerCase() === 'under review') {
-      statusClass = 'bg-blue-100 text-blue-800';
-      statusIcon = 'fas fa-hourglass-half';
-    } else if (fb.status.toLowerCase() === 'resolved') {
-      statusClass = 'bg-green-100 text-green-800';
-      statusIcon = 'fas fa-check-circle';
-    } else {
-      statusClass = 'bg-gray-100 text-gray-800';
-      statusIcon = 'fas fa-info-circle';
-    }
-
-    const feedbackCard = document.createElement('div');
-    feedbackCard.classList.add('p-6', 'bg-white', 'border', 'border-slate-200', 'rounded-xl', 'hover:shadow-md', 'transition-shadow', 'cursor-pointer');
-
-    feedbackCard.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div class="flex-1">
-              <h3 class="font-semibold text-slate-800 text-lg mb-2">${fb.title}</h3>
-              <p class="text-sm text-slate-500 flex items-center mb-1">
-                <i class="fas fa-tags mr-2"></i>Category: ${fb.category}
-              </p>
-              <p class="text-sm text-slate-500 flex items-center mb-3">
-                <i class="fas fa-calendar mr-2"></i>Submitted on ${fb.date}
-              </p>
-              <p class="text-slate-600 text-sm truncate max-w-lg">${fb.message}</p>
-            </div>
-            <div class="ml-6">
-              <span class="status-indicator px-4 py-2 ${statusClass} rounded-full text-sm font-semibold">
-                <i class="${statusIcon} mr-1"></i>${fb.status}
-              </span>
-            </div>
-          </div>
-          <div class="mt-4 flex items-center justify-end text-sm">
-            <button onclick="event.stopPropagation(); showUserFeedbackDetails('${fb.id}')" class="text-teal-600 hover:text-teal-700 font-medium">View Details</button>
-          </div>
-        `;
-    historyContainer.appendChild(feedbackCard);
-  });
-}
-
-/**
  * Updates the dashboard counts for total, pending, and resolved submissions.
  */
 function updateDashboardCounts() {
+  // Check if userFeedbacks is defined and an array
+  if (typeof userFeedbacks === 'undefined' || !Array.isArray(userFeedbacks)) {
+    console.warn("userFeedbacks is not defined or not an array. Dashboard counts might be incorrect.");
+    return;
+  }
+
   document.getElementById('totalSubmissionsCount').innerText = userFeedbacks.length;
-  document.getElementById('pendingSubmissionsCount').innerText = userFeedbacks.filter(f => /[Pending|Under Review]/i.test(f.status)).length;
-  document.getElementById('resolvedSubmissionsCount').innerText = userFeedbacks.filter(f => /resolved/i.test(f.status)).length;;
+
+  document.getElementById('pendingSubmissionsCount').innerText =
+    userFeedbacks.filter(f => f.status === 1).length; // Check for status == 1 (Pending)
+
+  document.getElementById('resolvedSubmissionsCount').innerText =
+    userFeedbacks.filter(f => f.status === 2).length; // Check for status == 2 (Resolved)
 }
 
 
 /**
- * Displays the full details of a selected user feedback.
- * @param {string} feedbackId The ID of the feedback to display.
+ * Simple HTML-escape for plain-text insertion
  */
-function showUserFeedbackDetails(feedbackId) {
-  currentFeedback = userFeedbacks.find(f => f.id === id);
-
-  if (!currentFeedback) return showNotification("Feedback not found", "error");
-  ['Title', 'Submitter', 'Category', 'Status', 'Date', 'Message'].forEach(key => {
-    document.getElementById(`detailUser${key}`).innerText = currentFeedback[key.toLowerCase()];
-  });
-  showNotification("Feedback not found.", "error");
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
+
 
 // Function to go back from feedback details to history
 function goBackToFeedbackHistory() {
   showSection('history');
 }
+
+
+// make these available to inline handlers
+window.showSection       = showSection;
+window.toggleMobileMenu  = toggleMobileMenu;
+window.toggleSubmenu     = toggleSubmenu;
+window.goBackToFeedbackHistory = goBackToFeedbackHistory;

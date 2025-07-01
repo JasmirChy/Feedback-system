@@ -65,7 +65,7 @@ table_statements = [
     CREATE TABLE feedback (
       f_id     INT(11) NOT NULL AUTO_INCREMENT,
       f_title  VARCHAR(60) NOT NULL,
-      f_body   VARCHAR(150) NOT NULL,
+      f_body   VARCHAR(5000) NOT NULL,
       category INT(11) NOT NULL,
       user_id  INT(11) NOT NULL,
       f_date   DATE NOT NULL,

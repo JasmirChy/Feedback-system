@@ -7,6 +7,10 @@
   <meta name="theme-color" content="#ffffff" />
   <title>User Dashboard</title>
   <script src="{{url_for('static', filename='js/user_dashboard.js')}}" defer></script>
+  <script>
+    // Initialize userFeedbacks for JavaScript
+    var userFeedbacks = {{ feedback_list | tojson }};
+  </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -497,7 +501,7 @@
             <span class="font-semibold">Dashboard</span>
           </a>
 
-          <a onclick="showSection('subfeedback')"
+          <a onclick="showSection('submitFeedback')"
             class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-plus-circle w-5 text-lg"></i>
             <span class="font-semibold">Submit Feedback</span>
@@ -610,7 +614,7 @@
 
             <div class="col-span-12">
               <div class="grid md:grid-cols-2 gap-8">
-                <div onclick="showSection('subfeedback')" class="dashboard-card cursor-pointer p-8 rounded-2xl">
+                <div onclick="showSection('submitFeedback')" class="dashboard-card cursor-pointer p-8 rounded-2xl">
                   <div class="flex items-center justify-between mb-6">
                     <div
                       class="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-lg">
@@ -640,7 +644,7 @@
           </div>
         </section>
 
-        <section id="subfeedback" class="section hidden">
+        <section id="submitFeedback" class="section hidden">
           <div class="premium-card p-10 max-w-4xl mx-auto border border-slate-200 rounded-3xl shadow-xl bg-white">
             <div class="text-center mb-10">
               <div
@@ -695,6 +699,9 @@
 
                   <!-- THIS is the only thing you need here -->
                   <div id="attachments-container"></div>
+                  <button type="button" id="addAttachmentBtn" class="mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium">
+                      <i class="fas fa-plus-circle mr-2"></i>Add Another File
+                  </button>
                 </div>
 
               </div>
@@ -717,84 +724,59 @@
           </div>
         </section>
 
-        <section id="history" class="section hidden">
+        <section id="history" class="section {% if section != 'history' %}hidden{% endif %}">
           <div class="premium-card p-8">
             <div class="flex items-center justify-between mb-8">
-              {% for fb in feedback_list %}
-              <div class="dashboard-card p-6">
-                <h3 class="font-bold text-lg">{{ fb.f_title }}</h3>
-                <p class="text-sm text-slate-600">
-                  {{ fb.category_name }} • {{ fb.f_date }}
-                </p>
-                <p class="mt-2">{{ fb.f_body }}</p>
-                <p class="mt-2">
-                  {% if fb.hide %}<span class="text-red-500">Hidden</span>{% endif %}
-                  {% if fb.status==1 %}
-                  <span class="text-yellow-600">Pending</span>
-                  {% elif fb.status==2 %}
-                  <span class="text-green-600">Resolved</span>
-                  {% else %}
-                  <span class="text-red-600">Uncertain</span>
-                  {% endif %}
-                </p>
+              <div class="flex items-center">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mr-6 shadow-lg">
+                  <i class="fas fa-history text-white text-xl"></i>
+                </div>
+                <div>
+                  <h2 class="text-3xl font-bold text-slate-800">Feedback History</h2>
+                  <p class="text-slate-600 mt-1">Track the status of your submissions</p>
+                </div>
               </div>
+            </div>
+
+            <div id="userFeedbackHistoryContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {% if feedback_list %}
+                {% for feedback in feedback_list %}
+                  <div class="feedback-card p-6 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition duration-200 ease-in-out"
+                       onclick="window.location.href='{{ url_for('submit.feedback_detail', feedback_id=feedback.f_id) }}'">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-slate-800 text-lg truncate">{{ feedback.title }}</h3>
+                        <span class="text-sm text-slate-500">{{ feedback.date.strftime('%Y-%m-%d') if feedback.date else 'N/A' }}</span>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-3 line-clamp-2">{{ feedback.message }}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{
+                           'bg-blue-100 text-blue-800' if feedback.category == 'Academic' else
+                           'bg-purple-100 text-purple-800' if feedback.category == 'Infrastructure' else
+                           'bg-red-100 text-red-800' if feedback.category == 'Administrative' else
+                           'bg-gray-100 text-gray-800'
+                        }}">
+                            {{ feedback.category_name or 'No category' }}
+                        </span>
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{
+                           'bg-yellow-100 text-yellow-800' if feedback.status == 1 else
+                           'bg-green-100 text-green-800' if feedback.status == 2 else
+                           'bg-gray-100 text-gray-800'
+                        }}">
+                            {{ 'Pending' if feedback.status == 1 else 'Resolved' if feedback.status == 2 else 'Unknown' }}
+                        </span>
+                    </div>
+                    {% if feedback.hide == 1 %}
+                        <p class="text-xs text-red-500 mt-2">Hidden Pending</p>
+                    {% endif %}
+                  </div>
+                {% endfor %}
               {% else %}
-              <p class="text-center text-slate-500">You have not submitted any feedback yet.</p>
-              {% endfor %}
+                <p class="text-slate-600">No feedback submitted yet.</p>
+              {% endif %}
             </div>
           </div>
         </section>
 
-        <section id="userFeedbackDetails" class="section hidden">
-          <div class="premium-card p-8 max-w-4xl mx-auto">
-            <div class="flex items-center mb-8">
-              <div
-                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
-                <i class="fas fa-info-circle text-white text-xl"></i>
-              </div>
-              <div>
-                <h2 class="text-3xl font-bold text-slate-800">Feedback Details</h2>
-                <p class="text-slate-600 mt-1">Detailed view of your submitted feedback</p>
-              </div>
-            </div>
-
-            <div class="space-y-6">
-              <div>
-                <h3 class="text-lg font-semibold text-slate-800 mb-2">Title: <span id="detailUserTitle"
-                    class="font-normal text-slate-600"></span></h3>
-              </div>
-              <div class="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p class="text-base font-semibold text-slate-700">Submitter: <span id="detailUserSubmitter"
-                      class="font-normal text-slate-600"></span></p>
-                </div>
-                <div>
-                  <p class="text-base font-semibold text-slate-700">Category: <span id="detailUserCategory"
-                      class="font-normal text-slate-600"></span></p>
-                </div>
-                <div>
-                  <p class="text-base font-semibold text-slate-700">Status: <span id="detailUserStatus"
-                      class="font-normal text-slate-600 px-3 py-1 rounded-full text-sm"></span></p>
-                </div>
-                <div>
-                  <p class="text-base font-semibold text-slate-700">Date: <span id="detailUserDate"
-                      class="font-normal text-slate-600"></span></p>
-                </div>
-              </div>
-              <div>
-                <h3 class="text-lg font-semibold text-slate-800 mb-2">Message:</h3>
-                <p id="detailUserMessage" class="text-slate-600 bg-slate-50 p-4 rounded-lg border border-slate-200"></p>
-              </div>
-            </div>
-
-            <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
-              <button type="button" onclick="goBackToFeedbackHistory()"
-                class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to History
-              </button>
-            </div>
-          </div>
-        </section>
 
         <section id="profile" class="section hidden">
           <div class="premium-card p-8 max-w-4xl mx-auto">
@@ -809,82 +791,49 @@
               </div>
             </div>
 
-            <div id="prof" class="grid md:grid-cols-2 gap-8">
-              <div class="space-y-6">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-user-circle mr-2 text-teal-600"></i>Profile Picture
-                  </label>
-                  <div class="flex items-center space-x-6">
-                    <div class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
-                      <i class="fas fa-user text-slate-400 text-3xl"></i>
+            <form action="{{ url_for('auth.update_profile') }}" method="post" class="space-y-6">
+              <div id="prof" class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div>
+                        <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
+                        </label>
+                        <input type="text" id="fullName" name="full_name" class="form-input w-full p-3 rounded-lg" value="{{ user.full_name }}">
                     </div>
-                    <div class="space-y-2">
-                      <button
-                        class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
-                        <i class="fas fa-upload mr-2"></i>Upload New
-                      </button>
-                      <button
-                        class="px-4 py-2 bg-slate-100 text-red-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
-                        <i class="fas fa-trash mr-2"></i>Remove
-                      </button>
+
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
+                        </label>
+                        <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" value="{{ user.email }}">
                     </div>
-                  </div>
                 </div>
 
-                <div>
-                  <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
-                  </label>
-                  <input type="text" id="fullName" class="form-input w-full p-3 rounded-lg" value="Jasmir User">
-                </div>
-
-                <div>
-                  <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
-                  </label>
-                  <input type="email" id="email" class="form-input w-full p-3 rounded-lg" value="jasmir@example.com">
+                <div class="space-y-6">
+                    <div>
+                        <label for="designation" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-briefcase mr-2 text-teal-600"></i>Designation
+                        </label>
+                        <input type="text" id="designation" name="designation" class="form-input w-full p-3 rounded-lg" value="{{ user.designation }}">
+                    </div>
+                    <div>
+                        <label for="dob" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-2 text-teal-600"></i>Date of Birth
+                        </label>
+                        <input type="date" id="dob" name="dob" class="form-input w-full p-3 rounded-lg" value="{{ user.dob.strftime('%Y-%m-%d') if user.dob else '' }}">
+                    </div>
                 </div>
               </div>
 
-              <div class="space-y-6">
-                <div>
-                  <label for="department" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-building mr-2 text-teal-600"></i>Department
-                  </label>
-                  <select id="department" class="form-input w-full p-3 rounded-lg">
-                    <option>Information Technology</option>
-                    <option>Human Resources</option>
-                    <option>Finance</option>
-                    <option>Operations</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label for="position" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-briefcase mr-2 text-teal-600"></i>Position
-                  </label>
-                  <input type="text" id="position" class="form-input w-full p-3 rounded-lg" value="Software Developer">
-                </div>
-
-                <div>
-                  <label for="phone" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-phone mr-2 text-teal-600"></i>Phone Number
-                  </label>
-                  <input type="tel" id="phone" class="form-input w-full p-3 rounded-lg" value="+1 (555) 123-4567">
-                </div>
+              <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
+                  <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                      Cancel
+                  </button>
+                  <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                      <i class="fas fa-save mr-2"></i>Save Changes
+                  </button>
               </div>
-            </div>
-
-            <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
-              <button onclick="showSection('home')"
-                class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                Cancel
-              </button>
-              <button class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                <i class="fas fa-save mr-2"></i>Save Changes
-              </button>
-            </div>
+            </form>
           </div>
         </section>
 
@@ -903,39 +852,35 @@
               </div>
             </div>
 
-            <form class="space-y-6">
+            <form action="{{ url_for('auth.change_password') }}" method="post" class="space-y-6">
               <div>
-                <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                  <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
-                </label>
-                <input type="password" id="currentPassword" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Enter current password">
+                  <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                      <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
+                  </label>
+                  <input type="password" id="currentPassword" name="current_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter current password">
               </div>
 
               <div>
-                <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                  <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
-                </label>
-                <input type="password" id="newPassword" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Enter new password">
+                    <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
+                    </label>
+                    <input type="password" id="newPassword" name="new_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter new password">
               </div>
 
               <div>
-                <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                  <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
-                </label>
-                <input type="password" id="confirmPassword" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Confirm new password">
+                    <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
+                    </label>
+                    <input type="password" id="confirmPassword" name="confirm_new_password" class="form-input w-full p-3 rounded-lg" placeholder="Confirm new password">
               </div>
 
               <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200">
-                <button type="button" onclick="showSection('home')"
-                  class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                  <i class="fas fa-save mr-2"></i>Update Password
-                </button>
+                    <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                        <i class="fas fa-save mr-2"></i>Update Password
+                    </button>
               </div>
             </form>
           </div>
@@ -943,25 +888,6 @@
       </div>
     </main>
   </div>
-
-  <script>
-    // Show modal when any "Sign Out" is clicked
-    document.querySelectorAll('.signOutBtn').forEach(btn =>
-      btn.addEventListener('click', () => {
-        document.getElementById('logoutModal').classList.remove('hidden');
-      })
-    );
-
-    // Cancel
-    document.getElementById('cancelLogoutBtn').addEventListener('click', () => {
-      document.getElementById('logoutModal').classList.add('hidden');
-    });
-
-    // Confirm
-    document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
-      window.location.href = "{{ url_for('auth.logout') }}";
-    });
-  </script>
 
 </body>
 

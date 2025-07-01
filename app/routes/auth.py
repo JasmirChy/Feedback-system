@@ -309,3 +309,103 @@ def logout():
     session.clear()
     flash("You've been signed out.",'success')
     return redirect(url_for('auth.login'))
+
+@auth.route('/update_profile', methods=['POST'])
+def update_profile():
+    if 'user_id' not in session:
+        flash('Please log in to update your profile.', 'error')
+        return redirect(url_for('auth.login'))
+
+    user_id = session['user_id']
+
+    if request.method == 'POST':
+        full_name = request.form['full_name']
+        email = request.form['email']
+        designation = request.form['designation']
+        dob = request.form['dob'] # This will be a string 'YYYY-MM-DD'
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        try:
+            cur.execute(
+                "UPDATE fd_user SET full_name = %s, email = %s, designation = %s, dob = %s WHERE user_id = %s",
+                (full_name, email, designation, dob, user_id)
+            )
+            conn.commit()
+            flash('Profile updated successfully!', 'success')
+        except Exception as e:
+            conn.rollback()
+            flash(f'Error updating profile: {e}', 'error')
+            # For debugging, print the error
+            print(f"Error updating profile: {e}")
+        finally:
+            cur.close()
+            conn.close()
+
+    return redirect(url_for('views.user_dashboard', section='profile')) # Redirect back to the profile section
+
+
+@auth.route('/change_password', methods=['POST'])
+def change_password():
+    if 'user_id' not in session:
+        flash('Please log in to change your password.', 'error')
+        return redirect(url_for('auth.login'))
+
+    user_id = session['user_id']
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_new_password = request.form.get('confirm_new_password')
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True) # Use dictionary=True to fetch user by username
+
+    # Fetch user's current hashed password
+    cur.execute("SELECT password FROM fd_user WHERE user_id = %s", (user_id,))
+    user = cur.fetchone()
+
+    if not user:
+        flash('User not found. Please log in again.', 'error')
+        cur.close()
+        conn.close()
+        return redirect(url_for('auth.login'))
+
+    # Verify current password
+    if not check_password_hash(user['password'], current_password):
+        flash('Incorrect current password.', 'error')
+        cur.close()
+        conn.close()
+        return redirect(url_for('views.user_dashboard', section='changePassword')) # Stay on change password section
+
+    # Validate new password
+    if not new_password or len(new_password) < 6:
+        flash('New password must be at least 6 characters long.', 'error')
+        cur.close()
+        conn.close()
+        return redirect(url_for('views.user_dashboard', section='changePassword'))
+
+    if new_password != confirm_new_password:
+        flash('New password and confirmation do not match.', 'error')
+        cur.close()
+        conn.close()
+        return redirect(url_for('views.user_dashboard', section='changePassword'))
+
+    # Hash the new password and update in DB
+    hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
+
+    try:
+        cur.execute(
+            "UPDATE fd_user SET password = %s WHERE user_id = %s",
+            (hashed_password, user_id)
+        )
+        conn.commit()
+        flash('Password updated successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error updating password: {e}', 'error')
+        print(f"Error updating password: {e}") # For debugging
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for('views.user_dashboard', section='changePassword')) # Redirect back to the change password section
