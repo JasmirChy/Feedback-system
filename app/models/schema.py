@@ -89,7 +89,7 @@ table_statements = [
     """
     CREATE TABLE attachment (
       attach_id INT(45) NOT NULL AUTO_INCREMENT,
-      attach MEDIUMBLOB,
+      attach LONGBLOB,
       feedback_id INT(11),
       PRIMARY KEY (attach_id),
       FOREIGN KEY (feedback_id)

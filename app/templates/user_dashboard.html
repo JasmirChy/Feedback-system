@@ -18,7 +18,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     /* ensure text-size-adjust and user-select are prefixed */
-    html {
+    HTML {
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
     }
@@ -495,26 +495,26 @@
         <nav class="space-y-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Main Menu</div>
 
-          <a onclick="showSection('home')"
+          <a data-target="home"
             class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-home w-5 text-lg"></i>
             <span class="font-semibold">Dashboard</span>
           </a>
 
-          <a onclick="showSection('submitFeedback')"
+          <a data-target="submitFeedback"
             class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-plus-circle w-5 text-lg"></i>
             <span class="font-semibold">Submit Feedback</span>
           </a>
 
-          <a onclick="showSection('history')"
-            class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+          <a data-target="history"
+             class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-history w-5 text-lg"></i>
             <span class="font-semibold">Feedback History</span>
           </a>
 
 
-          <a onclick="showSection('profile')"
+          <a data-target="profile"
             class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-user-circle w-5 text-lg"></i>
             <span class="font-semibold">Profile Settings</span>
@@ -522,7 +522,7 @@
 
 
           <div>
-            <div onclick="toggleSubmenu('settingsSubmenuSidebar')"
+            <div data-submenu-target="settingsSubmenuSidebar"
               class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
               <div class="flex items-center space-x-3">
                 <i class="fas fa-cog w-5 text-lg"></i>
@@ -533,7 +533,7 @@
             <ul id="settingsSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
               <li
                 class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all"
-                onclick="showSection('changePassword')">
+                data-target="changePassword">
                 <i class="fas fa-shield-alt text-sm mr-3"></i>Security & Password
               </li>
             </ul>
@@ -546,25 +546,6 @@
               <span class="font-semibold">Sign Out</span>
             </button>
           </div>
-
-          <!-- Logout Confirmation Modal -->
-          <div id="logoutModal"
-            class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
-              <h2 class="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
-              <div class="flex justify-around mt-6">
-                <button id="confirmLogoutBtn"
-                  class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
-                  OK
-                </button>
-                <button id="cancelLogoutBtn"
-                  class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-
         </nav>
       </div>
     </aside>
@@ -572,6 +553,7 @@
     <!-- main dashboard sections -->
     <main class="desktop-main custom-scrollbar">
       <div class="max-w-6xl mx-auto space-y-8">
+
         <section id="home" class="section fade-in">
           <div class="grid grid-cols-12 gap-8">
             <div class="col-span-12 lg:col-span-12"> <!-- Changed to lg:col-span-12 -->
@@ -698,10 +680,7 @@
                   </label>
 
                   <!-- THIS is the only thing you need here -->
-                  <div id="attachments-container"></div>
-                  <button type="button" id="addAttachmentBtn" class="mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium">
-                      <i class="fas fa-plus-circle mr-2"></i>Add Another File
-                  </button>
+                   <div id="attachments-container" class="space-y-3 mb-4"></div>
                 </div>
 
               </div>
@@ -744,10 +723,10 @@
                   <div class="feedback-card p-6 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition duration-200 ease-in-out"
                        onclick="window.location.href='{{ url_for('submit.feedback_detail', feedback_id=feedback.f_id) }}'">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-slate-800 text-lg truncate">{{ feedback.title }}</h3>
+                        <h3 class="font-semibold text-slate-800 text-lg truncate">{{ feedback.f_title }}</h3>
                         <span class="text-sm text-slate-500">{{ feedback.date.strftime('%Y-%m-%d') if feedback.date else 'N/A' }}</span>
                     </div>
-                    <p class="text-slate-600 text-sm mb-3 line-clamp-2">{{ feedback.message }}</p>
+                    <p class="text-slate-600 text-sm mb-3 line-clamp-2">{{ feedback.f_body | e}}</p>
                     <div class="flex items-center justify-between">
                         <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{
                            'bg-blue-100 text-blue-800' if feedback.category == 'Academic' else
@@ -820,7 +799,7 @@
                         <label for="dob" class="block text-sm font-semibold text-slate-700 mb-2">
                             <i class="fas fa-calendar-alt mr-2 text-teal-600"></i>Date of Birth
                         </label>
-                        <input type="date" id="dob" name="dob" class="form-input w-full p-3 rounded-lg" value="{{ user.dob.strftime('%Y-%m-%d') if user.dob else '' }}">
+                        <input type="date" id="dob" name="dob" class="form-input w-full p-3 rounded-lg" value="{{ user.dob or '' }}">
                     </div>
                 </div>
               </div>
@@ -889,6 +868,53 @@
     </main>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
+      <h2 class="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
+      <div class="flex justify-around mt-6">
+        <button id="confirmLogoutBtn"
+          class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+          OK
+        </button>
+        <button id="cancelLogoutBtn"
+          class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 
+<script>
+  // Grab elements
+  const signOutBtn = document.querySelector('.signOutBtn');
+  const logoutModal = document.getElementById('logoutModal');
+  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+  // Show the modal when sign-out is clicked
+  signOutBtn.addEventListener('click', () => {
+    logoutModal.classList.remove('hidden');
+  });
+
+  // Confirm logout: redirect to logout endpoint
+  confirmLogoutBtn.addEventListener('click', () => {
+    window.location.href = "{{ url_for('auth.logout') }}";
+  });
+
+  // Cancel logout: hide the modal
+  cancelLogoutBtn.addEventListener('click', () => {
+    logoutModal.classList.add('hidden');
+  });
+
+  // Optional: Close modal by clicking outside content
+  logoutModal.addEventListener('click', (e) => {
+    if (e.target === logoutModal) {
+      logoutModal.classList.add('hidden');
+    }
+  });
+
+</script>
 </html>
