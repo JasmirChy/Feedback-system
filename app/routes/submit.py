@@ -1,7 +1,7 @@
 import os
-from datetime import date, datetime
+from datetime import date
 
-from flask import Blueprint, request, session, flash, redirect, url_for, render_template
+from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_from_directory, current_app
 from werkzeug.utils import secure_filename
 
 from app.models.db import get_db_connection
@@ -59,23 +59,26 @@ def submit_feedback():
                 """, (title, body, category, user_id, date.today(), int(hide)))
         feedback_id = cursor.lastrowid
 
+        # Prepare an absolute upload folder path
+        upload_folder_abs = os.path.join(current_app.root_path, UPLOAD_FOLDER)
+        os.makedirs(upload_folder_abs, exist_ok=True)
+
         # 4) Process attachments
         files = request.files.getlist('attachment')
-        if files:
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        for f in files:
+            if f and allowed_file(f.filename):
+                original = secure_filename(f.filename)
+                unique = f"{feedback_id}_{original}"
+                path = os.path.join(upload_folder_abs, unique)
+                f.save(path)
 
-            for f in files:
-                if f and allowed_file(f.filename):
-                    original = secure_filename(f.filename)
-                    unique = f"{feedback_id}_{original}"
-                    path = os.path.join(UPLOAD_FOLDER, unique)
-                    f.save(path)
+                # Store a relative path from 'app/static' folder for serving
+                relative_path = os.path.relpath(path, start=os.path.join(current_app.root_path, 'app', 'static')).replace('\\', '/')
 
-                    cursor.execute("""
-                                INSERT INTO attachments
-                                    (f_id, attachment_path, filename)
-                                VALUES (%s, %s, %s)
-                            """, (feedback_id, path, original))
+                cursor.execute("""
+                                    INSERT INTO attachments (f_id, attachment_path, filename)
+                                    VALUES (%s, %s, %s)
+                                """, (feedback_id, relative_path, original))
 
         conn.commit()
         flash("Your feedback has been submitted successfully!", "success")
@@ -99,15 +102,15 @@ def user_history():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-      SELECT f.f_id, f.f_title, f.f_body, c.category AS category_name, f.f_date AS date, f.status, f.hide
-        FROM feedback f
-        JOIN category c ON c.category_id = f.category
-       WHERE f.user_id = %s
-       ORDER BY f.f_date DESC
-    """, (user_id,))
+          SELECT f.f_id, f.f_title, f.f_body, c.category AS category_name, f.f_date AS date, f.status, f.hide
+            FROM feedback f
+            JOIN category c ON c.category_id = f.category
+           WHERE f.user_id = %s
+           ORDER BY f.f_date DESC
+        """, (user_id,))
     feedback_list = cursor.fetchall()
 
-    cursor.execute("SELECT user_id, full_name, username, email, designation, dob FROM fd_user WHERE user_id = %s", (user_id,))
+    cursor.execute("SELECT user_id, full_name, username, email, designation, dob FROM fd_user WHERE user_id = %s",(user_id,))
     user = cursor.fetchone()
 
     # Convert dob to string
@@ -141,38 +144,61 @@ def feedback_detail(feedback_id):
 
     # fetch feedback
     cursor.execute("""
-       SELECT f.f_id, f.f_title, f.f_body,
-             c.category, f.f_date, f.status, f.hide
-        FROM feedback f
-        JOIN category c ON c.category_id = f.category
-       WHERE f.f_id = %s AND f.user_id = %s
-    """, (feedback_id, user_id))
+           SELECT f.f_id, f.f_title AS title, f.f_body AS message,
+                  c.category AS category, f.f_date AS date, f.status, f.hide
+             FROM feedback f
+             JOIN category c ON c.category_id = f.category
+            WHERE f.f_id = %s AND f.user_id = %s
+        """, (feedback_id, user_id))
     fb = cursor.fetchone()
+
+    if not fb:
+        cursor.close()
+        conn.close()
+        flash("Feedback not found or access denied.", "error")
+        return redirect(url_for('submit.user_history'))
 
     # fetch attachments
     cursor.execute("""
-          SELECT attach_id, attachment_path, filename
-            FROM attachments -- Changed from 'attachment' to 'attachments'
-           WHERE f_id = %s
+            SELECT attach_id, attachment_path, filename
+              FROM attachments
+             WHERE f_id = %s
         """, (feedback_id,))
     attachments = cursor.fetchall()
 
-    cursor.execute("SELECT user_id, full_name FROM fd_user WHERE user_id = %s", (user_id,))
-    user_data = cursor.fetchone()
+    cursor.execute("""
+            SELECT user_id, full_name, username, email, designation, dob
+              FROM fd_user
+             WHERE user_id = %s
+        """, (user_id,))
+    user = cursor.fetchone()
+
+    if user and user['dob'] and not isinstance(user['dob'], str):
+        user['dob'] = user['dob'].strftime('%Y-%m-%d')
+
+    # Also load feedback history and categories for other sections
+    cursor.execute("""
+      SELECT f.f_id, f.f_title AS title, f.f_body AS message,
+             c.category AS category_name, f.f_date AS date, f.status, f.hide
+        FROM feedback f
+        JOIN category c ON c.category_id = f.category
+       WHERE f.user_id = %s
+    """, (user_id,))
+    feedback_list = cursor.fetchall()
+
+    cursor.execute("SELECT category_id, category FROM category")
+    categories = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
-    if not fb:
-        flash("Feedback not found or you don't have access.", "error")
-        return redirect(url_for('submit.user_history'))
-
     return render_template('user_dashboard.html',
-                           section='detail',
+                           section='feedbackDetail',
                            feedback=fb,
-                           feedback_list=[],
                            attachments=attachments,
-                           user=user_data)
+                           feedback_list=feedback_list,
+                           categories=categories,
+                           user=user)
 
 @submit.route('/download_attachment/<int:attach_id>')
 def download_attachment(attach_id):
@@ -184,34 +210,29 @@ def download_attachment(attach_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Fetch attachment data and ensure the user owns the feedback associated with it
-    # Added f.user_id check for security
     cursor.execute("""
             SELECT a.attachment_path, a.filename
-            FROM attachments a
-            JOIN feedback f ON a.f_id = f.f_id
-            WHERE a.attach_id = %s AND f.user_id = %s
+              FROM attachments a
+              JOIN feedback f ON a.f_id = f.f_id
+             WHERE a.attach_id = %s AND f.user_id = %s
         """, (attach_id, user_id))
     attachment_info = cursor.fetchone()
 
     cursor.close()
     conn.close()
 
-    print(f"DEBUG: attachment fetched: {attachment_info}")
-
     if attachment_info:
-        file_full_path = attachment_info['attachment_path']
+        file_relative_path = attachment_info['attachment_path']
         original_filename = attachment_info['filename']
 
         # Ensure the file exists on the filesystem
+        file_full_path = os.path.join(current_app.root_path, 'app', 'static', file_relative_path)
+
         if os.path.exists(file_full_path):
             # `send_from_directory` expects the directory and the filename separately
             directory = os.path.dirname(file_full_path)
             filename_to_serve = os.path.basename(file_full_path)
-
-            print(f"DEBUG: Serving file from directory: {directory}, filename: {filename_to_serve}")
-            print(f"DEBUG: Original filename for download: {original_filename}")
-            return None
+            return send_from_directory(directory, filename_to_serve, as_attachment=True, download_name=original_filename)
 
         else:
             flash("Attachment file not found on server.", "error")

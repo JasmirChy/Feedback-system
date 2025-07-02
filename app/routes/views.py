@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, url_for, session, flash, redirect
+from flask import Blueprint, render_template, url_for, session, flash, redirect, request
 from app.models.db import get_db_connection
 
 views = Blueprint('views', __name__)
@@ -13,6 +13,8 @@ def user_dashboard():
     if not user_id:
         flash('Please log in first','error')
         return redirect(url_for('auth.login'))
+
+    section = request.args.get('section', 'home')
 
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
@@ -46,7 +48,7 @@ def user_dashboard():
     cur.close()
     conn.close()
 
-    return render_template('user_dashboard.html', user = user, feedback_list = feedback_list, categories = categories)
+    return render_template('user_dashboard.html', section=section, user = user, feedback_list = feedback_list, categories = categories)
 
 @views.route('/admin')
 def admin_dashboard():

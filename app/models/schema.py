@@ -87,15 +87,15 @@ table_statements = [
 
     #attachment store
     """
-    CREATE TABLE attachment (
-      attach_id INT(45) NOT NULL AUTO_INCREMENT,
-      attach LONGBLOB,
-      feedback_id INT(11),
-      PRIMARY KEY (attach_id),
-      FOREIGN KEY (feedback_id)
-        REFERENCES feedback(f_id)
-        ON UPDATE CASCADE
-        ON DELETE CASCADE
+    CREATE TABLE attachments (
+        attach_id INT AUTO_INCREMENT PRIMARY KEY,
+        f_id INT NOT NULL,
+        attachment_path VARCHAR(255) NOT NULL,
+        filename VARCHAR(255) NOT NULL,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (f_id)
+            REFERENCES feedback(f_id) 
+            ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     """,
 

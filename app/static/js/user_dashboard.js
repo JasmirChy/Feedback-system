@@ -18,8 +18,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ----- Initial Load -----
-  showSection('home');  // Show home on load
 });
 
 

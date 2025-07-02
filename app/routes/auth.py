@@ -1,4 +1,4 @@
-import random, datetime, mysql.connector
+import random, datetime, mysql.connector, re
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, url_for, request, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -370,7 +370,7 @@ def change_password():
         conn.close()
         return redirect(url_for('auth.login'))
 
-    # Verify current password
+    # Verify the current password
     if not check_password_hash(user['password'], current_password):
         flash('Incorrect current password.', 'error')
         cur.close()
@@ -390,6 +390,10 @@ def change_password():
         conn.close()
         return redirect(url_for('views.user_dashboard', section='changePassword'))
 
+    if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$', new_password):
+        flash('Password must contain at least one letter and one number.', 'error')
+        return redirect(url_for('views.user_dashboard', section='changePassword'))
+
     # Hash the new password and update in DB
     hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
 
@@ -399,7 +403,9 @@ def change_password():
             (hashed_password, user_id)
         )
         conn.commit()
-        flash('Password updated successfully!', 'success')
+        session.pop('user_id', None)
+        flash('Password updated successfully. Please log in again.', 'success')
+        return redirect(url_for('auth.login'))
     except Exception as e:
         conn.rollback()
         flash(f'Error updating password: {e}', 'error')
