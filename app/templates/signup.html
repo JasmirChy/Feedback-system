@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign Up</title>
+  <title>Sign Up | Feedback System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -114,8 +114,30 @@
     <form id="signupForm" class="space-y-4" method="post" action="{{ url_for('auth.signup') }}">
       <div class="flex flex-col items-center mb-4">
         <h1 class="text-3xl font-bold text-slate-800">FEEDBACK SYSTEM</h1>
+        <h2 class="text-center text-2xl font-bold text-slate-800">Create Account</h2>
       </div>
-      <h2 class="text-center text-2xl font-bold text-slate-800">Create Account</h2>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="space-y-2 mb-4">
+            {% for category, message in messages %}
+              <div class="p-3 rounded text-sm font-medium
+                          {% if category == 'success' %}
+                              bg-green-100 text-green-700
+                          {% elif category == 'error' %}
+                              bg-red-100 text-red-700
+                          {% elif category == 'warning' %}
+                              bg-yellow-100 text-yellow-700
+                          {% else %}
+                              bg-blue-100 text-blue-700
+                          {% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
 
       <input type="hidden" id="userType" name="usertype" value="studentStaff">
 
@@ -190,12 +212,12 @@
       </div>
     </form>
   </div>
-  <div id="successOverlay"
-    class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <!-- ❗ JS Error Modal -->
+  <div id="errorOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
     <div class="bg-white p-6 rounded-lg shadow-xl text-center w-96">
-      <h2 class="text-xl font-bold mb-2 text-slate-800" id="successMessage">Account Created Successfully!</h2>
-      <button onclick="closeSuccessModal()"
-        class="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700">OK</button>
+      <h2 class="text-xl font-bold mb-2 text-red-600" id="errorMessage">Error!</h2>
+      <button onclick="closeErrorModal()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">OK</button>
     </div>
   </div>
 

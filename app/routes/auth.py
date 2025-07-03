@@ -86,16 +86,20 @@ def signup():
 
         try:
             if user_type == 'studentStaff':
+
+                # Check for existing username/email
+                cur.execute("SELECT 1 FROM fd_user WHERE username = %s OR email = %s", (user_name, email))
+                if cur.fetchone():
+                    flash("Username or email already exists.", "error")
+                    return render_template('signup.html')
+
                 # Verify ID exists in student_table or staff_table
                 cur.execute(
                     'select 1 from student_table where student_id = %s union select 1 from staff_table where staff_id = %s',
                     (id_number, id_number))
 
                 if cur.fetchone() is None:
-                    if designation.capitalize() == "STUDENT":
-                        flash("No such Student record found", 'error')
-                    else:
-                        flash("No such Student record found", 'error')
+                    flash("No record found in student/staff table for given ID.", 'error')
                     return render_template('signup.html')
 
                 cur.execute(
