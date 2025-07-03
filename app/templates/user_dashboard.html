@@ -539,8 +539,7 @@
           </div>
 
           <div class="pt-8 border-t border-slate-200 mt-8">
-            <button
-              class="nav-item signOutBtn flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
+            <button class="nav-item signOutBtn flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
               <i class="fas fa-sign-out-alt w-5 text-lg"></i>
               <span class="font-semibold">Sign Out</span>
             </button>
@@ -591,7 +590,6 @@
               </div>
             </div>
 
-            <!-- Removed Quick Actions section -->
 
             <div class="col-span-12">
               <div class="grid md:grid-cols-2 gap-8">
@@ -725,7 +723,7 @@
                        onclick="window.location.href='{{ url_for('submit.feedback_detail', feedback_id=feedback.f_id) }}'">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-semibold text-slate-800 text-lg truncate">{{ feedback.f_title }}</h3>
-                        <span class="text-sm text-slate-500">{{ feedback.date if feedback.date else 'N/A' }}</span>
+                        <span class="text-sm text-slate-500">{{ feedback.date or 'N/A' }}</span>
                     </div>
                     <p class="text-slate-600 text-sm mb-3 line-clamp-2">{{ feedback.f_body | e}}</p>
                     <div class="flex items-center justify-between">
@@ -787,7 +785,7 @@
               </div>
               <div>
                 <h3 class="font-semibold text-slate-700 mb-1">Date</h3>
-                <p class="text-slate-600">{{ feedback.date.strftime('%Y-%m-%d') }}</p>
+                <p class="text-slate-600">{{ feedback.date or 'N/A' }}</p>
               </div>
             </div>
 
@@ -968,7 +966,7 @@
     logoutModal.classList.remove('hidden');
   });
 
-  // Confirm logout: redirect to logout endpoint
+  // Confirm logout: redirect to log out endpoint
   confirmLogoutBtn.addEventListener('click', () => {
     window.location.href = "{{ url_for('auth.logout') }}";
   });

@@ -112,10 +112,13 @@ def user_history():
         """, (user_id,))
     feedback_list = cursor.fetchall()
 
-    # 🛠 Convert `date` string to a datetime object
+    # ── Format every date to "YYYY‑MM‑DD" ──
     for fb in feedback_list:
-        if fb['date'] and not isinstance(fb['date'], str):
-            fb['date'] = fb['date'].strftime('%Y-%m-%d')
+        d = fb.get('date')
+        if d:
+            fb['date'] = d.strftime('%Y-%m-%d') if not isinstance(d, str) else d[:10]
+        else:
+            fb['date'] = None
 
     cursor.execute("SELECT user_id, full_name, username, email, designation, dob FROM fd_user WHERE user_id = %s",(user_id,))
     user = cursor.fetchone()
@@ -165,6 +168,13 @@ def feedback_detail(feedback_id):
         flash("Feedback not found or access denied.", "error")
         return redirect(url_for('submit.user_history'))
 
+    # ── Format that one date too ──
+    d = fb.get('date')
+    if d:
+        fb['date'] = d.strftime('%Y-%m-%d') if not isinstance(d, str) else d[:10]
+    else:
+        fb['date'] = None
+
     # fetch attachments
     cursor.execute("""
             SELECT attach_id, attachment_path, filename
@@ -192,6 +202,14 @@ def feedback_detail(feedback_id):
        WHERE f.user_id = %s
     """, (user_id,))
     feedback_list = cursor.fetchall()
+
+    # ── And format those dates too ──
+    for fb2 in feedback_list:
+        d2 = fb2.get('date')
+        if d2:
+            fb2['date'] = d2.strftime('%Y-%m-%d') if not isinstance(d2, str) else d2[:10]
+        else:
+            fb2['date'] = None
 
     cursor.execute("SELECT category_id, category FROM category")
     categories = cursor.fetchall()

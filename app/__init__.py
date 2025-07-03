@@ -10,6 +10,8 @@ def create_app():
     # === Load config ===
     app.config.from_object('app.config')
 
+    app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB max
+
     # === Initialize extensions ===
     Session(app)
 

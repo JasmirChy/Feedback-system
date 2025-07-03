@@ -539,8 +539,8 @@
               <a onclick="showSection('profile')" class="fas fa-user  text-sm"> </a>
             </div>
             <div class="text-sm hidden sm:block">
-              <div class="font-semibold text-slate-800">Jasmir</div>
-              <div class="text-slate-500">User ID: #821008</div>
+              <div class="font-semibold text-slate-800">{{user.username}}</div>
+              <div class="text-slate-500">ID: {{user.user_id}}</div>
             </div>
           </div>
           <button id="hamburger-button" onclick="toggleMobileMenu()"
@@ -557,28 +557,19 @@
         <nav class="space-y-2">
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Main Menu</div>
 
-          <a onclick="showSection('home')"
-            class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+          <a data-target="home" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-home w-5 text-lg"></i>
             <span class="font-semibold">All Feedback</span>
           </a>
 
-          <!-- Removed Submit Feedback from Admin Dashboard -->
-          <!-- <a onclick="showSection('submitFeedback')" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
-            <i class="fas fa-plus-circle w-5 text-lg"></i>
-            <span class="font-semibold">Submit Feedback</span>
-          </a> -->
-
-          <a onclick="showSection('reports')"
-            class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+          <a data-target="reports" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-chart-pie w-5 text-lg"></i>
             <span class="font-semibold">Reports</span>
           </a>
 
           <!-- User Management Menu -->
           <div class="pt-6">
-            <div onclick="toggleSubmenu('userManagementSubmenuSidebar')"
-              class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+            <div data-toggle="userManagementSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
               <div class="flex items-center space-x-3">
                 <i class="fas fa-users w-5 text-lg"></i>
                 <span class="font-semibold">User Management</span>
@@ -586,29 +577,23 @@
               <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
             </div>
             <ul id="userManagementSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
-              <li
-                class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all"
-                onclick="showSection('addAdmin')">
+              <li data-target="addAdmin" class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
                 <i class="fas fa-user-plus text-sm mr-3"></i>Add Admin
               </li>
-              <li
-                class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all"
-                onclick="showSection('viewUsers')">
+              <li data-target="viewUsers" class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
                 <i class="fas fa-eye text-sm mr-3"></i>View Users
               </li>
             </ul>
           </div>
           <!-- End User Management Menu -->
 
-          <a onclick="showSection('profile')"
-            class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+          <a data-target="profile" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-user-circle w-5 text-lg"></i>
             <span class="font-semibold">Profile Settings</span>
           </a>
 
           <div class="pt-6">
-            <div onclick="toggleSubmenu('settingsSubmenuSidebar')"
-              class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+            <div data-target="settingsSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
               <div class="flex items-center space-x-3">
                 <i class="fas fa-cog w-5 text-lg"></i>
                 <span class="font-semibold">System Settings</span>
@@ -616,20 +601,17 @@
               <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
             </div>
             <ul id="settingsSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
-              <li
-                class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all"
-                onclick="showSection('changePassword')">
+              <li data-target="changePassword" class="cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
                 <i class="fas fa-shield-alt text-sm mr-3"></i>Change Password
               </li>
             </ul>
           </div>
 
           <div class="pt-8 border-t border-slate-200 mt-8">
-            <a href="{{url_for('auth.login')}}" onclick="logout()"
-              class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
+            <button class="nav-item signOutBtn flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
               <i class="fas fa-sign-out-alt w-5 text-lg"></i>
               <span class="font-semibold">Sign Out</span>
-            </a>
+            </button>
           </div>
         </nav>
       </div>
@@ -667,8 +649,29 @@
                         <th class="py-3 px-4 text-left">Message</th>
                       </tr>
                     </thead>
-                    <tbody id="feedbackTableBody" class="text-gray-700">
-                      <!-- Feedback rows will be rendered here by JavaScript -->
+                    <tbody class="text-gray-700">
+                      {% for fb in feedbacks %}
+                      <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-3 px-4">{{ fb.f_title }}</td>
+                        <td class="py-3 px-4">{{ fb.submitter_name }}</td>
+                        <td class="py-3 px-4">{{ fb.category_name }}</td>
+                        <td class="py-3 px-4">
+                          {% if fb.status == 1 %}
+                            <span class="text-yellow-600 font-semibold">Pending</span>
+                          {% elif fb.status == 2 %}
+                            <span class="text-green-600 font-semibold">Resolved</span>
+                          {% else %}
+                            <span class="text-slate-500">Unknown</span>
+                          {% endif %}
+                        </td>
+                        <td class="py-3 px-4">{{ fb.date or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ fb.f_body | truncate(100) }}</td>
+                      </tr>
+                      {% else %}
+                      <tr>
+                        <td colspan="6" class="py-4 text-center text-slate-500">No feedback entries available.</td>
+                      </tr>
+                      {% endfor %}
                     </tbody>
                   </table>
                 </div>
@@ -725,7 +728,7 @@
                   </tr>
                 </thead>
                 <tbody id="userTableBody" class="text-gray-700">
-                  <!-- User rows will be rendered here by JavaScript -->
+                  <!-- JavaScript will render user rows here -->
                 </tbody>
               </table>
             </div>
@@ -796,84 +799,53 @@
               </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-8">
-              <div class="space-y-6">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-user-circle mr-2 text-teal-600"></i>Profile Picture
-                  </label>
-                  <div class="flex items-center space-x-6">
-                    <div class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden">
-                      <i class="fas fa-user text-slate-400 text-3xl"></i>
+            <form action="{{ url_for('auth.update_profile') }}" method="post" class="space-y-6">
+              <div id="prof" class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div>
+                        <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
+                        </label>
+                        <input type="text" id="fullName" name="full_name" class="form-input w-full p-3 rounded-lg" value="{{ user.full_name }}">
                     </div>
-                    <div class="space-y-2">
-                      <button
-                        class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
-                        <i class="fas fa-upload mr-2"></i>Upload New
-                      </button>
-                      <button
-                        class="px-4 py-2 bg-slate-100 text-red-600 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium">
-                        <i class="fas fa-trash mr-2"></i>Remove
-                      </button>
+
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
+                        </label>
+                        <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" value="{{ user.email }}">
                     </div>
-                  </div>
                 </div>
 
-                <div>
-                  <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
-                  </label>
-                  <input type="text" id="fullName" class="form-input w-full p-3 rounded-lg" value="Jasmir User">
-                </div>
-
-                <div>
-                  <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
-                  </label>
-                  <input type="email" id="email" class="form-input w-full p-3 rounded-lg" value="jasmir@example.com">
+                <div class="space-y-6">
+                    <div>
+                        <label for="designation" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-briefcase mr-2 text-teal-600"></i>Designation
+                        </label>
+                        <input type="text" id="designation" name="designation" class="form-input w-full p-3 rounded-lg" value="{{ user.designation }}">
+                    </div>
+                    <div>
+                        <label for="dob" class="block text-sm font-semibold text-slate-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-2 text-teal-600"></i>Date of Birth
+                        </label>
+                        <input type="date" id="dob" name="dob" class="form-input w-full p-3 rounded-lg" value="{{ user.dob or '' }}">
+                    </div>
                 </div>
               </div>
 
-              <div class="space-y-6">
-                <div>
-                  <label for="department" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-building mr-2 text-teal-600"></i>Department
-                  </label>
-                  <select id="department" class="form-input w-full p-3 rounded-lg">
-                    <option>Information Technology</option>
-                    <option>Human Resources</option>
-                    <option>Finance</option>
-                    <option>Operations</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label for="position" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-briefcase mr-2 text-teal-600"></i>Position
-                  </label>
-                  <input type="text" id="position" class="form-input w-full p-3 rounded-lg" value="Software Developer">
-                </div>
-
-                <div>
-                  <label for="phone" class="block text-sm font-semibold text-slate-700 mb-2">
-                    <i class="fas fa-phone mr-2 text-teal-600"></i>Phone Number
-                  </label>
-                  <input type="tel" id="phone" class="form-input w-full p-3 rounded-lg" value="+1 (555) 123-4567">
-                </div>
+              <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
+                  <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                      Cancel
+                  </button>
+                  <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                      <i class="fas fa-save mr-2"></i>Save Changes
+                  </button>
               </div>
-            </div>
-
-            <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
-              <button onclick="showSection('home')"
-                class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                Cancel
-              </button>
-              <button class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                <i class="fas fa-save mr-2"></i>Update Changes
-              </button>
-            </div>
+            </form>
           </div>
         </section>
+
+        <!-- Removed Support Center Section -->
 
         <section id="changePassword" class="section hidden">
           <div class="premium-card p-8 max-w-4xl mx-auto">
@@ -888,39 +860,35 @@
               </div>
             </div>
 
-            <form class="space-y-6">
+            <form action="{{ url_for('auth.change_password') }}" method="post" class="space-y-6">
               <div>
-                <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                  <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
-                </label>
-                <input type="password" id="currentPassword" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Enter current password">
+                  <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                      <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
+                  </label>
+                  <input type="password" id="currentPassword" name="current_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter current password">
               </div>
 
               <div>
-                <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                  <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
-                </label>
-                <input type="password" id="newPassword" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Enter new password">
+                    <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
+                    </label>
+                    <input type="password" id="newPassword" name="new_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter new password">
               </div>
 
               <div>
-                <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                  <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
-                </label>
-                <input type="password" id="confirmPassword" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Confirm new password">
+                    <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                        <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
+                    </label>
+                    <input type="password" id="confirmPassword" name="confirm_new_password" class="form-input w-full p-3 rounded-lg" placeholder="Confirm new password">
               </div>
 
               <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200">
-                <button type="button" onclick="showSection('profile')"
-                  class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                  <i class="fas fa-save mr-2"></i>Update Password
-                </button>
+                    <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                        <i class="fas fa-save mr-2"></i>Update Password
+                    </button>
               </div>
             </form>
           </div>
@@ -928,6 +896,59 @@
       </div>
     </main>
   </div>
-</body>
 
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
+      <h2 class="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
+      <div class="flex justify-around mt-6">
+        <button id="confirmLogoutBtn"
+          class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+          OK
+        </button>
+        <button id="cancelLogoutBtn"
+          class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+<script>
+  // Grab elements
+  const signOutBtn = document.querySelector('.signOutBtn');
+  const logoutModal = document.getElementById('logoutModal');
+  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+  // Show the modal when sign-out is clicked
+  signOutBtn.addEventListener('click', () => {
+    logoutModal.classList.remove('hidden');
+  });
+
+  // Confirm logout: redirect to log out endpoint
+  confirmLogoutBtn.addEventListener('click', () => {
+    window.location.href = "{{ url_for('auth.logout') }}";
+  });
+
+  // Cancel logout: hide the modal
+  cancelLogoutBtn.addEventListener('click', () => {
+    logoutModal.classList.add('hidden');
+  });
+
+  // Optional: Close modal by clicking outside content
+  logoutModal.addEventListener('click', (e) => {
+    if (e.target === logoutModal) {
+      logoutModal.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const initialSection = "{{ section | default('home') }}";
+    showSection(initialSection);
+  });
+
+</script>
 </html>
