@@ -64,7 +64,8 @@ def submit_feedback():
         os.makedirs(upload_folder_abs, exist_ok=True)
 
         # 4) Process attachments
-        files = request.files.getlist('attachment')
+        files = request.files.getlist('attachment[]')
+        print("FILES RECEIVED:", files)
         for f in files:
             if f and allowed_file(f.filename):
                 original = secure_filename(f.filename)
@@ -91,6 +92,7 @@ def submit_feedback():
         conn.close()
 
     return redirect(url_for('views.user_dashboard', section='history'))
+
 
 @submit.route('/feedback_history')
 def user_history():

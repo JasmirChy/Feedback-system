@@ -636,8 +636,7 @@
               <p class="text-lg text-slate-600">Your insights drive our improvements. We appreciate your input!</p>
             </div>
 
-            <form id="submitFeedbackForm" action="{{ url_for('submit.submit_feedback')}}" class="space-y-8"
-              method="post" enctype="multipart/form-data">
+            <form id="submitFeedbackForm" action="{{ url_for('submit.submit_feedback')}}" class="space-y-8" method="post" enctype="multipart/form-data">
               <div class="grid md:grid-cols-2 gap-8">
                 <div class="md:col-span-2">
                   <label for="title" class="block text-base font-semibold text-slate-700 mb-2">
@@ -677,6 +676,9 @@
                     <i class="fas fa-paperclip mr-2 text-teal-600"></i>
                     Attachments (Optional)
                   </label>
+
+                  <!-- Fallback input for file upload (still works if JS fails) -->
+                  <input type="file" name="attachment[]" multiple class="hidden" />
 
                   <!-- THIS is the only thing you need here -->
                    <div id="attachments-container" class="space-y-3 mb-4"></div>

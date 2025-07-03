@@ -87,7 +87,7 @@ function ensureNewDropZone(container) {
   const dz = document.createElement('div');
   dz.className = 'border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 transition-colors bg-slate-50 cursor-pointer drop-zone';
   dz.innerHTML = `
-    <input type="file" name="attachment" multiple class="hidden" />
+    <input type="file" name="attachment[]" multiple class="hidden" />
     <i class="fas fa-cloud-upload-alt text-5xl text-slate-400 mb-4"></i>
     <p class="text-slate-700 font-semibold text-lg">
       Drag & Drop files here or <span class="text-teal-600 underline">Browse</span>
@@ -102,6 +102,7 @@ function ensureNewDropZone(container) {
   const list = dz.querySelector('.file-list');
 
   dz.addEventListener('click', () => inp.click());
+
   inp.addEventListener('change', () => handleFilesSelected(inp.files, wrapper, container));
   ['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('border-teal-400','bg-teal-50'); }));
   ['dragleave','drop'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove('border-teal-400','bg-teal-50'); }));
@@ -112,21 +113,40 @@ function ensureNewDropZone(container) {
 }
 
 function handleFilesSelected(files, wrapper, container) {
-  const inp = wrapper.querySelector('input[type="file"]');
-  wrapper.querySelector('.drop-zone')?.remove();
+  const dz = wrapper.querySelector('.drop-zone');
+  // Hide the drop-zone instead of removing it
+  if (dz) dz.classList.add('hidden');
+
+  console.log("FILES SELECTED", files);
 
   Array.from(files).forEach(file => {
     const preview = document.createElement('div');
     preview.className = 'flex items-center justify-between bg-slate-100 p-3 rounded mb-2';
-    const name = document.createElement('span'); name.textContent = file.name; name.className='text-slate-800';
-    const remove = document.createElement('button'); remove.innerHTML='✖️'; remove.className='text-red-500 hover:text-red-700';
-    remove.onclick = () => { preview.remove(); inp.value = ''; };
+    const name = document.createElement('span');
+    name.textContent = file.name;
+    name.className = 'text-slate-800';
+    const remove = document.createElement('button');
+    remove.innerHTML = '✖️';
+    remove.className = 'text-red-500 hover:text-red-700';
+
+    remove.onclick = () => {
+      preview.remove();
+      // Optional: if no previews left, show drop-zone again
+      if (wrapper.querySelectorAll('.flex.items-center').length === 0 && dz) {
+        dz.classList.remove('hidden');
+        const input = dz.querySelector('input[type="file"]');
+        if (input) input.value = '';  // clear input
+      }
+    };
+
     preview.append(name, remove);
     wrapper.appendChild(preview);
   });
 
+  // Add a new drop zone for additional files
   ensureNewDropZone(container);
 }
+
 
 function renderUserFeedbacksHistory() {
   const container = document.getElementById('feedbackHistoryContainer');
