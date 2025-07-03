@@ -725,7 +725,7 @@
                        onclick="window.location.href='{{ url_for('submit.feedback_detail', feedback_id=feedback.f_id) }}'">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-semibold text-slate-800 text-lg truncate">{{ feedback.f_title }}</h3>
-                        <span class="text-sm text-slate-500">{{ feedback.date.strftime('%Y-%m-%d') if feedback.date else 'N/A' }}</span>
+                        <span class="text-sm text-slate-500">{{ feedback.date if feedback.date else 'N/A' }}</span>
                     </div>
                     <p class="text-slate-600 text-sm mb-3 line-clamp-2">{{ feedback.f_body | e}}</p>
                     <div class="flex items-center justify-between">

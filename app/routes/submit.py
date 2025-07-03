@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import date, datetime
 
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_from_directory, current_app
 from werkzeug.utils import secure_filename
@@ -111,6 +111,11 @@ def user_history():
            ORDER BY f.f_date DESC
         """, (user_id,))
     feedback_list = cursor.fetchall()
+
+    # 🛠 Convert `date` string to a datetime object
+    for fb in feedback_list:
+        if fb['date'] and not isinstance(fb['date'], str):
+            fb['date'] = fb['date'].strftime('%Y-%m-%d')
 
     cursor.execute("SELECT user_id, full_name, username, email, designation, dob FROM fd_user WHERE user_id = %s",(user_id,))
     user = cursor.fetchone()

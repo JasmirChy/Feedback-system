@@ -29,7 +29,6 @@ function showSection(id) {
   setActiveNavItem(id);
   window.scrollTo(0, 0);
   if (id === 'home') updateDashboardCounts();
-  if (id === 'history') renderUserFeedbacksHistory();
   if (id === 'submitFeedback') initAttachments();
   if (window.innerWidth < 768) toggleMobileMenuIfOpen();
 }
@@ -147,30 +146,6 @@ function handleFilesSelected(files, wrapper, container) {
   ensureNewDropZone(container);
 }
 
-
-function renderUserFeedbacksHistory() {
-  const container = document.getElementById('feedbackHistoryContainer');
-  if (!container) return;
-
-  const feedbacks = window.userFeedbacks || [];
-  container.innerHTML = '';
-
-  if (feedbacks.length === 0) {
-    container.innerHTML = '<p class="text-slate-500">No feedback history available.</p>';
-    return;
-  }
-
-  feedbacks.forEach(fb => {
-    const div = document.createElement('div');
-    div.className = 'p-4 bg-white rounded shadow mb-2';
-    div.innerHTML = `
-      <h3 class="font-semibold text-slate-700">${fb.title}</h3>
-      <p class="text-sm text-slate-600">${fb.body}</p>
-      <p class="text-xs text-slate-400 mt-1">Status: ${fb.status === 1 ? 'Pending' : 'Resolved'}</p>
-    `;
-    container.appendChild(div);
-  });
-}
 
 
 // Expose globally
