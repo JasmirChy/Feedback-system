@@ -2,14 +2,14 @@ from flask import Blueprint, request, session, jsonify, abort, redirect, url_for
 from werkzeug.security import generate_password_hash
 from app.models.db import get_db_connection  # Adjust import as needed
 
-admin_bp = Blueprint('admin', __name__)
+admin = Blueprint('admin', __name__)
 
 def admin_required():
     """Simple helper to check admin access."""
     if 'user_id' not in session or session.get('role_id') != 1:
         abort(403, description="Admin access required")
 
-@admin_bp.route('/feedback/resolve', methods=['POST'])
+@admin.route('/feedback/resolve', methods=['POST'])
 def resolve_feedback():
     admin_required()
     f_id = request.json.get('f_id')
@@ -29,7 +29,7 @@ def resolve_feedback():
         cursor.close()
         conn.close()
 
-@admin_bp.route('/users', methods=['GET'])
+@admin.route('/users', methods=['GET'])
 def get_users():
     admin_required()
     conn = get_db_connection()
@@ -53,7 +53,7 @@ def get_users():
         cursor.close()
         conn.close()
 
-@admin_bp.route('/users/<int:user_id>', methods=['GET'])
+@admin.route('/users/<int:user_id>', methods=['GET'])
 def get_user_details(user_id):
     admin_required()
     conn = get_db_connection()
@@ -76,7 +76,7 @@ def get_user_details(user_id):
         cursor.close()
         conn.close()
 
-@admin_bp.route('/users/<int:user_id>/promote', methods=['POST'])
+@admin.route('/users/<int:user_id>/promote', methods=['POST'])
 def promote_to_admin(user_id):
     admin_required()
     conn = get_db_connection()
@@ -100,7 +100,7 @@ def promote_to_admin(user_id):
         cursor.close()
         conn.close()
 
-@admin_bp.route('/admins/add', methods=['POST'])
+@admin.route('/admins/add', methods=['POST'])
 def add_admin():
     admin_required()
     data = request.json
