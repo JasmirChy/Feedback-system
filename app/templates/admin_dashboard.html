@@ -520,8 +520,7 @@
     <header class="desktop-header">
       <div class="px-8 py-6 flex justify-between items-center">
         <div class="flex items-center space-x-4">
-          <div
-            class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center shadow-lg">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center shadow-lg">
             <i class="fas fa-comments text-white text-xl"></i>
           </div>
           <div>
@@ -536,15 +535,14 @@
           <div class="flex items-center space-x-3 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200">
             <div
               class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-              <a onclick="showSection('profile')" class="fas fa-user  text-sm"> </a>
+              <a data-target="profile" class="fas fa-user  text-sm"> </a>
             </div>
             <div class="text-sm hidden sm:block">
               <div class="font-semibold text-slate-800">{{user.username}}</div>
               <div class="text-slate-500">ID: {{user.user_id}}</div>
             </div>
           </div>
-          <button id="hamburger-button" onclick="toggleMobileMenu()"
-            class="md:hidden text-slate-700 hover:text-teal-600 p-2">
+          <button id="hamburger-button" onclick="toggleMobileMenu()" class="md:hidden text-slate-700 hover:text-teal-600 p-2">
             <i id="hamburger-icon" class="fas fa-bars text-xl"></i>
           </button>
         </div>
@@ -637,7 +635,8 @@
                   class="hov px-3 py-2 rounded-full bg-gray-200 text-indigo-900 font-semibold hover:bg-teal-600 hover:text-white">Resolved</button>
               </div>
               <div class="flex justify-center">
-                <div class="overflow-x-auto w-full max-w-4xl">
+                <div class="overflow-x-auto w-full max-w-6x1">
+                  <div class="max-w-6xl max-h-[600px] overflow-y-auto custom-scrollbar">
                   <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
                     <thead class="bg-[#0d9488] text-white">
                       <tr>
@@ -651,9 +650,15 @@
                     </thead>
                     <tbody class="text-gray-700">
                       {% for fb in feedbacks %}
-                      <tr class="border-b border-gray-200 hover:bg-gray-50">
+                      <tr class="border-b border-gray-200 hover:bg-gray-50 cursor-pointer" data-target="feedbackDetails" data-f-id="{{ fb.f_id }}">
                         <td class="py-3 px-4">{{ fb.f_title }}</td>
-                        <td class="py-3 px-4">{{ fb.submitter_name }}</td>
+                        <td class="py-3 px-4">
+                          {% if fb.hide == 1 %}
+                            <span class="italic text-gray-500">Anonymous</span>
+                          {% else %}
+                            {{ fb.submitter_name }}
+                          {% endif %}
+                        </td>
                         <td class="py-3 px-4">{{ fb.category_name }}</td>
                         <td class="py-3 px-4">
                           {% if fb.status == 1 %}
@@ -664,7 +669,7 @@
                             <span class="text-slate-500">Unknown</span>
                           {% endif %}
                         </td>
-                        <td class="py-3 px-4">{{ fb.date or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ fb.f_date }}</td>
                         <td class="py-3 px-4">{{ fb.f_body | truncate(100) }}</td>
                       </tr>
                       {% else %}
@@ -675,29 +680,10 @@
                     </tbody>
                   </table>
                 </div>
+                </div>
               </div>
             </section>
             <br><br>
-          </div>
-        </section>
-
-        <!-- details of feedback -->
-        <section id="feedbackDetails" class="section hidden ">
-          <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md md:ml-50">
-            <h2 class="text-xl font-bold mb-4">Feedback Details</h2>
-            <p><strong>Title:</strong> <span id="detailTitle"></span></p>
-            <p><strong>Submitted By:</strong> <span id="detailSubmitter"></span></p>
-            <p><strong>Category:</strong> <span id="detailCategory"></span></p>
-            <p><strong>Status:</strong> <span id="detailStatus"></span></p>
-            <p><strong>Date:</strong> <span id="detailDate"></span></p>
-            <p class="mt-4"><strong>Message:</strong></p>
-            <p id="detailMessage" class="bg-gray-100 p-3 rounded mt-1"></p>
-            <button id="resolveButton" onclick="markAsResolved()"
-              class="mt-4 bg-green-600 text-white font-semibold py-2 px-4 rounded hover:bg-green-700 hidden">✅ Mark as
-              Resolved</button>
-            <button onclick="showSection('home')"
-              class="mt-4 bg-indigo-900 text-white font-semibold py-2 px-4 rounded hover:bg-teal-600">🔙 Back to all
-              Feedback</button>
           </div>
         </section>
 
@@ -786,64 +772,132 @@
         </section>
         <!-- End User Management Sections -->
 
-        <section id="profile" class="section hidden">
-          <div class="premium-card p-8 max-w-4xl mx-auto">
+        <!--detail of feedback-->
+        <section id="feedbackDetail" class="section {% if section != 'feedbackDetail' %}hidden{% endif %}">
+          {% if section == 'feedbackDetail' and feedback %}
+          <div class="premium-card p-8 max-w-4xl mx-auto my-10 w-full">
             <div class="flex items-center mb-8">
-              <div
-                class="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
-                <i class="fas fa-user text-white text-2xl"></i>
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                <i class="fas fa-info-circle text-white text-xl"></i>
               </div>
               <div>
-                <h2 class="text-3xl font-bold text-slate-800">Profile Settings</h2>
-                <p class="text-slate-600 mt-1">Manage your account information and preferences</p>
+                <h2 class="text-3xl font-bold text-slate-800">Feedback Details</h2>
+                <p class="text-slate-600 mt-1">A deep dive into your submitted feedback</p>
               </div>
             </div>
 
-            <form action="{{ url_for('auth.update_profile') }}" method="post" class="space-y-6">
-              <div id="prof" class="grid md:grid-cols-2 gap-8">
-                <div class="space-y-6">
-                    <div>
-                        <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
-                            <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
-                        </label>
-                        <input type="text" id="fullName" name="full_name" class="form-input w-full p-3 rounded-lg" value="{{ user.full_name }}">
-                    </div>
-
-                    <div>
-                        <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
-                            <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
-                        </label>
-                        <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" value="{{ user.email }}">
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div>
-                        <label for="designation" class="block text-sm font-semibold text-slate-700 mb-2">
-                            <i class="fas fa-briefcase mr-2 text-teal-600"></i>Designation
-                        </label>
-                        <input type="text" id="designation" name="designation" class="form-input w-full p-3 rounded-lg" value="{{ user.designation }}">
-                    </div>
-                    <div>
-                        <label for="dob" class="block text-sm font-semibold text-slate-700 mb-2">
-                            <i class="fas fa-calendar-alt mr-2 text-teal-600"></i>Date of Birth
-                        </label>
-                        <input type="date" id="dob" name="dob" class="form-input w-full p-3 rounded-lg" value="{{ user.dob or '' }}">
-                    </div>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <h3 class="font-semibold text-slate-700 mb-1">Title</h3>
+                <p class="text-slate-600">{{ feedback.title }}</p>
               </div>
-
-              <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
-                  <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                      Cancel
-                  </button>
-                  <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                      <i class="fas fa-save mr-2"></i>Save Changes
-                  </button>
+              <div>
+                <h3 class="font-semibold text-slate-700 mb-1">Category</h3>
+                <p class="text-slate-600">{{ feedback.category }}</p>
               </div>
-            </form>
+              <div>
+                <h3 class="font-semibold text-slate-700 mb-1">Status</h3>
+                <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {% if feedback.status == 1 %}bg-yellow-100 text-yellow-800{% elif feedback.status == 2 %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                  {% if feedback.status == 1 %}Pending{% elif feedback.status == 2 %}Resolved{% else %}Unknown{% endif %}
+                </span>
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-700 mb-1">Date</h3>
+                <p class="text-slate-600">{{ feedback.date or 'N/A' }}</p>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <h3 class="font-semibold text-slate-700 mb-2">Message</h3>
+              <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-600">
+                {{ feedback.message }}
+              </div>
+            </div>
+
+            {% if attachments %}
+            <div class="mb-6">
+              <h3 class="font-semibold text-slate-700 mb-2">Attachments</h3>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {% for att in attachments %}
+                <li>
+                  <a href="{{ url_for('submit.download_attachment', attach_id=att.attach_id) }}" target="_blank" class="block p-3 bg-white border border-slate-200 rounded-lg hover:shadow-md">
+                    <i class="fas fa-paperclip mr-2 text-teal-600"></i>{{ att.filename }}
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
+            <div class="flex justify-end pt-4 border-t border-slate-200">
+              <a href="{{ url_for('submit.user_history') }}" class="px-6 py-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 font-medium">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+              </a>
+            </div>
           </div>
+          {% else %}
+          <p class="text-slate-500 text-center mt-12">No feedback data available to show.</p>
+          {% endif %}
         </section>
+
+         <section id="profile" class="section hidden">
+            <div class="premium-card p-8 max-w-4xl mx-auto">
+              <div class="flex items-center mb-8">
+                <div
+                  class="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                  <i class="fas fa-user text-white text-2xl"></i>
+                </div>
+                <div>
+                  <h2 class="text-3xl font-bold text-slate-800">Profile Settings</h2>
+                  <p class="text-slate-600 mt-1">Manage your account information and preferences</p>
+                </div>
+              </div>
+
+              <form action="{{ url_for('auth.update_profile') }}" method="post" class="space-y-6">
+                <div id="prof" class="grid md:grid-cols-2 gap-8">
+                  <div class="space-y-6">
+                      <div>
+                          <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
+                              <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
+                          </label>
+                          <input type="text" id="fullName" name="full_name" class="form-input w-full p-3 rounded-lg" value="{{ user.full_name }}">
+                      </div>
+
+                      <div>
+                          <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
+                              <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
+                          </label>
+                          <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" value="{{ user.email }}">
+                      </div>
+                  </div>
+
+                  <div class="space-y-6">
+                      <div>
+                          <label for="designation" class="block text-sm font-semibold text-slate-700 mb-2">
+                              <i class="fas fa-briefcase mr-2 text-teal-600"></i>Designation
+                          </label>
+                          <input type="text" id="designation" name="designation" class="form-input w-full p-3 rounded-lg" value="{{ user.designation }}">
+                      </div>
+                      <div>
+                          <label for="dob" class="block text-sm font-semibold text-slate-700 mb-2">
+                              <i class="fas fa-calendar-alt mr-2 text-teal-600"></i>Date of Birth
+                          </label>
+                          <input type="date" id="dob" name="dob" class="form-input w-full p-3 rounded-lg" value="{{ user.dob or '' }}">
+                      </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
+                    <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                        <i class="fas fa-save mr-2"></i>Save Changes
+                    </button>
+                </div>
+              </form>
+            </div>
+         </section>
 
         <!-- Removed Support Center Section -->
 
@@ -893,11 +947,12 @@
             </form>
           </div>
         </section>
+
       </div>
     </main>
   </div>
 
-  <!-- Logout Confirmation Modal -->
+   <!-- Logout Confirmation Modal -->
   <div id="logoutModal"
     class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
@@ -951,4 +1006,5 @@
   });
 
 </script>
+
 </html>

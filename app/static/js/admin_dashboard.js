@@ -1,145 +1,136 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // SECTION SWITCHING
-  const sections = document.querySelectorAll(".section");
-  const navItems = document.querySelectorAll(".nav-item, li[data-target]");
 
-  navItems.forEach((item) => {
-    item.addEventListener("click", () => {
-      const target = item.getAttribute("data-target");
+window.addEventListener('DOMContentLoaded', () => {
+
+  // Bind navigation clicks
+  document.querySelectorAll('.nav-item[data-target]').forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.target;
       if (target) showSection(target);
     });
   });
 
-  window.showSection = (id) => {
-    sections.forEach((sec) => sec.classList.add("hidden"));
-    const target = document.getElementById(id);
-    if (target) target.classList.remove("hidden");
-  };
-
-  // SIDEBAR DROPDOWNS
-  const toggles = document.querySelectorAll("[data-toggle]");
-  toggles.forEach((toggle) => {
-    toggle.addEventListener("click", () => {
-      const submenu = document.getElementById(toggle.dataset.toggle);
-      submenu.classList.toggle("hidden");
-
-      const icon = toggle.querySelector("i.fas.fa-chevron-down");
-      if (icon) icon.classList.toggle("rotate-180");
+  // Bind submenu toggles
+  document.querySelectorAll('[data-submenu-target]').forEach(item => {
+    item.addEventListener('click', () => {
+      const submenuId = item.dataset.submenuTarget;
+      const submenu = document.getElementById(submenuId);
+      if (submenu) submenu.classList.toggle('hidden');
+      item.querySelector('.fa-chevron-down')?.classList.toggle('rotate-180');
     });
   });
 
-  // FEEDBACK FILTERING
-  window.filterFeedback = (status) => {
-    const rows = document.querySelectorAll("#allFeedback tbody tr");
-    const buttons = ["All", "Pending", "Resolved"];
-    buttons.forEach((b) => {
-      const btn = document.getElementById(`toggle${b}`);
-      btn.classList.remove("bg-indigo-900", "text-white");
-      btn.classList.add("bg-gray-200", "text-indigo-900");
-    });
-
-    const activeBtn = document.getElementById(`toggle${capitalize(status)}`);
-    activeBtn.classList.add("bg-indigo-900", "text-white");
-
-    rows.forEach((row) => {
-      const text = row.innerText.toLowerCase();
-      if (status === "all" || text.includes(status)) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
-      }
-    });
-  };
-
-  function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  // FEEDBACK DETAILS (assumes dynamic implementation)
-  window.showFeedbackDetails = function (feedback) {
-    document.getElementById("detailTitle").textContent = feedback.f_title;
-    document.getElementById("detailSubmitter").textContent = feedback.submitter_name;
-    document.getElementById("detailCategory").textContent = feedback.category_name;
-    document.getElementById("detailStatus").textContent = feedback.status === 1 ? "Pending" : "Resolved";
-    document.getElementById("detailDate").textContent = feedback.date || "N/A";
-    document.getElementById("detailMessage").textContent = feedback.f_body;
-
-    const resolveBtn = document.getElementById("resolveButton");
-    resolveBtn.style.display = feedback.status === 1 ? "inline-block" : "none";
-
-    showSection("feedbackDetails");
-  };
-
-  window.markAsResolved = function () {
-    // TODO: send request to backend to resolve
-    alert("Feedback marked as resolved (mocked)");
-    showSection("home");
-  };
-
-  // USER DETAILS
-  window.showUserDetails = function (user) {
-    document.getElementById("detailUserId").textContent = user.id;
-    document.getElementById("detailUserName").textContent = user.name;
-    document.getElementById("detailUserEmail").textContent = user.email;
-    document.getElementById("detailUserRole").textContent = user.role;
-    document.getElementById("detailUserRegDate").textContent = user.registration_date || "N/A";
-
-    const makeAdminBtn = document.getElementById("makeAdminButton");
-    makeAdminBtn.style.display = user.role !== "Admin" ? "inline-block" : "none";
-
-    showSection("userDetails");
-  };
-
-  window.makeAdmin = function () {
-    alert("User promoted to admin (mocked)");
-    showSection("viewUsers");
-  };
-
-  // ADD ADMIN FORM
-  const addAdminForm = document.getElementById("addAdminForm");
-  if (addAdminForm) {
-    addAdminForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const name = document.getElementById("newAdminName").value;
-      const email = document.getElementById("newAdminEmail").value;
-      const password = document.getElementById("newAdminPassword").value;
-
-      // TODO: Send this to the backend
-      alert(`Admin ${name} added (mocked)`);
-      showSection("viewUsers");
-    });
-  }
-
-  // CHART
-  const chartCanvas = document.getElementById("feedbackChart");
-  if (chartCanvas) {
-    new Chart(chartCanvas, {
-      type: "doughnut",
-      data: {
-        labels: ["Pending", "Resolved"],
-        datasets: [
-          {
-            label: "Feedback Status",
-            data: [12, 30],
-            backgroundColor: ["#facc15", "#22c55e"],
-            hoverOffset: 10,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: "bottom",
-          },
-        },
-      },
-    });
-  }
+  setupLogoutModal();
+  setupFeedbackClick();
 });
 
-// MOBILE SIDEBAR TOGGLE
-function toggleMobileMenu() {
-  const sidebar = document.getElementById("mobile-sidebar");
-  sidebar.classList.toggle("hidden");
+// Update active nav item highlighting
+function setActiveNavItem(id) {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('bg-gradient-to-r','from-teal-50','to-white','text-teal-600','border','border-teal-100');
+    item.classList.add('text-slate-700','hover:text-teal-600');
+  });
+  const active = document.querySelector(`.nav-item[data-target="${id}"]`);
+  if (active) {
+    active.classList.remove('text-slate-700','hover:text-teal-600');
+    active.classList.add('bg-gradient-to-r','from-teal-50','to-white','text-teal-600','border','border-teal-100');
+  }
 }
+
+
+
+// SECTION NAVIGATION
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
+  const activeSection = document.getElementById(id);
+  if (activeSection) {
+    activeSection.classList.remove('hidden');
+  }
+}
+
+// ----- Mobile Menu -----
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('mobile-sidebar');
+  sidebar?.classList.toggle('-translate-x-full');
+  sidebar?.classList.toggle('translate-x-0');
+  document.body.classList.toggle('overflow-hidden');
+}
+
+function toggleMobileMenuIfOpen() {
+  const sidebar = document.getElementById('mobile-sidebar');
+  if (sidebar?.classList.contains('translate-x-0')) toggleMobileMenu();
+}
+
+// FEEDBACK FILTERING
+function filterFeedback(type) {
+  const rows = document.querySelectorAll("#allFeedback tbody tr");
+  rows.forEach(row => {
+    const statusText = row.querySelector("td:nth-child(4)").innerText.toLowerCase();
+    if (type === 'all') {
+      row.style.display = '';
+    } else if (type === 'pending' && statusText.includes('pending')) {
+      row.style.display = '';
+    } else if (type === 'resolved' && statusText.includes('resolved')) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+
+// HANDLE FEEDBACK ROW CLICK
+function setupFeedbackClick() {
+  document.querySelectorAll('[data-target="feedbackDetail"]').forEach(row => {
+    row.addEventListener('click', () => {
+      const feedbackId = row.getAttribute('data-f-id');
+      if (feedbackId) {
+        window.location.href = `/admin/feedback/${feedbackId}`;
+      }
+    });
+  });
+}
+
+
+// CHART RENDERING
+function renderFeedbackChart() {
+  const ctx = document.getElementById('feedbackChart');
+  if (!ctx) return;
+
+  const categoryLabels = window.categoryLabels || [];
+  const categoryCounts = window.categoryCounts || [];
+  const statusLabels = window.statusLabels || [];
+  const statusCounts = window.statusCounts || [];
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: categoryLabels,
+      datasets: [{
+        label: 'Feedback by Category',
+        data: categoryCounts,
+        backgroundColor: 'rgba(13, 148, 136, 0.6)',
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: 'Feedback by Category'
+        }
+      }
+    }
+  });
+}
+
+// Expose globally
+window.showSection = showSection;
+window.toggleMobileMenu = toggleMobileMenu;
+window.toggleMobileMenuIfOpen = toggleMobileMenuIfOpen;
+window.setActiveNavItem = setActiveNavItem;
+window.toggleSubmenu = id => {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('hidden');
+};

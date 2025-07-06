@@ -47,7 +47,7 @@ def login():
         # set permanent session if “remember me” checked
         session.permanent = bool(remember)
 
-        # redirect based on role
+        # redirect based on a role
         target = 'views.admin_dashboard' if user['role_id'] == 1 else 'views.user_dashboard'
         return redirect(url_for(target))
 

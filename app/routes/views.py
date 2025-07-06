@@ -67,69 +67,39 @@ def user_dashboard():
 @views.route('/admin')
 def admin_dashboard():
 
-    # Ensure only admin can access this route
-    if 'user_id' not in session or session.get('role') != 'admin':
-        flash("Access denied.", "error")
+    if 'user_id' not in session or session.get('role_id') != 1:
+        flash('Access denied.', 'error')
         return redirect(url_for('auth.login'))
-
-    user_id = session.get('user_id')
 
     section = request.args.get('section', 'home')
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # fetch the logged‐in user’s profile
-    cursor.execute("""
-           SELECT user_id, full_name, username, email, designation, dob
-           FROM fd_user
-           WHERE user_id = %s
-       """, (user_id,))
+    # Get admin user
+    cursor.execute("SELECT * FROM fd_user WHERE user_id = %s", (session['user_id'],))
     user = cursor.fetchone()
 
-    # Fetch all categories
-    cursor.execute("SELECT category_id, category FROM category")
-    categories = cursor.fetchall()
-
-
-    # Fetch all feedback with user and category details
+    # Get all feedbacks
     cursor.execute("""
-        SELECT f.f_id, f.f_title, f.f_body, f.f_date AS date, f.status, f.hide,
-               u.full_name AS submitted_by,
-               c.category AS category_name
+        SELECT f.f_id, f.f_title, f.f_body, f.f_date, f.status,
+               f.hide, c.category AS category_name,
+               u.full_name AS submitter_name
         FROM feedback f
-        JOIN fd_user u ON f.user_id = u.user_id
         JOIN category c ON f.category = c.category_id
+        JOIN fd_user u ON f.user_id = u.user_id
         ORDER BY f.f_date DESC
     """)
-    feedback_list = cursor.fetchall()
+    feedbacks = cursor.fetchall()
 
-    # Format dates
-    for fb in feedback_list:
-        d = fb.get('date')
-        fb['date'] = d.strftime('%Y-%m-%d') if d and not isinstance(d, str) else (d[:10] if d else None)
+    # Hide name if anonymous
+    for fb in feedbacks:
+        if fb['hide'] == 1:
+            fb['submitter_name'] = 'Anonymous'
 
-    # Fetch all attachments, grouped by feedback ID
-    cursor.execute("SELECT f_id, attachment_path, filename FROM attachments")
-    attachments = cursor.fetchall()
-
-    # Group attachments by feedback_id
-    attachment_map = {}
-    for a in attachments:
-        attachment_map.setdefault(a['f_id'], []).append({
-            'path': a['attachment_path'],
-            'filename': a['filename']
-        })
-
-    # Attach the grouped attachments to each feedback
-    for fb in feedback_list:
-        fb['attachments'] = attachment_map.get(fb['f_id'], [])
-
-    cursor.close()
     conn.close()
 
-    return render_template('admin_dashboard.html',
-                           section=section,
+    return render_template("admin_dashboard.html",
                            user=user,
-                           feedbacks=feedback_list,
-                           categories=categories)
+                           feedbacks=feedbacks,
+                           section=section)
