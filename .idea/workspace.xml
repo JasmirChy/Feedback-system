@@ -5,15 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3c5ff483-3a76-48ad-86a2-6945b23928e9" name="Changes" comment="user panel is done only needs to add request for admin">
-      <change afterPath="$PROJECT_DIR$/.idea/Feedback System.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Feedback System.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/db.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/schema.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/auth.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/static/js/admin_dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/admin_dashboard.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/admin_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/admin_dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/flask_session/2029240f6d1128be89ddc32729463129" beforeDir="false" afterPath="$PROJECT_DIR$/flask_session/2029240f6d1128be89ddc32729463129" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/forgot_password.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/forgot_password.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/user_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/user_dashboard.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,6 +50,7 @@
     "Python.db.executor": "Run",
     "Python.models.executor": "Run",
     "Python.run.executor": "Run",
+    "Python.schema.executor": "Run",
     "Python.signup.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",

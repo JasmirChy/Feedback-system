@@ -125,6 +125,38 @@ function renderFeedbackChart() {
   });
 }
 
+// javascript function for changing user role
+function changeUserRole(userId, currentRoleId) {
+  const newRoleId = currentRoleId === 1 ? 2 : 1;
+  const roleLabel = newRoleId === 1 ? 'Admin' : 'User';
+
+  const confirmMsg = `Change this user's role to ${roleLabel}?`;
+
+  if (confirm(confirmMsg)) {
+    fetch('/admin/update-role', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `user_id=${userId}&new_role_id=${newRoleId}`
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("User role updated successfully.");
+        location.reload();
+      } else {
+        alert("Failed to update role: " + data.message);
+      }
+    })
+    .catch(err => {
+      alert("Error: " + err.message);
+    });
+  }
+}
+
+
+
 // Expose globally
 window.showSection = showSection;
 window.toggleMobileMenu = toggleMobileMenu;

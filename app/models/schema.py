@@ -107,5 +107,17 @@ table_statements = [
         expires_at  DATETIME      NOT NULL,
         PRIMARY KEY(email)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    """,
+
+    # admin request table
+    """
+    CREATE TABLE admin_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        username VARCHAR(150) NOT NULL,
+        status VARCHAR(50) DEFAULT 'Pending',
+        role_id INT NOT NULL DEFAULT 2,
+        requested_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     """
 ]

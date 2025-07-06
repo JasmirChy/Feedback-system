@@ -321,33 +321,51 @@ def update_profile():
         return redirect(url_for('auth.login'))
 
     user_id = session['user_id']
+    form_action = request.form.get('form_action')
 
-    if request.method == 'POST':
-        full_name = request.form['full_name']
-        email = request.form['email']
-        designation = request.form['designation']
-        dob = request.form['dob'] # This will be a string 'YYYY-MM-DD'
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        try:
-            cur.execute(
-                "UPDATE fd_user SET full_name = %s, email = %s, designation = %s, dob = %s WHERE user_id = %s",
-                (full_name, email, designation, dob, user_id)
-            )
+    try:
+        if form_action == 'request_admin':
+            # Admin request logic
+            username = session.get('username')
+            role_id = session.get('role_id')
+            cur.execute("""
+                INSERT INTO admin_requests (user_id, username, role_id, status)
+                VALUES (%s, %s, %s, 'Pending')
+            """, (user_id, username, role_id))
             conn.commit()
-            flash('Profile updated successfully!', 'success')
-        except Exception as e:
-            conn.rollback()
-            flash(f'Error updating profile: {e}', 'error')
-            # For debugging, print the error
-            print(f"Error updating profile: {e}")
-        finally:
-            cur.close()
-            conn.close()
+            flash("Admin access request submitted successfully.", "success")
 
-    return redirect(url_for('views.user_dashboard', section='profile')) # Redirect back to the profile section
+        elif form_action == 'update_profile':
+            # Profile update logic
+            full_name = request.form['full_name']
+            email = request.form['email']
+            designation = request.form['designation']
+            dob = request.form['dob']
+
+            cur.execute("""
+                UPDATE fd_user
+                SET full_name = %s, email = %s, designation = %s, dob = %s
+                WHERE user_id = %s
+            """, (full_name, email, designation, dob, user_id))
+            conn.commit()
+            flash("Profile updated successfully!", "success")
+
+        else:
+            flash("Unknown action requested.", "error")
+
+    except Exception as e:
+        conn.rollback()
+        flash(f"Database error: {e}", "error")
+        print(f"Error: {e}")
+
+    finally:
+        cur.close()
+        conn.close()
+
+    return redirect(url_for('views.user_dashboard', section='profile'))
 
 
 @auth.route('/change_password', methods=['POST'])
@@ -419,3 +437,43 @@ def change_password():
         conn.close()
 
     return redirect(url_for('views.user_dashboard', section='changePassword')) # Redirect back to the change password section
+
+@auth.route('/request-admin', methods=['POST'])
+def request_admin():
+    if 'user_id' not in session:
+        flash("Please log in to continue.", "error")
+        return redirect(url_for('auth.login'))
+
+    user_id = request.form.get('user_id')
+    username = request.form.get('username')
+    role_id = request.form.get('role_id')
+    status = request.form.get('status')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # Optional: prevent duplicate requests
+        cursor.execute("""
+            SELECT id FROM admin_requests WHERE user_id = %s AND status = 'Pending'
+        """, (user_id,))
+        existing = cursor.fetchone()
+
+        if existing:
+            flash("You have already requested admin access. Please wait for approval.", "warning")
+        else:
+            cursor.execute("""
+                INSERT INTO admin_requests (user_id, username, status, role_id)
+                VALUES (%s, %s, %s, %s)
+            """, (user_id, username, status, role_id))
+            conn.commit()
+            flash("Admin access request submitted successfully.", "success")
+
+    except Exception as e:
+        print(e)
+        flash("Failed to submit admin access request.", "error")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('views.user_dashboard'))  # or your desired redirect

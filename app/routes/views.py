@@ -27,6 +27,13 @@ def user_dashboard():
        """, (user_id,))
     user = cur.fetchone()
 
+    # Check if user has a pending admin request
+    cur.execute("""
+            SELECT COUNT(*) AS cnt FROM admin_requests WHERE user_id = %s AND status = 'Pending'
+        """, (user_id,))
+    result = cur.fetchone()
+    has_pending_request = result['cnt'] > 0
+
     # fetch their feedback submissions
     cur.execute("""
            SELECT
@@ -62,11 +69,11 @@ def user_dashboard():
                            section=section,
                            user = user,
                            feedback_list = feedback_list,
-                           categories = categories)
+                           categories = categories,
+                           has_pending_request=has_pending_request)
 
 @views.route('/admin')
 def admin_dashboard():
-
     if 'user_id' not in session or session.get('role_id') != 1:
         flash('Access denied.', 'error')
         return redirect(url_for('auth.login'))
@@ -76,11 +83,11 @@ def admin_dashboard():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Get admin user
+    # Admin user info
     cursor.execute("SELECT * FROM fd_user WHERE user_id = %s", (session['user_id'],))
     user = cursor.fetchone()
 
-    # Get all feedbacks
+    # Feedbacks
     cursor.execute("""
         SELECT f.f_id, f.f_title, f.f_body, f.f_date, f.status,
                f.hide, c.category AS category_name,
@@ -91,15 +98,45 @@ def admin_dashboard():
         ORDER BY f.f_date DESC
     """)
     feedbacks = cursor.fetchall()
-
-    # Hide name if anonymous
     for fb in feedbacks:
         if fb['hide'] == 1:
             fb['submitter_name'] = 'Anonymous'
 
+    # Admin requests with the current role and requested role
+    cursor.execute("""
+        SELECT ar.user_id, ar.username, ar.status, ar.requested_at,
+               ar.role_id AS requested_role_id,
+               u.full_name, u.email,
+               u.role_id AS current_role_id
+        FROM admin_requests ar
+        LEFT JOIN fd_user u ON ar.user_id = u.user_id
+        ORDER BY ar.requested_at DESC
+    """)
+    admin_requests = cursor.fetchall()
+
+    # Users list
+    cursor.execute("""
+        SELECT user_id, username, full_name, role_id, status, email
+        FROM fd_user
+        ORDER BY user_id ASC
+    """)
+    users = cursor.fetchall()
+
+    # Example: simple feedback counts by status
+    cursor.execute("""
+        SELECT status, COUNT(*) as count
+        FROM feedback
+        GROUP BY status
+    """)
+    feedback_status_counts = cursor.fetchall()
+
+    cursor.close()
     conn.close()
 
     return render_template("admin_dashboard.html",
                            user=user,
                            feedbacks=feedbacks,
+                           admin_requests=admin_requests,
+                           users=users,
+                           feedback_status_counts=feedback_status_counts,
                            section=section)

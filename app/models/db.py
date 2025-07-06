@@ -42,6 +42,8 @@ def init_db():
     #Called once at startup (only in the reloader child process) to create the
     # database and all tables.
 
+    # the following code is used to Only run this code if this is the main reloaded process, not the initial boot process.
+
     if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         return
 
