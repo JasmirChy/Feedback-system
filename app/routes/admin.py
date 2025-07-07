@@ -1,9 +1,8 @@
 import io
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
-from app.models.db import get_db_connection  # Adjust import as needed
+from app.models.db import get_db_connection
 
 
-# Admin blueprint handles sub-routes only (feedback detail, resolve, user add, reports)
 admin = Blueprint('admin', __name__)
 
 # ---------------- feedback detail ------------------
@@ -102,6 +101,42 @@ def admin_download_attachment(attach_id):
         download_name=row['filename'],
         mimetype='application/octet-stream'  # or a better guess based on extension
     )
+
+
+@admin.route('/update-status', methods=['POST'])
+def update_status():
+    # --- guard ---
+    if 'user_id' not in session or session.get('role_id') != 1:
+        flash('Access denied.', 'error')
+        return redirect(url_for('auth.login')), 403
+
+    f_id   = request.form.get('f_id')
+    status = request.form.get('status')
+
+    if not (f_id and status in {'1','2','3'}):
+        flash('Invalid feedback ID or status.', 'error')
+        return redirect(url_for('views.admin_dashboard')), 400
+
+    conn   = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "UPDATE feedback SET status = %s WHERE f_id = %s",
+            (status, f_id)
+        )
+        conn.commit()
+        flash('Feedback status updated.', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Could not update status: {e}', 'error')
+    finally:
+        cursor.close()
+        conn.close()
+
+    # redirect back to the dashboard, preserving any `?section=` if you like
+    return redirect(url_for('views.admin_dashboard'))
+
+
 
 # ---------------- View Users ------------------
 @admin.route('/view-users')

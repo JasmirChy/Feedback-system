@@ -1,6 +1,4 @@
-
 window.addEventListener('DOMContentLoaded', () => {
-
   // Bind navigation clicks
   document.querySelectorAll('.nav-item[data-target]').forEach(item => {
     item.addEventListener('click', () => {
@@ -9,7 +7,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Bind submenu toggles
+  // Submenu toggles
   document.querySelectorAll('[data-submenu-target]').forEach(item => {
     item.addEventListener('click', () => {
       const submenuId = item.dataset.submenuTarget;
@@ -23,12 +21,12 @@ window.addEventListener('DOMContentLoaded', () => {
   setupFeedbackClick();
 });
 
-// Update active nav item highlighting
 function setActiveNavItem(id) {
   document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.remove('bg-gradient-to-r','from-teal-50','to-white','text-teal-600','border','border-teal-100');
     item.classList.add('text-slate-700','hover:text-teal-600');
   });
+
   const active = document.querySelector(`.nav-item[data-target="${id}"]`);
   if (active) {
     active.classList.remove('text-slate-700','hover:text-teal-600');
@@ -36,15 +34,11 @@ function setActiveNavItem(id) {
   }
 }
 
-
-
 // SECTION NAVIGATION
 function showSection(id) {
   document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
   const activeSection = document.getElementById(id);
-  if (activeSection) {
-    activeSection.classList.remove('hidden');
-  }
+  if (activeSection) activeSection.classList.remove('hidden');
 }
 
 // ----- Mobile Menu -----
@@ -62,19 +56,33 @@ function toggleMobileMenuIfOpen() {
 
 // FEEDBACK FILTERING
 function filterFeedback(type) {
-  const rows = document.querySelectorAll("#allFeedback tbody tr");
+  const rows = document.querySelectorAll("#feedbackTableBody tr");
   rows.forEach(row => {
-    const statusText = row.querySelector("td:nth-child(4)").innerText.toLowerCase();
+    const status = row.dataset.status;
     if (type === 'all') {
       row.style.display = '';
-    } else if (type === 'pending' && statusText.includes('pending')) {
+    } else if (type === 'pending' && status === 'pending') {
       row.style.display = '';
-    } else if (type === 'resolved' && statusText.includes('resolved')) {
+    } else if (type === 'inprogress' && status === 'inprogress') {
+      row.style.display = '';
+    } else if (type === 'resolved' && status === 'solved') {
       row.style.display = '';
     } else {
       row.style.display = 'none';
     }
   });
+
+  // Update active filter button styling
+  document.querySelectorAll('[id^="toggle"]').forEach(btn => {
+    btn.classList.remove('bg-indigo-900', 'text-white');
+    btn.classList.add('bg-gray-200', 'text-indigo-900');
+  });
+
+  const activeBtn = document.getElementById('toggle' + type.charAt(0).toUpperCase() + type.slice(1));
+  if (activeBtn) {
+    activeBtn.classList.remove('bg-gray-200', 'text-indigo-900');
+    activeBtn.classList.add('bg-indigo-900', 'text-white');
+  }
 }
 
 
@@ -90,6 +98,44 @@ function setupFeedbackClick() {
   });
 }
 
+// FEEDBACK STATUS UPDATE (if using AJAX)
+function updateStatus(fId, newStatus) {
+  fetch('/admin/update-status', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `f_id=${encodeURIComponent(fId)}&status=${encodeURIComponent(newStatus)}`
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const select = document.querySelector(`select[data-f-id="${fId}"]`);
+      const row = select?.closest('tr');
+
+      if (row) {
+        let statusText = 'pending';
+        if (newStatus === '2') statusText = 'inprogress';
+        else if (newStatus === '3') statusText = 'solved';
+        row.dataset.status = statusText;
+      }
+
+      // Optionally re-apply filter to reflect change
+      const activeBtn = document.querySelector('[id^="toggle"].bg-indigo-900');
+      if (activeBtn) {
+        const type = activeBtn.id.replace('toggle', '').toLowerCase();
+        filterFeedback(type);
+      }
+
+      alert('Status updated successfully.');
+    } else {
+      alert('Error updating status: ' + data.message);
+    }
+  })
+  .catch(err => {
+    alert('Request failed: ' + err);
+  });
+}
 
 // CHART RENDERING
 function renderFeedbackChart() {
@@ -98,8 +144,6 @@ function renderFeedbackChart() {
 
   const categoryLabels = window.categoryLabels || [];
   const categoryCounts = window.categoryCounts || [];
-  const statusLabels = window.statusLabels || [];
-  const statusCounts = window.statusCounts || [];
 
   new Chart(ctx, {
     type: 'bar',
@@ -125,14 +169,12 @@ function renderFeedbackChart() {
   });
 }
 
-// javascript function for changing user role
+// CHANGE USER ROLE
 function changeUserRole(userId, currentRoleId) {
   const newRoleId = currentRoleId === 1 ? 2 : 1;
   const roleLabel = newRoleId === 1 ? 'Admin' : 'User';
 
-  const confirmMsg = `Change this user's role to ${roleLabel}?`;
-
-  if (confirm(confirmMsg)) {
+  if (confirm(`Change this user's role to ${roleLabel}?`)) {
     fetch('/admin/update-role', {
       method: 'POST',
       headers: {
@@ -155,14 +197,10 @@ function changeUserRole(userId, currentRoleId) {
   }
 }
 
-
-
 // Expose globally
 window.showSection = showSection;
 window.toggleMobileMenu = toggleMobileMenu;
 window.toggleMobileMenuIfOpen = toggleMobileMenuIfOpen;
 window.setActiveNavItem = setActiveNavItem;
-window.toggleSubmenu = id => {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('hidden');
-};
+window.filterFeedback = filterFeedback;
+window.updateStatus = updateStatus;
