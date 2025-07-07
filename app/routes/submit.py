@@ -1,14 +1,13 @@
-import os
-from datetime import date, datetime
+import io
+from datetime import date
 
-from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_from_directory, current_app
+from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
 from werkzeug.utils import secure_filename
 
 from app.models.db import get_db_connection
 
 submit = Blueprint('submit', __name__)
 
-UPLOAD_FOLDER = 'app/static/uploads/attachments' # <--- This line defines it
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
 
 def allowed_file(filename):
@@ -59,27 +58,18 @@ def submit_feedback():
                 """, (title, body, category, user_id, date.today(), int(hide)))
         feedback_id = cursor.lastrowid
 
-        # Prepare an absolute upload folder path
-        upload_folder_abs = os.path.join(current_app.root_path, UPLOAD_FOLDER)
-        os.makedirs(upload_folder_abs, exist_ok=True)
 
         # 4) Process attachments
         files = request.files.getlist('attachment[]')
-        print("FILES RECEIVED:", files)
         for f in files:
             if f and allowed_file(f.filename):
                 original = secure_filename(f.filename)
-                unique = f"{feedback_id}_{original}"
-                path = os.path.join(upload_folder_abs, unique)
-                f.save(path)
-
-                # Store a relative path from 'app/static' folder for serving
-                relative_path = os.path.relpath(path, start=os.path.join(current_app.root_path, 'app', 'static')).replace('\\', '/')
+                file_data = f.read()
 
                 cursor.execute("""
-                                    INSERT INTO attachments (f_id, attachment_path, filename)
-                                    VALUES (%s, %s, %s)
-                                """, (feedback_id, relative_path, original))
+                    INSERT INTO attachments (f_id, filename, file_data)
+                    VALUES (%s, %s, %s)
+                """, (feedback_id, original, file_data))
 
         conn.commit()
         flash("Your feedback has been submitted successfully!", "success")
@@ -177,7 +167,7 @@ def feedback_detail(feedback_id):
 
     # fetch attachments
     cursor.execute("""
-            SELECT attach_id, attachment_path, filename
+            SELECT attach_id, filename
               FROM attachments
              WHERE f_id = %s
         """, (feedback_id,))
@@ -235,8 +225,9 @@ def download_attachment(attach_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
+    # Fetch the attachment file data and filename only if it belongs to the user's feedback
     cursor.execute("""
-            SELECT a.attachment_path, a.filename
+            SELECT a.filename, a.file_data
               FROM attachments a
               JOIN feedback f ON a.f_id = f.f_id
              WHERE a.attach_id = %s AND f.user_id = %s
@@ -246,22 +237,17 @@ def download_attachment(attach_id):
     cursor.close()
     conn.close()
 
-    if attachment_info:
-        file_relative_path = attachment_info['attachment_path']
-        original_filename = attachment_info['filename']
+    if attachment_info and attachment_info['file_data']:
+        file_bytes = attachment_info['file_data']
+        filename = attachment_info['filename']
 
-        # Ensure the file exists on the filesystem
-        file_full_path = os.path.join(current_app.root_path, 'app', 'static', file_relative_path)
-
-        if os.path.exists(file_full_path):
-            # `send_from_directory` expects the directory and the filename separately
-            directory = os.path.dirname(file_full_path)
-            filename_to_serve = os.path.basename(file_full_path)
-            return send_from_directory(directory, filename_to_serve, as_attachment=True, download_name=original_filename)
-
-        else:
-            flash("Attachment file not found on server.", "error")
-            return redirect(url_for('submit.user_history'))
+        # Create an in-memory binary stream
+        return send_file(
+            io.BytesIO(file_bytes),
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/octet-stream'
+        )
     else:
-        flash("Attachment record not found or you don't have access.", "error")
+        flash("Attachment not found or access denied.", "error")
         return redirect(url_for('submit.user_history'))

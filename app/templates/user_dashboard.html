@@ -875,9 +875,11 @@
               <div class="flex justify-between items-center pt-8 mt-8 border-t border-slate-200">
                 <!-- Left: Request for Admin -->
                 <div>
-                  <button type="submit" onclick="document.getElementById('formAction').value='request_admin'" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed" {% if has_pending_request %} disabled {% endif %}>
+                  <button type="submit" onclick="document.getElementById('formAction').value='request_admin'" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed" {% if has_pending_request or has_denied_request %} disabled {% endif %}>
                     <i class="fas fa-user-shield mr-2"></i>
-                    {% if has_pending_request %}
+                    {% if has_denied_request %}
+                      Request Denied
+                    {% elif has_pending_request %}
                       Request Pending
                     {% else %}
                       Request for Admin

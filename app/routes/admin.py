@@ -1,4 +1,5 @@
-from flask import Blueprint, request, session, flash, redirect, url_for, render_template
+import io
+from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
 from app.models.db import get_db_connection  # Adjust import as needed
 
 
@@ -9,7 +10,7 @@ admin = Blueprint('admin', __name__)
 @admin.route('/feedback/<int:f_id>')
 def feedback_detail(f_id):
     # --- Admin role check ---
-    if 'user_id' not in session or session.get('role') != 1:
+    if 'user_id' not in session or session.get('role_id') != 1:
         flash("Access denied.", "error")
         return redirect(url_for('auth.login'))
 
@@ -22,11 +23,11 @@ def feedback_detail(f_id):
 
     # Get all feedbacks (for the table) -- needed to render full dashboard
     cursor.execute("""
-        SELECT f.f_id, f.f_title, u.full_name AS submitter_name, c.category_name,
-               f.status, f.f_date, f.f_body
-        FROM feedbacks f
+        SELECT f.f_id, f.f_title, u.full_name AS submitter_name, c.category AS category_name,
+               f.status,f.hide, f.f_date AS date, f.f_body
+        FROM feedback f
         LEFT JOIN fd_user u ON f.user_id = u.user_id
-        LEFT JOIN categories c ON f.category_id = c.category_id
+        LEFT JOIN category c ON f.category = c.category_id
         ORDER BY f.f_date DESC
     """)
     feedbacks = cursor.fetchall()
@@ -36,13 +37,17 @@ def feedback_detail(f_id):
     for fb in feedbacks:
         if fb['hide'] == 1:
             fb['submitter_name'] = 'Anonymous'
+        # format date like YYYY-MM-DD
+        d = fb.get('f_date')
+        if d:
+            fb['f_date'] = d.strftime('%Y-%m-%d') if not isinstance(d, str) else d[:10]
 
-        # Fetch selected feedback detail
+
+    # Fetch selected feedback detail
     cursor.execute("""
-           SELECT f.f_id, f.f_title AS title, c.category_name AS category, f.status, f.f_date AS date, f.f_body AS message, f.hide,
-                  u.full_name AS submitter_name
-           FROM feedbacks f
-           LEFT JOIN categories c ON f.category_id = c.category_id
+           SELECT f.f_id, f.f_title AS title, c.category AS category, f.status, f.f_date AS date, f.f_body AS message, f.hide,u.full_name AS submitter_name
+           FROM feedback f
+           LEFT JOIN category c ON f.category = c.category_id
            LEFT JOIN fd_user u ON f.user_id = u.user_id
            WHERE f.f_id = %s
        """, (f_id,))
@@ -52,7 +57,7 @@ def feedback_detail(f_id):
         selected['submitter_name'] = 'Anonymous'
 
     # Fetch attachments if you have that table and route
-    cursor.execute("SELECT attach_id, filename FROM attachments WHERE feedback_id = %s", (f_id,))
+    cursor.execute("SELECT attach_id, filename FROM attachments WHERE f_id = %s", (f_id,))
     attachments = cursor.fetchall()
 
     cursor.close()
@@ -65,11 +70,37 @@ def feedback_detail(f_id):
     # --- Render admin_dashboard.html with feedback detail ---
     return render_template(
         'admin_dashboard.html',
-        section='feedbackDetails',
+        section='feedbackDetail',
         user=user,
         feedbacks=feedbacks,
-        selected_feedback=selected,
+        feedback=selected,
         attachments=attachments
+    )
+
+
+@admin.route('/attachments/<int:attach_id>')
+def admin_download_attachment(attach_id):
+    if 'user_id' not in session or session.get('role_id') != 1:
+        flash("Access denied.", "error")
+        return redirect(url_for('auth.login'))
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT filename, file_data FROM attachments WHERE attach_id = %s", (attach_id,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not row or not row['file_data']:
+        flash("Attachment not found or file is empty.", "error")
+        return redirect(url_for('views.admin_dashboard'))
+
+    file_stream = io.BytesIO(row['file_data'])
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name=row['filename'],
+        mimetype='application/octet-stream'  # or a better guess based on extension
     )
 
 # ---------------- View Users ------------------

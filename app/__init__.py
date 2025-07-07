@@ -1,5 +1,7 @@
-from flask import Flask
+from flask import Flask, flash, redirect, url_for
 from flask_session import Session
+from werkzeug.exceptions import RequestEntityTooLarge
+
 from app.models.db import init_db
 from app.routes import auth,views
 
@@ -20,6 +22,14 @@ def create_app():
     with app.app_context():
         from app.models.db import init_db
         init_db()
+
+    # Error handler for large file uploads
+    @app.errorhandler(413)
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_file_too_large(e):
+        flash("File too large! Max 10MB allowed.", "error")
+        return redirect( url_for('views.user_dashboard', section='submitFeedback'))
+
 
     # === Register Blueprints ===
     from app.routes.views import views

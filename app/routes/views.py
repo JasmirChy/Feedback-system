@@ -27,13 +27,6 @@ def user_dashboard():
        """, (user_id,))
     user = cur.fetchone()
 
-    # Check if user has a pending admin request
-    cur.execute("""
-            SELECT COUNT(*) AS cnt FROM admin_requests WHERE user_id = %s AND status = 'Pending'
-        """, (user_id,))
-    result = cur.fetchone()
-    has_pending_request = result['cnt'] > 0
-
     # fetch their feedback submissions
     cur.execute("""
            SELECT
@@ -62,6 +55,18 @@ def user_dashboard():
     cur.execute("""SELECT category_id, category FROM category""")
     categories = cur.fetchall()
 
+    # check the last request status
+    cur.execute("""
+           SELECT status
+             FROM admin_requests
+            WHERE user_id = %s
+            ORDER BY requested_at DESC
+            LIMIT 1
+       """, (user_id,))
+    row = cur.fetchone()
+    has_pending_request = (row and row['status'] == 'Pending')
+    has_denied_request = (row and row['status'] == 'Denied')
+
     cur.close()
     conn.close()
 
@@ -70,7 +75,8 @@ def user_dashboard():
                            user = user,
                            feedback_list = feedback_list,
                            categories = categories,
-                           has_pending_request=has_pending_request)
+                           has_pending_request=has_pending_request,
+                           has_denied_request=has_denied_request)
 
 @views.route('/admin')
 def admin_dashboard():

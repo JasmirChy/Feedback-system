@@ -331,12 +331,29 @@ def update_profile():
             # Admin request logic
             username = session.get('username')
             role_id = session.get('role_id')
+            # Optional: prevent duplicate requests
             cur.execute("""
-                INSERT INTO admin_requests (user_id, username, role_id, status)
-                VALUES (%s, %s, %s, 'Pending')
-            """, (user_id, username, role_id))
-            conn.commit()
-            flash("Admin access request submitted successfully.", "success")
+                        SELECT id FROM admin_requests WHERE user_id = %s AND status = 'Pending'
+                    """, (user_id,))
+            existing = cur.fetchone()
+
+            if existing:
+                status = existing[0]
+                if status == 'Pending':
+                    flash("You already have a pending admin request. Please wait for approval.", "warning")
+                elif status == 'Denied':
+                    flash("Your previous admin request was denied. You cannot request again.", "error")
+                else:
+                    # e.g., maybe 'Approved', but you normally wouldn’t be here if role changed
+                    flash("Your admin request status is “%s”." % status, "info")
+            else:
+                # no prior requests → create one
+                cur.execute("""
+                               INSERT INTO admin_requests (user_id, username, status, role_id)
+                               VALUES (%s, %s, 'Pending', %s)
+                           """, (user_id, username, session.get('role_id')))
+                conn.commit()
+                flash("Admin access request submitted successfully.", "success")
 
         elif form_action == 'update_profile':
             # Profile update logic
@@ -438,42 +455,3 @@ def change_password():
 
     return redirect(url_for('views.user_dashboard', section='changePassword')) # Redirect back to the change password section
 
-@auth.route('/request-admin', methods=['POST'])
-def request_admin():
-    if 'user_id' not in session:
-        flash("Please log in to continue.", "error")
-        return redirect(url_for('auth.login'))
-
-    user_id = request.form.get('user_id')
-    username = request.form.get('username')
-    role_id = request.form.get('role_id')
-    status = request.form.get('status')
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Optional: prevent duplicate requests
-        cursor.execute("""
-            SELECT id FROM admin_requests WHERE user_id = %s AND status = 'Pending'
-        """, (user_id,))
-        existing = cursor.fetchone()
-
-        if existing:
-            flash("You have already requested admin access. Please wait for approval.", "warning")
-        else:
-            cursor.execute("""
-                INSERT INTO admin_requests (user_id, username, status, role_id)
-                VALUES (%s, %s, %s, %s)
-            """, (user_id, username, status, role_id))
-            conn.commit()
-            flash("Admin access request submitted successfully.", "success")
-
-    except Exception as e:
-        print(e)
-        flash("Failed to submit admin access request.", "error")
-    finally:
-        cursor.close()
-        conn.close()
-
-    return redirect(url_for('views.user_dashboard'))  # or your desired redirect
