@@ -19,38 +19,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   setupLogoutModal();
   setupFeedbackClick();
-
-  // ── Reports toggle buttons ──
-  const reportAllBtn   = document.getElementById('reportAllBtn');
-  const reportByCatBtn = document.getElementById('reportByCatBtn');
-  const allChartImg    = document.getElementById('allChartImg');
-  const catChartImg    = document.getElementById('catChartImg');
-
-  function activate(btn) {
-    btn.classList.remove('bg-gray-200','text-gray-700');
-    btn.classList.add('bg-indigo-600','text-white');
-  }
-  function deactivate(btn) {
-    btn.classList.remove('bg-indigo-600','text-white');
-    btn.classList.add('bg-gray-200','text-gray-700');
-  }
-
-  reportAllBtn?.addEventListener('click', () => {
-    allChartImg.classList.remove('hidden');
-    catChartImg.classList.add('hidden');
-    activate(reportAllBtn);
-    deactivate(reportByCatBtn);
-  });
-
-  reportByCatBtn?.addEventListener('click', () => {
-    allChartImg.classList.add('hidden');
-    catChartImg.classList.remove('hidden');
-    activate(reportByCatBtn);
-    deactivate(reportAllBtn);
-  });
-
-  // ── Initial view ──
-  reportAllBtn?.click();
 });
 
 // ── Navigation Helpers ──

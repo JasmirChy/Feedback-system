@@ -8,6 +8,9 @@ from app.models.db import get_db_connection
 
 submit = Blueprint('submit', __name__)
 
+USER_ROLE_ID = 2
+
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
 
 def allowed_file(filename):
@@ -18,7 +21,7 @@ def allowed_file(filename):
 @submit.route('/submit_feedback', methods=['POST'])
 def submit_feedback():
 
-    if 'user_id' not in session:
+    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
         flash("Please login first.", "warning")
         return redirect(url_for('auth.login'))  # or wherever your login route is
 
@@ -86,10 +89,11 @@ def submit_feedback():
 
 @submit.route('/feedback_history')
 def user_history():
-    user_id = session.get('user_id')
-    if not user_id:
+    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
         flash("Please login first.", "warning")
-        return redirect(url_for('auth.login'))  # or wherever your login route is
+        return redirect(url_for('auth.login'))
+
+    user_id = session.get('user_id')
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -133,11 +137,11 @@ def user_history():
 
 @submit.route('/feedback/<int:feedback_id>')
 def feedback_detail(feedback_id):
-    user_id = session.get('user_id')
-
-    if not user_id:
+    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
         flash("Please login first.", "warning")
         return redirect(url_for('auth.login'))
+
+    user_id = session.get('user_id')
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -217,10 +221,11 @@ def feedback_detail(feedback_id):
 
 @submit.route('/download_attachment/<int:attach_id>')
 def download_attachment(attach_id):
-    user_id = session.get('user_id')
-    if not user_id:
+    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
         flash("Please login first.", "warning")
         return redirect(url_for('auth.login'))
+
+    user_id = session.get('user_id')
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)

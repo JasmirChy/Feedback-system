@@ -3,18 +3,27 @@ from app.models.db import get_db_connection
 
 views = Blueprint('views', __name__)
 
+ADMIN_ROLE_ID = 1
+USER_ROLE_ID = 2
+
+USER_SECTIONS  = {'home', 'submit', 'history', 'profile', 'changePassword'}
+ADMIN_SECTIONS = {'home', 'reports', 'viewUsers', 'addAdmin', 'feedbackDetail', 'profile', 'changePassword', 'addCategory', 'viewCategory'}
+
 @views.route('/')
 def index():
     return render_template('index.html')
 
 @views.route('/user')
 def user_dashboard():
-    user_id = session.get('user_id')
-    if not user_id:
-        flash('Please log in first','error')
+    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
+        flash('Access denied.', 'error')
         return redirect(url_for('auth.login'))
 
     section = request.args.get('section', 'home')
+    if section not in USER_SECTIONS:
+        section = 'home'
+
+    user_id = session.get('user_id')
 
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
@@ -67,6 +76,7 @@ def user_dashboard():
     has_pending_request = (row and row['status'] == 'Pending')
     has_denied_request = (row and row['status'] == 'Denied')
 
+
     cur.close()
     conn.close()
 
@@ -80,11 +90,13 @@ def user_dashboard():
 
 @views.route('/admin')
 def admin_dashboard():
-    if 'user_id' not in session or session.get('role_id') != 1:
+    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
         flash('Access denied.', 'error')
         return redirect(url_for('auth.login'))
 
     section = request.args.get('section', 'home')
+    if section not in ADMIN_SECTIONS:
+        section = 'home'
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -110,14 +122,20 @@ def admin_dashboard():
 
     # Admin requests with the current role and requested role
     cursor.execute("""
-        SELECT ar.user_id, ar.username, ar.status, ar.requested_at,
-               ar.role_id AS requested_role_id,
-               u.full_name, u.email,
-               u.role_id AS current_role_id
-        FROM admin_requests ar
-        LEFT JOIN fd_user u ON ar.user_id = u.user_id
-        ORDER BY ar.requested_at DESC
-    """)
+            SELECT 
+              ar.user_id,
+              ar.username,
+              ar.status,
+              ar.requested_at,
+              ar.role_id        AS requested_role,
+              u.full_name,
+              u.email,
+              u.role_id         AS current_role_id
+            FROM admin_requests ar
+            JOIN fd_user u   ON ar.user_id = u.user_id
+            WHERE ar.status = 'Pending'
+            ORDER BY ar.requested_at DESC
+        """)
     admin_requests = cursor.fetchall()
 
     # Users list
@@ -163,6 +181,19 @@ def admin_dashboard():
         """)
     category_stats = cursor.fetchall()
 
+    # Fetch all categories, pushing 'Other' to the bottom
+    cursor.execute("""
+        SELECT category_id, category
+        FROM category
+        ORDER BY 
+          CASE 
+            WHEN LOWER(category) = 'other' THEN 1
+            ELSE 0
+          END,
+          category ASC
+    """)
+    categories = cursor.fetchall()
+
     cursor.close()
     conn.close()
 
@@ -174,4 +205,5 @@ def admin_dashboard():
                            feedback_status_counts=feedback_status_counts,
                            timeline_stats=timeline_stats,
                            category_stats=category_stats,
+                           categories=categories,
                            section=section)

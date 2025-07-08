@@ -566,7 +566,7 @@
           </a>
 
           <!-- User Management Menu -->
-          <div class="pt-6">
+          <div>
             <div data-submenu-target="userManagementSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
               <div class="flex items-center space-x-3">
                 <i class="fas fa-users w-5 text-lg"></i>
@@ -579,18 +579,37 @@
                 <i class="fas fa-user-plus text-sm mr-3"></i>Add Admin
               </li>
               <li data-target="viewUsers" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
-                <i class="fas fa-eye text-sm mr-3"></i>View Users
+                <i class="fas fa-eye text-sm mr-3"></i>View Request
               </li>
             </ul>
           </div>
           <!-- End User Management Menu -->
+
+          <!-- Category Management -->
+          <div>
+            <div data-submenu-target="categoryManagementSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+              <div class="flex items-center space-x-3">
+                <i class="fas fa-folder w-5 text-lg"></i>
+                <span class="font-semibold">Category Management</span>
+              </div>
+              <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+            </div>
+            <ul id="categoryManagementSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
+              <li data-target="addCategory" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
+                <i class="fas fa-folder-plus text-sm mr-3"></i>Add Category
+              </li>
+              <li data-target="viewCategory" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
+                <i class="fas fa-list text-sm mr-3"></i>View Categories
+              </li>
+            </ul>
+          </div>
 
           <a data-target="profile" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
             <i class="fas fa-user-circle w-5 text-lg"></i>
             <span class="font-semibold">Profile Settings</span>
           </a>
 
-          <div class="pt-6">
+          <div>
             <div data-submenu-target="settingsSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
               <div class="flex items-center space-x-3">
                 <i class="fas fa-cog w-5 text-lg"></i>
@@ -684,59 +703,59 @@
         </section>
 
         <!-- Reports Section -->
-        <section id="reports" class="section hidden">
-          <div class="premium-card p-8 max-w-2xl mx-auto">
+        <section id="reports" class="section">
+          <div class="premium-card p-8 max-w-4xl mx-auto">
             <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Feedback Reports</h2>
 
-            <!-- Mode switches -->
-            <div class="flex justify-center gap-4 mb-6">
-              <button id="reportAllBtn" class="px-4 py-2 bg-indigo-600 text-white rounded">All</button>
-              <button id="reportByCatBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded">By Category</button>
-            </div>
-
-            <!-- Chart images (initial: show 'all') -->
-            <div class="relative h-auto">
-              <img id="allChartImg" src="{{ url_for('admin.all_report_chart') }}" class="w-full" alt="All Feedback Chart">
-              <img id="catChartImg" src="{{ url_for('admin.category_report_chart') }}" class="w-full hidden" alt="Category Feedback Chart">
+            <!-- Chart image served by Flask -->
+            <div class="flex justify-center">
+              <img src="{{ url_for('admin.category_report_chart') }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
             </div>
           </div>
         </section>
 
-        <!-- User Management Sections -->
-        <section id="viewUsers" class="section hidden">
-          <div class="premium-card p-8 max-w-5xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Pending Admin Requests</h2>
-            <div class="overflow-x-auto w-full">
-              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+        <section id="addCategory" class="section {% if section != 'addCategory' %}hidden{% endif %}">
+          <div class="premium-card p-8 max-w-xl mx-auto bg-white shadow-lg rounded-lg">
+            <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">
+              Add New Category
+            </h2>
+            <form method="POST" action="{{ url_for('admin.add_category') }}" class="space-y-4">
+              <div>
+                <label for="category" class="block text-sm font-medium text-gray-700">Category Name</label>
+                <input type="text" name="category" id="category" required
+                       class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div class="flex justify-end">
+                <button type="submit"
+                        class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                  Add Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section id="viewCategory" class="section {% if section != 'viewCategory' %}hidden{% endif %}">
+          <div class="premium-card p-8 max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">All Categories</h2>
+
+            <div class="overflow-x-auto">
+              <table class="w-full bg-white border border-gray-300 shadow rounded-lg">
                 <thead class="bg-indigo-900 text-white">
                   <tr>
-                    <th class="py-3 px-4 text-left">User ID</th>
-                    <th class="py-3 px-4 text-left">Username</th>
-                    <th class="py-3 px-4 text-left">Current Role</th>
-                    <th class="py-3 px-4 text-left">Requested Role</th>
-                    <th class="py-3 px-4 text-left">Action</th>
+                    <th class="py-3 px-4 text-left">#</th>
+                    <th class="py-3 px-4 text-left">Category Name</th>
                   </tr>
                 </thead>
                 <tbody class="text-gray-700">
-                  {% for req in user_requests %}
+                  {% for cat in categories %}
                   <tr class="border-t border-gray-200">
-                    <td class="py-3 px-4">{{ req.user_id }}</td>
-                    <td class="py-3 px-4">{{ req.username }}</td>
-                    <td class="py-3 px-4">{{ 'Admin' if req.current_role == 1 else 'User' }}</td>
-                    <td class="py-3 px-4">{{ 'Admin' if req.requested_role == 1 else 'User' }}</td>
-                    <td class="py-3 px-4">
-                      {% if req.current_role == 1 %}
-                      <span class="text-green-600 font-semibold">Already Admin</span>
-                      {% else %}
-                      <form method="POST" action="{{ url_for('admin.approve_admin_request') }}">
-                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
-                        <input type="hidden" name="new_role_id" value="{{ req.requested_role }}">
-                        <button type="submit" class="text-white bg-teal-600 hover:bg-teal-700 px-3 py-1 rounded">
-                          Approve
-                        </button>
-                      </form>
-                      {% endif %}
-                    </td>
+                    <td class="py-3 px-4">{{ loop.index }}</td>
+                    <td class="py-3 px-4">{{ cat.category }}</td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="2" class="py-4 text-center text-gray-500">No categories found.</td>
                   </tr>
                   {% endfor %}
                 </tbody>
@@ -746,49 +765,98 @@
         </section>
 
 
-        <section id="userDetails" class="section hidden">
-          <div class="max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-md">
-            <h2 class="text-xl font-bold mb-4">User Details</h2>
-            <p><strong>ID:</strong> <span id="detailUserId"></span></p>
-            <p><strong>Name:</strong> <span id="detailUserName"></span></p>
-            <p><strong>Email:</strong> <span id="detailUserEmail"></span></p>
-            <p><strong>Role:</strong> <span id="detailUserRole"></span></p>
-            <p><strong>Registration Date:</strong> <span id="detailUserRegDate"></span></p>
-            <button id="makeAdminButton" onclick="makeAdmin()"
-              class="mt-4 bg-purple-600 text-white font-semibold py-2 px-4 rounded hover:bg-purple-700 hidden">👑 Make
-              Admin</button>
-            <button onclick="showSection('viewUsers')"
-              class="mt-4 bg-indigo-900 text-white font-semibold py-2 px-4 rounded hover:bg-teal-600">🔙 Back to User
-              List</button>
+
+        <!-- User Management Sections -->
+        <section id="viewUsers" class="section {% if section != 'viewUsers' %}hidden{% endif %}">
+          <div class="premium-card p-8 max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+              Pending Admin Requests
+            </h2>
+            <div class="overflow-x-auto w-full">
+              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                <thead class="bg-indigo-900 text-white">
+                  <tr>
+                    <th class="py-3 px-4 text-left">User ID</th>
+                    <th class="py-3 px-4 text-left">Username</th>
+                    <th class="py-3 px-4 text-left">Current Role</th>
+                    <th class="py-3 px-4 text-left">Requested Role</th>
+                    <th class="py-3 px-4 text-left">Requested At</th>
+                    <th class="py-3 px-4 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                  {% for req in admin_requests %}
+                  <tr class="border-t border-gray-200">
+                    <td class="py-3 px-4">{{ req.user_id }}</td>
+                    <td class="py-3 px-4">{{ req.username }}</td>
+                    <td class="py-3 px-4">
+                      {{ 'Admin' if req.current_role_id == 1 else 'User' }}
+                    </td>
+                    <td class="py-3 px-4">
+                      {{ 'Admin' if req.requested_role == 1 else 'User' }}
+                    </td>
+                    <td class="py-3 px-4">
+                      {{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="py-3 px-4 flex flex-wrap gap-2">
+                      <!-- Approve Form -->
+                      <form method="POST" action="{{ url_for('admin.approve_admin_request') }}">
+                        <input type="hidden" name="user_id"     value="{{ req.user_id }}">
+                        <input type="hidden" name="new_role_id" value="{{ req.requested_role }}">
+                        <button type="submit"
+                                class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+                          Accept
+                        </button>
+                      </form>
+
+                      <!-- Deny Form -->
+                      <form method="POST" action="{{ url_for('admin.deny_admin_request') }}">
+                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
+                        <button type="submit"
+                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                          Deny
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="6" class="py-4 text-center text-gray-500">
+                      No pending requests.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
         <section id="addAdmin" class="section hidden">
           <div class="premium-card p-8 max-w-xl mx-auto">
             <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Add New Admin</h2>
-            <form id="addAdminForm" class="space-y-5">
+            <form id="addAdminForm"
+                  method="POST"
+                  action="{{ url_for('admin.add_admin') }}"
+                  class="space-y-5">
               <div>
-                <label for="newAdminName" class="block text-sm font-semibold text-slate-700 mb-2">Name</label>
-                <input type="text" id="newAdminName" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Enter admin's full name" required>
-              </div>
-              <div>
-                <label for="newAdminEmail" class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                <input type="email" id="newAdminEmail" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Enter admin's email address" required>
-              </div>
-              <div>
-                <label for="newAdminPassword" class="block text-sm font-semibold text-slate-700 mb-2">Temporary
-                  Password</label>
-                <input type="password" id="newAdminPassword" class="form-input w-full p-3 rounded-lg"
-                  placeholder="Set a temporary password" required>
+                <label for="newAdminEmail" class="block text-sm font-semibold text-slate-700 mb-2">
+                  Email
+                </label>
+                <input type="email"
+                       name="email"
+                       id="newAdminEmail"
+                       class="form-input w-full p-3 rounded-lg"
+                       placeholder="Enter admin's email address"
+                       required>
               </div>
               <div class="flex justify-end space-x-4 pt-4 border-t border-slate-200">
-                <button type="button" onclick="showSection('viewUsers')"
+                <button type="button" onclick="showSection('home')"
                   class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
                   Cancel
                 </button>
-                <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                <button type="submit"
+                        class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
                   <i class="fas fa-user-plus mr-2"></i>Add Admin
                 </button>
               </div>
@@ -948,21 +1016,21 @@
                   <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
                       <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
                   </label>
-                  <input type="password" id="currentPassword" name="current_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter current password">
+                  <input type="password" id="currentPassword" name="current_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter current password" required>
               </div>
 
               <div>
                     <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
                         <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
                     </label>
-                    <input type="password" id="newPassword" name="new_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter new password">
+                    <input type="password" id="newPassword" name="new_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter new password" required>
               </div>
 
               <div>
                     <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
                         <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
                     </label>
-                    <input type="password" id="confirmPassword" name="confirm_new_password" class="form-input w-full p-3 rounded-lg" placeholder="Confirm new password">
+                    <input type="password" id="confirmPassword" name="confirm_new_password" class="form-input w-full p-3 rounded-lg" placeholder="Confirm new password" required>
               </div>
 
               <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200">
