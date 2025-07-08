@@ -9,7 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="{{url_for('static', filename='js/admin_dashboard.js')}}" defer></script>
-
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     /* Import Inter font from Google Fonts */
@@ -688,9 +687,17 @@
         <section id="reports" class="section hidden">
           <div class="premium-card p-8 max-w-2xl mx-auto">
             <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Feedback Reports</h2>
-            <p class="text-slate-600 text-center mb-8">Visualizing feedback categories and statuses.</p>
-            <div class="relative h-96">
-              <canvas id="feedbackChart"></canvas>
+
+            <!-- Mode switches -->
+            <div class="flex justify-center gap-4 mb-6">
+              <button id="reportAllBtn" class="px-4 py-2 bg-indigo-600 text-white rounded">All</button>
+              <button id="reportByCatBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded">By Category</button>
+            </div>
+
+            <!-- Chart images (initial: show 'all') -->
+            <div class="relative h-auto">
+              <img id="allChartImg" src="{{ url_for('admin.all_report_chart') }}" class="w-full" alt="All Feedback Chart">
+              <img id="catChartImg" src="{{ url_for('admin.category_report_chart') }}" class="w-full hidden" alt="Category Feedback Chart">
             </div>
           </div>
         </section>

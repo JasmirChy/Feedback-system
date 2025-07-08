@@ -137,7 +137,6 @@ def update_status():
     return redirect(url_for('views.admin_dashboard'))
 
 
-
 # ---------------- View Users ------------------
 @admin.route('/view-users')
 def view_users():

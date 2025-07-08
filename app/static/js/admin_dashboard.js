@@ -19,14 +19,46 @@ window.addEventListener('DOMContentLoaded', () => {
 
   setupLogoutModal();
   setupFeedbackClick();
+
+  // ── Reports toggle buttons ──
+  const reportAllBtn   = document.getElementById('reportAllBtn');
+  const reportByCatBtn = document.getElementById('reportByCatBtn');
+  const allChartImg    = document.getElementById('allChartImg');
+  const catChartImg    = document.getElementById('catChartImg');
+
+  function activate(btn) {
+    btn.classList.remove('bg-gray-200','text-gray-700');
+    btn.classList.add('bg-indigo-600','text-white');
+  }
+  function deactivate(btn) {
+    btn.classList.remove('bg-indigo-600','text-white');
+    btn.classList.add('bg-gray-200','text-gray-700');
+  }
+
+  reportAllBtn?.addEventListener('click', () => {
+    allChartImg.classList.remove('hidden');
+    catChartImg.classList.add('hidden');
+    activate(reportAllBtn);
+    deactivate(reportByCatBtn);
+  });
+
+  reportByCatBtn?.addEventListener('click', () => {
+    allChartImg.classList.add('hidden');
+    catChartImg.classList.remove('hidden');
+    activate(reportByCatBtn);
+    deactivate(reportAllBtn);
+  });
+
+  // ── Initial view ──
+  reportAllBtn?.click();
 });
 
+// ── Navigation Helpers ──
 function setActiveNavItem(id) {
   document.querySelectorAll('.nav-item').forEach(item => {
     item.classList.remove('bg-gradient-to-r','from-teal-50','to-white','text-teal-600','border','border-teal-100');
     item.classList.add('text-slate-700','hover:text-teal-600');
   });
-
   const active = document.querySelector(`.nav-item[data-target="${id}"]`);
   if (active) {
     active.classList.remove('text-slate-700','hover:text-teal-600');
@@ -34,11 +66,9 @@ function setActiveNavItem(id) {
   }
 }
 
-// SECTION NAVIGATION
 function showSection(id) {
-  document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
-  const activeSection = document.getElementById(id);
-  if (activeSection) activeSection.classList.remove('hidden');
+  document.querySelectorAll('.section').forEach(sec => sec.classList.add('hidden'));
+  document.getElementById(id)?.classList.remove('hidden');
 }
 
 // ----- Mobile Menu -----
@@ -48,7 +78,6 @@ function toggleMobileMenu() {
   sidebar?.classList.toggle('translate-x-0');
   document.body.classList.toggle('overflow-hidden');
 }
-
 function toggleMobileMenuIfOpen() {
   const sidebar = document.getElementById('mobile-sidebar');
   if (sidebar?.classList.contains('translate-x-0')) toggleMobileMenu();
@@ -72,7 +101,6 @@ function filterFeedback(type) {
     }
   });
 
-  // Update active filter button styling
   document.querySelectorAll('[id^="toggle"]').forEach(btn => {
     btn.classList.remove('bg-indigo-900', 'text-white');
     btn.classList.add('bg-gray-200', 'text-indigo-900');
@@ -85,8 +113,7 @@ function filterFeedback(type) {
   }
 }
 
-
-// HANDLE FEEDBACK ROW CLICK
+// FEEDBACK ROW CLICK
 function setupFeedbackClick() {
   document.querySelectorAll('[data-target="feedbackDetail"]').forEach(row => {
     row.addEventListener('click', () => {
@@ -98,109 +125,32 @@ function setupFeedbackClick() {
   });
 }
 
-// FEEDBACK STATUS UPDATE (if using AJAX)
-function updateStatus(fId, newStatus) {
-  fetch('/admin/update-status', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `f_id=${encodeURIComponent(fId)}&status=${encodeURIComponent(newStatus)}`
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      const select = document.querySelector(`select[data-f-id="${fId}"]`);
-      const row = select?.closest('tr');
-
-      if (row) {
-        let statusText = 'pending';
-        if (newStatus === '2') statusText = 'inprogress';
-        else if (newStatus === '3') statusText = 'solved';
-        row.dataset.status = statusText;
-      }
-
-      // Optionally re-apply filter to reflect change
-      const activeBtn = document.querySelector('[id^="toggle"].bg-indigo-900');
-      if (activeBtn) {
-        const type = activeBtn.id.replace('toggle', '').toLowerCase();
-        filterFeedback(type);
-      }
-
-      alert('Status updated successfully.');
-    } else {
-      alert('Error updating status: ' + data.message);
-    }
-  })
-  .catch(err => {
-    alert('Request failed: ' + err);
-  });
-}
-
-// CHART RENDERING
-function renderFeedbackChart() {
-  const ctx = document.getElementById('feedbackChart');
-  if (!ctx) return;
-
-  const categoryLabels = window.categoryLabels || [];
-  const categoryCounts = window.categoryCounts || [];
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: categoryLabels,
-      datasets: [{
-        label: 'Feedback by Category',
-        data: categoryCounts,
-        backgroundColor: 'rgba(13, 148, 136, 0.6)',
-        borderRadius: 8,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        title: {
-          display: true,
-          text: 'Feedback by Category'
-        }
-      }
-    }
-  });
-}
-
-// CHANGE USER ROLE
+// USER ROLE CHANGE
 function changeUserRole(userId, currentRoleId) {
   const newRoleId = currentRoleId === 1 ? 2 : 1;
   const roleLabel = newRoleId === 1 ? 'Admin' : 'User';
+  if (!confirm(`Change this user's role to ${roleLabel}?`)) return;
 
-  if (confirm(`Change this user's role to ${roleLabel}?`)) {
-    fetch('/admin/update-role', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `user_id=${userId}&new_role_id=${newRoleId}`
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert("User role updated successfully.");
-        location.reload();
-      } else {
-        alert("Failed to update role: " + data.message);
-      }
-    })
-    .catch(err => {
-      alert("Error: " + err.message);
-    });
-  }
+  fetch('/admin/update-role', {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:`user_id=${userId}&new_role_id=${newRoleId}`
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      alert('User role updated successfully.');
+      location.reload();
+    } else {
+      alert('Failed to update role: ' + data.message);
+    }
+  })
+  .catch(err => alert('Error: ' + err.message));
 }
 
-// Expose globally
+// Global exports
 window.showSection = showSection;
 window.toggleMobileMenu = toggleMobileMenu;
 window.toggleMobileMenuIfOpen = toggleMobileMenuIfOpen;
 window.setActiveNavItem = setActiveNavItem;
 window.filterFeedback = filterFeedback;
-window.updateStatus = updateStatus;

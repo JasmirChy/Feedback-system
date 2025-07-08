@@ -136,6 +136,33 @@ def admin_dashboard():
     """)
     feedback_status_counts = cursor.fetchall()
 
+    #  Timeline aggregates
+    cursor.execute("""
+          SELECT 
+            f_date AS date,
+            SUM(status = 1)     AS pending,
+            SUM(status = 2)     AS inprogress,
+            SUM(status = 3)     AS resolved
+          FROM feedback
+          GROUP BY f_date
+          ORDER BY f_date
+        """)
+    timeline_stats = cursor.fetchall()
+
+    #  Category aggregates
+    cursor.execute("""
+          SELECT
+            c.category          AS category,
+            SUM(f.status = 1)   AS pending,
+            SUM(f.status = 2)   AS inprogress,
+            SUM(f.status = 3)   AS resolved
+          FROM feedback f
+          JOIN category c ON f.category = c.category_id
+          GROUP BY c.category
+          ORDER BY c.category
+        """)
+    category_stats = cursor.fetchall()
+
     cursor.close()
     conn.close()
 
@@ -145,4 +172,6 @@ def admin_dashboard():
                            admin_requests=admin_requests,
                            users=users,
                            feedback_status_counts=feedback_status_counts,
+                           timeline_stats=timeline_stats,
+                           category_stats=category_stats,
                            section=section)
