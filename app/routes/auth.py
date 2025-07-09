@@ -1,3 +1,4 @@
+# app/routes/auth.py
 import random, datetime, mysql.connector, re
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, url_for, request, redirect, flash, session
@@ -290,10 +291,11 @@ def forget_password():
 
 @auth.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
-    email = session['reset_verified_email']
 
-    if email not in session:
+    if 'reset_verified_email' not in session:
         return redirect(url_for('auth.forget_password'))
+
+    email = session['reset_verified_email']
 
     if request.method == 'POST':
         pw = request.form.get('password')
@@ -348,7 +350,7 @@ def update_profile():
 
             # prevent duplicate pending requests
             cur.execute(
-                "SELECT status FROM admin_requests WHERE user_id = %s AND status = 'Pending'",
+                "SELECT status FROM admin_requests WHERE user_id = %s AND (status = 'Pending' OR status = 'Denied')",
                 (user_id,)
             )
             if cur.fetchone():

@@ -1,3 +1,4 @@
+// app/static/js/user_dashboard.js
 
 window.addEventListener('DOMContentLoaded', () => {
   // ----- Navigation Binding -----

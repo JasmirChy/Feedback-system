@@ -1,3 +1,5 @@
+// app/static/js/admin_dashboard.js
+
 window.addEventListener('DOMContentLoaded', () => {
   // Bind navigation clicks
   document.querySelectorAll('.nav-item[data-target]').forEach(item => {

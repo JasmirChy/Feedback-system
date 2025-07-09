@@ -1,3 +1,4 @@
+# app/routes/admin.py
 import io, matplotlib
 import matplotlib.pyplot as plt
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file

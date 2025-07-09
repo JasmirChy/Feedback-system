@@ -1,3 +1,4 @@
+# app/__init__.py
 from flask import Flask, flash, redirect, url_for
 from flask_session import Session
 from werkzeug.exceptions import RequestEntityTooLarge

@@ -1,3 +1,5 @@
+// app/static/js/signup.js
+
 document.addEventListener('DOMContentLoaded', () => {
     initSignup();
     document.getElementById('signupForm').addEventListener('submit', handleSignUp);

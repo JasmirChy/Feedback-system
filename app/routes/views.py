@@ -1,3 +1,4 @@
+# app/routes/views.py
 from flask import Blueprint, render_template, url_for, session, flash, redirect, request
 from app.models.db import get_db_connection
 
@@ -66,15 +67,22 @@ def user_dashboard():
 
     # check the last request status
     cur.execute("""
-           SELECT status
-             FROM admin_requests
-            WHERE user_id = %s
-            ORDER BY requested_at DESC
-            LIMIT 1
-       """, (user_id,))
-    row = cur.fetchone()
-    has_pending_request = (row and row['status'] == 'Pending')
-    has_denied_request = (row and row['status'] == 'Denied')
+        SELECT status
+        FROM admin_requests
+        WHERE user_id = %s AND status = 'Pending'
+        LIMIT 1
+    """, (user_id,))
+    pending_row = cur.fetchone()
+    has_pending_request = bool(pending_row)
+
+    cur.execute("""
+        SELECT status
+        FROM admin_requests
+        WHERE user_id = %s AND status = 'Denied'
+        LIMIT 1
+    """, (user_id,))
+    denied_row = cur.fetchone()
+    has_denied_request = bool(denied_row)
 
 
     cur.close()

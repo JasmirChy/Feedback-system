@@ -1,5 +1,4 @@
-
-# All of ours CREATE TABLE statements in one list
+# app/models/schema.py
 
 table_statements = [
     # staff_table

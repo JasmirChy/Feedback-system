@@ -1,3 +1,4 @@
+# app/services/email.py
 import smtplib,random
 from flask import current_app
 

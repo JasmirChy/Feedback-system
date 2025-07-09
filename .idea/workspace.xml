@@ -7,13 +7,27 @@
     <list default="true" id="3c5ff483-3a76-48ad-86a2-6945b23928e9" name="Changes" comment="user panel is done only needs to add request for admin">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/db.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/models/schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/schema.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/auth.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/submit.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/submit.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/email.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/email.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/static/js/admin_dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/admin_dashboard.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/static/js/signup.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/signup.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/static/js/user_dashboard.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/user_dashboard.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/admin_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/admin_dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/forgot_password.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/forgot_password.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/reset_password.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/reset_password.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/signup.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/signup.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/user_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/user_dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/verify_otp.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/verify_otp.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,27 +53,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.__init__.executor": "Run",
-    "Python.admin.executor": "Run",
-    "Python.auth.executor": "Run",
-    "Python.db.executor": "Run",
-    "Python.models.executor": "Run",
-    "Python.run.executor": "Run",
-    "Python.schema.executor": "Run",
-    "Python.signup.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "database",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/Feedback System",
-    "settings.editor.selected.configurable": "advanced.settings"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.admin.executor&quot;: &quot;Run&quot;,
+    &quot;Python.auth.executor&quot;: &quot;Run&quot;,
+    &quot;Python.db.executor&quot;: &quot;Run&quot;,
+    &quot;Python.models.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.schema.executor&quot;: &quot;Run&quot;,
+    &quot;Python.signup.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;database&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Feedback System&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\Feedback System\app\static\images" />
