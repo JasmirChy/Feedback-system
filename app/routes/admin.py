@@ -170,16 +170,30 @@ def category_report_chart():
     inprogress  = [c['inprogress'] or 0 for c in category_stats]
     resolved    = [c['resolved'] or 0 for c in category_stats]
 
-    x = range(len(categories))
-    width = 0.25  # bar width
+    n = len(categories)
+    n_series = 3
+
+    inner_gap = 0  # 0 = bars touch; increase to e.g., 0.02 for a tiny gap
+    total_inner = inner_gap * (n_series - 1)
+
+    # Make bars fill exactly 1.0 unit minus the inner gaps:
+    bar_width = (1.0 - total_inner) / n_series
+    group_width = bar_width * n_series + total_inner
+
+    spacing = 1.5
+
+    x_centers = [i * spacing for i in range(n)]
+
+    base_offset = -group_width / 2 + bar_width / 2
+    offsets = [base_offset + i * bar_width for i in range(n_series)]
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    ax.bar([i - width for i in x], pending, width=width, label='Pending', color='royalblue')
-    ax.bar(x, inprogress, width=width, label='In Progress', color='tomato')
-    ax.bar([i + width for i in x], resolved, width=width, label='Solved', color='orange')
+    ax.bar([i + offsets[0] for i in x_centers], pending, width=bar_width, label='Pending', color='lightYellow')
+    ax.bar([i + offsets[1] for i in x_centers], inprogress, width=bar_width, label='In Progress', color='lightBlue')
+    ax.bar([i + offsets[2] for i in x_centers], resolved, width=bar_width, label='Solved', color='lightGreen')
 
-    ax.set_xticks(x)
+    ax.set_xticks(x_centers)
     ax.set_xticklabels(categories, rotation=45, ha='right')
     ax.set_ylabel("Feedback Count")
     ax.set_xlabel("Feedback Categories")

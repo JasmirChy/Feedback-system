@@ -533,11 +533,12 @@
 
         <div class="flex items-center space-x-3">
           <div class="flex items-center space-x-3 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200">
-            <a data-target="profile" class="nav-item fas fa-user text-sm">
+
             <div
               class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+              <a onclick="showSection('profile')" class="fas fa-user  text-sm"> </a>
             </div>
-            </a>
+
             <div class="text-sm hidden sm:block">
               <div class="font-semibold text-slate-800">{{user.username}}</div>
               <div class="text-slate-500">ID: {{user.user_id}}</div>
