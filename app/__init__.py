@@ -1,10 +1,10 @@
 # app/__init__.py
-from flask import Flask, flash, redirect, url_for
+from flask import Flask, flash, redirect, url_for, render_template
+from .extensions import limiter
 from flask_session import Session
 from werkzeug.exceptions import RequestEntityTooLarge
-
-from app.models.db import init_db
-from app.routes import auth,views
+from app.models import init_db
+from app.routes import auth, views, submit, admin
 
 
 def create_app():
@@ -21,7 +21,6 @@ def create_app():
     # === Initialize Database ===
     # This will only actually run once, inside the reloader child
     with app.app_context():
-        from app.models.db import init_db
         init_db()
 
     # Error handler for large file uploads
@@ -31,12 +30,15 @@ def create_app():
         flash("File too large! Max 10MB allowed.", "error")
         return redirect( url_for('views.user_dashboard', section='submitFeedback'))
 
+    # ───── NEW rate‑limit handler ─────
+    @app.errorhandler(429)
+    def ratelimit_handler(e):
+        # you can render login.html directly, or redirect & flash
+        flash("Too many login attempts—please wait before trying again.", "error")
+        return render_template("login.html"), 429
 
-    # === Register Blueprints ===
-    from app.routes.views import views
-    from app.routes.auth import auth
-    from app.routes.submit import submit
-    from app.routes.admin import admin
+    # === Rate Limiter ===
+    limiter.init_app(app)
 
     app.register_blueprint(views, url_prefix = '/')
     app.register_blueprint(auth, url_prefix = '/auth')

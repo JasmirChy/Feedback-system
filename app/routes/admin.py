@@ -2,20 +2,16 @@
 import io, matplotlib
 import matplotlib.pyplot as plt
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
-from app.models.db import get_db_connection
-
+from app.models import get_db_connection
+from app.routes.auth import role_required, ADMIN_ROLE_ID
 
 admin = Blueprint('admin', __name__)
 matplotlib.use('Agg')  # headless rendering for server environments
-ADMIN_ROLE_ID = 1
 
 # ---------------- feedback detail ------------------
 @admin.route('/feedback/<int:f_id>')
+@role_required(ADMIN_ROLE_ID)
 def feedback_detail(f_id):
-    # --- Admin role check ---
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -81,11 +77,8 @@ def feedback_detail(f_id):
     )
 
 @admin.route('/update-status', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
 def update_status():
-    # --- guard ---
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash('Access denied.', 'error')
-        return redirect(url_for('auth.login')), 403
 
     f_id   = request.form.get('f_id')
     status = request.form.get('status')
@@ -115,10 +108,8 @@ def update_status():
 
 
 @admin.route('/attachments/<int:attach_id>')
+@role_required(ADMIN_ROLE_ID)
 def admin_download_attachment(attach_id):
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
@@ -140,10 +131,8 @@ def admin_download_attachment(attach_id):
     )
 
 @admin.route('/admin/chart/category')
+@role_required(ADMIN_ROLE_ID)
 def category_report_chart():
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     # DB Query
     conn = get_db_connection()
@@ -209,11 +198,8 @@ def category_report_chart():
 
 
 @admin.route('/add-admin', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
 def add_admin():
-    # Only admins can promote others
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     email = request.form.get('email', '').strip()
     if not email:
@@ -259,11 +245,8 @@ def add_admin():
     return redirect(url_for('views.admin_dashboard', section='addAdmin'))
 
 @admin.route('/deny-admin-request', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
 def deny_admin_request():
-    # Only admins
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     user_id = request.form.get('user_id')
     if not user_id:
@@ -292,16 +275,13 @@ def deny_admin_request():
 
 # ---------------- View Users ------------------
 @admin.route('/view-users')
+@role_required(ADMIN_ROLE_ID)
 def view_users():
-    # 1) Correct role check
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     conn   = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 2) Ensure status comparison matches your DB exactly
+    #  Ensure status comparison matches your DB exactly
     cursor.execute("""
         SELECT 
           ar.user_id,
@@ -335,13 +315,10 @@ def view_users():
 
 # ---------------- Update User Role ------------------
 @admin.route('/approve-admin-request', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
 def approve_admin_request():
-    # 1) Admin guard
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
-    # 2) Read & validate form
+    # 1) Read & validate form
     user_id     = request.form.get('user_id')
     new_role_id = request.form.get('new_role_id')
     if not user_id or not new_role_id:
@@ -359,13 +336,13 @@ def approve_admin_request():
     cursor = conn.cursor()
 
     try:
-        # 3) Promote user
+        # 2) Promote user
         cursor.execute(
             "UPDATE fd_user SET role_id = %s WHERE user_id = %s",
             (new_role_id, user_id)
         )
 
-        # 4) Mark the request approved
+        # 3) Mark the request approved
         cursor.execute(
             "UPDATE admin_requests "
             "SET status = 'Approved' "
@@ -384,15 +361,13 @@ def approve_admin_request():
         cursor.close()
         conn.close()
 
-    # 5) Back to the pending‑requests view
+    # 4) Back to the pending‑requests view
     return redirect(url_for('admin.view_users'))
 
 
 @admin.route('/add-category', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
 def add_category():
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash('Access denied.', 'error')
-        return redirect(url_for('auth.login'))
 
     category = request.form.get('category', '').strip()
 

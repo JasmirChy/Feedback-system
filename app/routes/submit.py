@@ -1,17 +1,12 @@
 # app/routes/submit.py
 import io
 from datetime import date
-
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
 from werkzeug.utils import secure_filename
-
-from app.models.db import get_db_connection
+from app.models import get_db_connection
+from app.routes.auth import role_required, USER_ROLE_ID
 
 submit = Blueprint('submit', __name__)
-
-USER_ROLE_ID = 2
-
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
 
 def allowed_file(filename):
@@ -20,11 +15,8 @@ def allowed_file(filename):
 
 
 @submit.route('/submit_feedback', methods=['POST'])
+@role_required(USER_ROLE_ID)
 def submit_feedback():
-
-    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
-        flash("Please login first.", "warning")
-        return redirect(url_for('auth.login'))  # or wherever your login route is
 
     if request.method == 'GET':
         # Render the same dashboard template but open the Submit section
@@ -89,10 +81,8 @@ def submit_feedback():
 
 
 @submit.route('/feedback_history')
+@role_required(USER_ROLE_ID)
 def user_history():
-    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
-        flash("Please login first.", "warning")
-        return redirect(url_for('auth.login'))
 
     user_id = session.get('user_id')
 
@@ -137,10 +127,8 @@ def user_history():
 
 
 @submit.route('/feedback/<int:feedback_id>')
+@role_required(USER_ROLE_ID)
 def feedback_detail(feedback_id):
-    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
-        flash("Please login first.", "warning")
-        return redirect(url_for('auth.login'))
 
     user_id = session.get('user_id')
 
@@ -221,10 +209,8 @@ def feedback_detail(feedback_id):
                            user=user)
 
 @submit.route('/download_attachment/<int:attach_id>')
+@role_required(USER_ROLE_ID)
 def download_attachment(attach_id):
-    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
-        flash("Please login first.", "warning")
-        return redirect(url_for('auth.login'))
 
     user_id = session.get('user_id')
 

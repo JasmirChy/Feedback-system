@@ -3,15 +3,34 @@ import random, datetime, mysql.connector, re
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, url_for, request, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-
-from app.models.db import get_db_connection
+from app.models import get_db_connection
 from app.services.email import generate_unique_user_id, send_otp_email
 from functools import wraps
+from app.extensions import limiter
 
 
 auth = Blueprint('auth', __name__)
 ADMIN_ROLE_ID = 1
 USER_ROLE_ID = 2
+
+def role_required(role_id):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            user_id = session.get('user_id')
+            role    = session.get('role_id')
+
+            if not user_id or role != role_id:
+                if not user_id:
+                    flash("Please log in first.", "error")
+                else:
+                    flash("Access denied.", "error")
+                return redirect(url_for('auth.login'))
+
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+
 
 # ─── Optional helper: require login ───
 def login_required(f):
@@ -25,6 +44,7 @@ def login_required(f):
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit("3 per hour")
 def login():
 
     # if they already have a valid session, skip the form
@@ -332,9 +352,6 @@ def logout():
 @auth.route('/update_profile', methods=['POST'])
 @login_required
 def update_profile():
-    if 'user_id' not in session:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     user_id   = session['user_id']
     role_id   = session.get('role_id')
@@ -402,10 +419,6 @@ def update_profile():
 @auth.route('/change_password', methods=['POST'])
 @login_required
 def change_password():
-
-    if 'user_id' not in session:
-        flash("Access denied.", "error")
-        return redirect(url_for('auth.login'))
 
     user_id = session['user_id']
     role_id = session.get('role_id')

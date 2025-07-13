@@ -1,11 +1,9 @@
 # app/routes/views.py
-from flask import Blueprint, render_template, url_for, session, flash, redirect, request
-from app.models.db import get_db_connection
+from flask import Blueprint, render_template, session, request
+from app.models import get_db_connection
+from app.routes.auth import role_required, ADMIN_ROLE_ID, USER_ROLE_ID
 
 views = Blueprint('views', __name__)
-
-ADMIN_ROLE_ID = 1
-USER_ROLE_ID = 2
 
 USER_SECTIONS  = {'home', 'submit', 'history', 'profile', 'changePassword'}
 ADMIN_SECTIONS = {'home', 'reports', 'viewUsers', 'addAdmin', 'feedbackDetail', 'profile', 'changePassword', 'addCategory', 'viewCategory'}
@@ -15,10 +13,8 @@ def index():
     return render_template('index.html')
 
 @views.route('/user')
+@role_required(USER_ROLE_ID)
 def user_dashboard():
-    if 'user_id' not in session or session.get('role_id') != USER_ROLE_ID:
-        flash('Access denied.', 'error')
-        return redirect(url_for('auth.login'))
 
     section = request.args.get('section', 'home')
     if section not in USER_SECTIONS:
@@ -97,10 +93,8 @@ def user_dashboard():
                            has_denied_request=has_denied_request)
 
 @views.route('/admin')
+@role_required(ADMIN_ROLE_ID)
 def admin_dashboard():
-    if 'user_id' not in session or session.get('role_id') != ADMIN_ROLE_ID:
-        flash('Access denied.', 'error')
-        return redirect(url_for('auth.login'))
 
     section = request.args.get('section', 'home')
     if section not in ADMIN_SECTIONS:

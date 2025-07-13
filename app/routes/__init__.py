@@ -5,5 +5,6 @@
 from .auth import auth
 from .views import views
 from .submit import submit
+from .admin import admin
 
-__all__ = ["auth", "views", "submit"]
+__all__ = ["auth", "views", "submit", "admin"]
