@@ -1,5 +1,7 @@
 # app/routes/admin.py
 import io, matplotlib
+from datetime import timedelta, datetime
+
 import matplotlib.pyplot as plt
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
 from app.models import get_db_connection
@@ -133,12 +135,20 @@ def admin_download_attachment(attach_id):
 @admin.route('/admin/chart/category')
 @role_required(ADMIN_ROLE_ID)
 def category_report_chart():
+    # figure out period
+    period = request.args.get('period', 'all')
+    now = datetime.utcnow()
+    if period == 'week':
+        start = now - timedelta(days=7)
+    elif period == 'month':
+        start = now - timedelta(days=30)
+    elif period == 'year':
+        start = now - timedelta(days=365)
+    else:
+        start = None  # no filtering
 
-    # DB Query
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("""
+    # Base SQL
+    sql = """
         SELECT
             c.category AS category,
             SUM(f.status = 1) AS pending,
@@ -146,9 +156,20 @@ def category_report_chart():
             SUM(f.status = 3) AS resolved
         FROM feedback f
         JOIN category c ON f.category = c.category_id
-        GROUP BY c.category
-        ORDER BY c.category
-    """)
+    """
+
+    params = []
+    if start:
+        sql += " WHERE f_date  >= %s"
+        params.append(start)
+
+    sql += " GROUP BY c.category ORDER BY c.category"
+
+    # DB Query
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute(sql, params)
     category_stats = cursor.fetchall()
     cursor.close()
     conn.close()

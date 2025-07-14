@@ -664,58 +664,91 @@
 
             <!-- Feedback Table Section -->
             <section id="allFeedback" class="col-span-12 block premium-card">
-              <h2 class="text-xl md:text-2xl font-bold mb-4 text-center pt-5">Feedbacks</h2>
-              <div class="flex flex-wrap justify-center gap-2 mb-4">
-                <button onclick="filterFeedback('all')" id="toggleAll"
-                  class="hov px-3 py-2 rounded-full bg-indigo-900 text-white font-semibold hover:bg-teal-600">All
-                  Feedback</button>
-                <button onclick="filterFeedback('pending')" id="togglePending"
-                  class="hov px-3 py-2 rounded-full bg-gray-200 text-indigo-900 font-semibold hover:bg-teal-600 hover:text-white">Pending</button>
-                <button onclick="filterFeedback('inprogress')" id="toggleInprogress"
-                  class="hov px-3 py-2 rounded-full bg-gray-200 text-indigo-900 font-semibold hover:bg-teal-600 hover:text-white">
-                  In Progress
-                </button>
-                <button onclick="filterFeedback('resolved')" id="toggleResolved"
-                  class="hov px-3 py-2 rounded-full bg-gray-200 text-indigo-900 font-semibold hover:bg-teal-600 hover:text-white">Solved</button>
-              </div>
-              <div class="flex justify-center">
-                <div class="overflow-x-auto w-full max-w-6x1">
-                  <div class="max-w-6xl max-h-[600px] overflow-y-auto custom-scrollbar">
-                  <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
-                    <thead class="bg-[#0d9488] text-white">
-                      <tr>
-                        <th class="py-3 px-4 text-left">Title</th>
-                        <th class="py-3 px-4 text-left">Submitted By</th>
-                        <th class="py-3 px-4 text-left">Category</th>
-                        <th class="py-3 px-4 text-left">Status</th>
-                        <th class="py-3 px-4 text-left">Date</th>
-                        <th class="py-3 px-4 text-left">Message</th>
-                      </tr>
-                    </thead>
-                    <tbody id="feedbackTableBody" class="text-gray-700">
-                      {% for fb in feedbacks %}
-                      <tr onclick="window.location.href='{{ url_for('admin.feedback_detail', f_id=fb.f_id)}}'" data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
-                          class="cursor-pointer hover:bg-slate-100 transition">
-                        <td class="py-3 px-4">{{ fb.f_title }}</td>
-                        <td class="py-3 px-4">{{ fb.submitter_name }}</td>
-                        <td class="py-3 px-4">{{ fb.category_name }}</td>
-                        <td class="py-3 px-4" onclick="event.stopPropagation()">
-                          <form method="POST" action="{{ url_for('admin.update_status') }}" onsubmit="event.stopPropagation()">
-                          <input type="hidden" name="f_id" value="{{ fb.f_id }}">
-                          <select name="status" onchange="this.form.submit()" class="border rounded px-2 py-1 font-medium {% if fb.status == 1 %}bg-yellow-100 text-yellow-800{% elif fb.status == 2 %}bg-blue-100 text-blue-800{% elif fb.status == 3 %}bg-green-100 text-green-800{% endif %}">
-                            <option value="1" {% if fb.status == 1 %}selected{% endif %}{% if fb.status > 1 %}disabled{% endif %}>Pending</option>
-                            <option value="2" {% if fb.status == 2 %}selected{% endif %}{% if fb.status > 2 %}disabled{% endif %}>In Progress</option>
-                            <option value="3" {% if fb.status == 3 %}selected{% endif %}>Solved</option>
-                          </select>
-                          </form>
-                        </td>
-                        <td class="py-3 px-4">{{ fb.f_date }}</td>
-                        <td class="py-3 px-4 truncate max-w-sm">{{ fb.f_body[:60] }}{% if fb.f_body|length > 60 %}...{% endif %}</td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
+              <div class="px-4 max-w-6x1 mx-auto">
+                <h2 class="text-xl md:text-2xl font-bold mb-4 text-center pt-5">Feedbacks</h2>
+                <!-- Insert this inside your <section id="home">, before the table -->
+                <div class="grid grid-cols-12 gap-6 mb-8">
+                  <!-- Total -->
+                  <div onclick="filterFeedback('all')" role="button" tabindex="0"
+                       class="col-span-12 sm:col-span-3 cursor-pointer">
+                    <div class="text-center p-4 bg-gradient-to-br from-indigo-50 to-teal-100 rounded-xl hover:shadow-lg transition">
+                      <div class="text-2xl font-bold text-blue-600">{{ feedbacks|length }}</div>
+                      <div class="text-sm text-blue-700 font-medium">All Feedback</div>
+                    </div>
+                  </div>
+
+                  <!-- Pending -->
+                  <div onclick="filterFeedback('pending')" role="button" tabindex="0"
+                       class="col-span-12 sm:col-span-3 cursor-pointer">
+                    <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl hover:shadow-lg transition">
+                      <div class="text-2xl font-bold text-yellow-600">
+                        {{ feedbacks | selectattr('status','equalto',1) | list | length }}
+                      </div>
+                      <div class="text-sm text-yellow-700 font-medium">Pending</div>
+                    </div>
+                  </div>
+
+                  <!-- In Progress -->
+                  <div onclick="filterFeedback('inprogress')" role="button" tabindex="0"
+                       class="col-span-12 sm:col-span-3 cursor-pointer">
+                    <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-lg transition">
+                      <div class="text-2xl font-bold text-purple-600">
+                        {{ feedbacks | selectattr('status','equalto',2) | list | length }}
+                      </div>
+                      <div class="text-sm text-purple-700 font-medium">In Progress</div>
+                    </div>
+                  </div>
+
+                  <!-- Solved -->
+                  <div onclick="filterFeedback('resolved')" role="button" tabindex="0"
+                       class="col-span-12 sm:col-span-3 cursor-pointer">
+                    <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-lg transition">
+                      <div class="text-2xl font-bold text-green-600">
+                        {{ feedbacks | selectattr('status','equalto',3) | list | length }}
+                      </div>
+                      <div class="text-sm text-green-700 font-medium">Solved</div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+              <div class="px-4 w-full max-w-6xl">
+                <div class="overflow-x-auto rounded-lg shadow border border-gray-200">
+                  <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
+                    <table class="min-w-full bg-white">
+                      <thead class="sticky top-0 z-10 bg-[#0d9488] text-white">
+                        <tr>
+                          <th class="py-3 px-4 text-left">Title</th>
+                          <th class="py-3 px-4 text-left">Submitted By</th>
+                          <th class="py-3 px-4 text-left">Category</th>
+                          <th class="py-3 px-4 text-left">Status</th>
+                          <th class="py-3 px-4 text-left">Date</th>
+                          <th class="py-3 px-4 text-left">Message</th>
+                        </tr>
+                      </thead>
+                      <tbody id="feedbackTableBody" class="text-gray-700">
+                        {% for fb in feedbacks %}
+                        <tr onclick="window.location.href='{{ url_for('admin.feedback_detail', f_id=fb.f_id)}}'" data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
+                          class="cursor-pointer hover:bg-slate-100 transition">
+                          <td class="py-3 px-4">{{ fb.f_title }}</td>
+                          <td class="py-3 px-4">{{ fb.submitter_name }}</td>
+                          <td class="py-3 px-4">{{ fb.category_name }}</td>
+                          <td class="py-3 px-4" onclick="event.stopPropagation()">
+                            <form method="POST" action="{{ url_for('admin.update_status') }}" onsubmit="event.stopPropagation()">
+                              <input type="hidden" name="f_id" value="{{ fb.f_id }}">
+                              <select name="status" onchange="this.form.submit()" class="border rounded px-2 py-1 font-medium {% if fb.status == 1 %}bg-yellow-100 text-yellow-800{% elif fb.status == 2 %}bg-blue-100 text-blue-800{% elif fb.status == 3 %}bg-green-100 text-green-800{% endif %}">
+                                <option value="1" {% if fb.status == 1 %}selected{% endif %}{% if fb.status > 1 %}disabled{% endif %}>Pending</option>
+                                <option value="2" {% if fb.status == 2 %}selected{% endif %}{% if fb.status > 2 %}disabled{% endif %}>In Progress</option>
+                                <option value="3" {% if fb.status == 3 %}selected{% endif %}>Solved</option>
+                              </select>
+                            </form>
+                          </td>
+                          <td class="py-3 px-4">{{ fb.f_date }}</td>
+                          <td class="py-3 px-4 truncate max-w-sm">{{ fb.f_body[:60] }}{% if fb.f_body|length > 60 %}...{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </section>
@@ -728,9 +761,21 @@
           <div class="premium-card p-8 max-w-4xl mx-auto">
             <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Feedback Reports</h2>
 
+            <div class="flex justify-center space-x-2 mb-4">
+              {% set current = request.args.get('period', 'all') %}
+              {% for label, key in [('Week','week'),('Month','month'),('Year','year'),('All','all')] %}
+                <a
+                  href="{{ url_for('views.admin_dashboard') }}?period={{ key }}#reports"
+                  class="px-3 py-1 rounded-full font-medium transition
+                         {{ 'bg-slate-800 text-white' if current==key else 'bg-gray-200 text-gray-800 hover:bg-gray-300' }}">
+                  {{ label }}
+                </a>
+              {% endfor %}
+            </div>
+
             <!-- Chart image served by Flask -->
             <div class="flex justify-center">
-              <img src="{{ url_for('admin.category_report_chart') }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
+              <img src="{{ url_for('admin.category_report_chart', period=request.args.get('period','all')) }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
             </div>
           </div>
         </section>

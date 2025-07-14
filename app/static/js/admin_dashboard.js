@@ -70,17 +70,6 @@ function filterFeedback(type) {
       row.style.display = 'none';
     }
   });
-
-  document.querySelectorAll('[id^="toggle"]').forEach(btn => {
-    btn.classList.remove('bg-indigo-900', 'text-white');
-    btn.classList.add('bg-gray-200', 'text-indigo-900');
-  });
-
-  const activeBtn = document.getElementById('toggle' + type.charAt(0).toUpperCase() + type.slice(1));
-  if (activeBtn) {
-    activeBtn.classList.remove('bg-gray-200', 'text-indigo-900');
-    activeBtn.classList.add('bg-indigo-900', 'text-white');
-  }
 }
 
 // FEEDBACK ROW CLICK
