@@ -3,6 +3,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     initSignup();
     document.getElementById('signupForm').addEventListener('submit', handleSignUp);
+
+    const flash = document.getElementById('flash-messages');
+    if (!flash) return;
+    // after 5 seconds, fade out (you can also just hide instantly)
+    setTimeout(() => {
+      flash.classList.add('opacity-0', 'transition', 'duration-500');
+      // optional: completely remove from layout after fade-out
+      setTimeout(() => flash.style.display = 'none', 500);
+    }, 5000);
 });
 
 let userType = "studentStaff";

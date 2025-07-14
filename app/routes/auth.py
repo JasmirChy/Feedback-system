@@ -440,19 +440,42 @@ def change_password():
         conn.close()
         return redirect(url_for('auth.login'))
 
+    if current_password is None:
+        flash("Please! Enter the current password", "error")
+        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+    elif current_password.strip() == '':
+        flash("Please! Enter the current password", "error")
+        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+
+    if new_password is None:
+        flash("Please! Enter the new password", "error")
+        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+    elif new_password.strip() == '':
+        flash("Please! Enter the new password", "error")
+        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+
+    if confirm_new_password is None:
+        flash("Please! Enter the confirm new password", "error")
+        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+    elif confirm_new_password.strip() == '':
+        flash("Please! Enter the confirm new password", "error")
+        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+
     # Verify the current password
     if not check_password_hash(user['password'], current_password):
         flash('Incorrect current password.', 'error')
         cur.close()
         conn.close()
-        return redirect(url_for('views.user_dashboard', section='changePassword')) # Stay on a change password section
+        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword')) # Stay on a change password section
 
     # Validate new password
-    if not new_password or len(new_password) < 6:
-        flash('New password must be at least 6 characters.', 'error')
+    if current_password == new_password == confirm_new_password :
+        flash('Old password can\'t be used again.', 'error')
+    elif not new_password or len(new_password) < 6:
+        flash('New password must be at least 8 characters.', 'error')
     elif new_password != confirm_new_password:
-        flash('New password and confirmation do not match.', 'error')
-    elif not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$', new_password):
+        flash('New password and conformation do not match.', 'error')
+    elif not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$', new_password):
         flash('Password must contain a letter and a number.', 'error')
     else:
         # All good → update
