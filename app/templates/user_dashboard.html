@@ -587,25 +587,25 @@
                 </div>
 
                 <div class="grid grid-cols-4 gap-6">
-                  <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                  <div onclick="showSection('history'); filterHistory('all')" class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
                     <div class="text-2xl font-bold text-blue-600">
                       {{ feedback_list | length }}
                     </div>
                     <div class="text-sm text-blue-700 font-medium">Total Submissions</div>
                   </div>
-                  <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
+                  <div onclick="showSection('history'); filterHistory('pending')" class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
                     <div class="text-2xl font-bold text-yellow-600">
                       {{ feedback_list | selectattr("status", "equalto", 1) | list | length }}
                     </div>
                     <div class="text-sm text-yellow-700 font-medium">Pending</div>
                   </div>
-                  <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+                  <div onclick="showSection('history'); filterHistory('inprogress')" class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
                     <div class="text-2xl font-bold text-purple-600">
                       {{ feedback_list | selectattr("status", "equalto", 2) | list | length }}
                     </div>
                     <div class="text-sm text-purple-700 font-medium">In Progress</div>
                   </div>
-                  <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+                  <div onclick="showSection('history'); filterHistory('solved')" class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
                     <div class="text-2xl font-bold text-green-600">
                       {{ feedback_list | selectattr("status", "equalto", 3) | list | length }}
                     </div>
@@ -728,8 +728,8 @@
         </section>
 
         <section id="history" class="section {% if section != 'history' %}hidden{% endif %}">
-          <div class="premium-card p-8">
-            <div class="flex items-center justify-between mb-8">
+          <div class="premium-card p-8 h-full flex flex-col">
+            <div class="flex items-center justify-between mb-8 flex-shrink-0">
               <div class="flex items-center">
                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center mr-6 shadow-lg">
                   <i class="fas fa-history text-white text-xl"></i>
@@ -739,49 +739,80 @@
                   <p class="text-slate-600 mt-1">Track the status of your submissions</p>
                 </div>
               </div>
+              <button onclick="showSection('submitFeedback')" class="btn-primary flex items-center px-4 py-2 text-white rounded-lg hover:shadow-lg transition">
+                <i class="fas fa-plus-circle mr-2"></i>Submit Again
+              </button>
             </div>
 
-            <div id="userFeedbackHistoryContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {% if feedback_list %}
-                {% for feedback in feedback_list %}
-                  <div class="feedback-card p-6 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition duration-200 ease-in-out"
-                       onclick="window.location.href='{{ url_for('submit.feedback_detail', feedback_id=feedback.f_id) }}'">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-slate-800 text-lg truncate">{{ feedback.f_title }}</h3>
-                        <span class="text-sm text-slate-500">{{ feedback.date or 'N/A' }}</span>
+            <div class="flex items-center space-x-2 mb-4">
+              <button
+                class="px-3 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                data-filter="all"
+                onclick="filterHistory('all')">
+                All
+              </button>
+              <button
+                class="px-3 py-1 rounded bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                data-filter="pending"
+                onclick="filterHistory('pending')">
+                Pending
+              </button>
+              <button
+                class="px-3 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200"
+                data-filter="inprogress"
+                onclick="filterHistory('inprogress')">
+                In Progress
+              </button>
+              <button
+                class="px-3 py-1 rounded bg-green-100 text-green-800 hover:bg-green-200"
+                data-filter="solved"
+                onclick="filterHistory('solved')">
+                Solved
+              </button>
+            </div>
+
+            <div class="overflow-y-auto max-h-[70vh]">
+              <div id="userFeedbackHistoryContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% if feedback_list %}
+                  {% for feedback in feedback_list %}
+                    <div class="feedback-card p-6 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition duration-200 ease-in-out" data-status="{% if feedback.status == 1 %}pending{% elif feedback.status == 2 %}inprogress{% else %}solved{% endif %}" onclick="window.location.href='{{ url_for('submit.feedback_detail', feedback_id=feedback.f_id) }}'">
+                      <div class="flex items-center justify-between mb-4">
+                          <h3 class="font-semibold text-slate-800 text-lg truncate">{{ feedback.f_title }}</h3>
+                          <span class="text-sm text-slate-500">{{ feedback.date or 'N/A' }}</span>
+                      </div>
+                      <p class="text-slate-600 text-sm mb-3 line-clamp-2">{{ feedback.f_body | e}}</p>
+                      <div class="flex items-center justify-between">
+                          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{
+                             'bg-blue-100 text-blue-800' if feedback.category == 'Academic' else
+                             'bg-purple-100 text-purple-800' if feedback.category == 'Infrastructure' else
+                             'bg-red-100 text-red-800' if feedback.category == 'Administrative' else
+                             'bg-gray-100 text-gray-800'
+                          }}">
+                              {{ feedback.category_name or 'No category' }}
+                          </span>
+                          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{
+                             'bg-yellow-100 text-yellow-800' if feedback.status == 1 else
+                             'bg-blue-100 text-blue-800'   if feedback.status == 2 else
+                             'bg-green-100 text-green-800' if feedback.status == 3 else
+                             'bg-gray-100 text-gray-800'
+                          }}">
+                            {{
+                              'Pending' if feedback.status == 1 else
+                              'In Progress' if feedback.status == 2 else
+                              'Solved' if feedback.status == 3 else
+                              'Unknown'
+                            }}
+                          </span>
+                      </div>
+                      {% if feedback.hide == 1 %}
+                          <p class="text-xs text-red-500 mt-2">Hidden</p>
+                      {% endif %}
                     </div>
-                    <p class="text-slate-600 text-sm mb-3 line-clamp-2">{{ feedback.f_body | e}}</p>
-                    <div class="flex items-center justify-between">
-                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{
-                           'bg-blue-100 text-blue-800' if feedback.category == 'Academic' else
-                           'bg-purple-100 text-purple-800' if feedback.category == 'Infrastructure' else
-                           'bg-red-100 text-red-800' if feedback.category == 'Administrative' else
-                           'bg-gray-100 text-gray-800'
-                        }}">
-                            {{ feedback.category_name or 'No category' }}
-                        </span>
-                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium {{
-                           'bg-yellow-100 text-yellow-800' if feedback.status == 1 else
-                           'bg-blue-100 text-blue-800'   if feedback.status == 2 else
-                           'bg-green-100 text-green-800' if feedback.status == 3 else
-                           'bg-gray-100 text-gray-800'
-                        }}">
-                          {{
-                            'Pending' if feedback.status == 1 else
-                            'In Progress' if feedback.status == 2 else
-                            'Solved' if feedback.status == 3 else
-                            'Unknown'
-                          }}
-                        </span>
-                    </div>
-                    {% if feedback.hide == 1 %}
-                        <p class="text-xs text-red-500 mt-2">Hidden</p>
-                    {% endif %}
-                  </div>
-                {% endfor %}
-              {% else %}
-                <p class="text-slate-600">No feedback submitted yet.</p>
-              {% endif %}
+                  {% endfor %}
+                {% else %}
+                  <p class="text-slate-600">No feedback submitted yet.</p>
+                {% endif %}
+              </div>
             </div>
           </div>
         </section>
@@ -1037,9 +1068,20 @@
     }
   });
 
+ function filterHistory(status) {
+  document.querySelectorAll('#userFeedbackHistoryContainer .feedback-card').forEach(card => {
+    card.classList.toggle('hidden', status!=='all' && card.dataset.status!==status);
+  });
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.classList.toggle('opacity-50', btn.dataset.filter!==status);
+  });
+}
+
   document.addEventListener('DOMContentLoaded', () => {
     const initialSection = "{{ section | default('home') }}";
     showSection(initialSection);
+
+    filterHistory('all');
 
     const flash = document.getElementById('flash-messages');
     if (!flash) return;

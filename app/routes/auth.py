@@ -63,7 +63,7 @@ def login():
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT user_id, full_name, role_id, password FROM fd_user WHERE username = %s AND status = 1",(username,))
+        cursor.execute("SELECT user_id, full_name, role_id, password FROM fd_user WHERE BINARY username = %s AND status = 1",(username,))
 
         user = cursor.fetchone()
         cursor.close()
