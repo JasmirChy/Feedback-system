@@ -100,6 +100,8 @@ def admin_dashboard():
     if section not in ADMIN_SECTIONS:
         section = 'home'
 
+    period = request.args.get('period', 'all')
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -208,4 +210,5 @@ def admin_dashboard():
                            timeline_stats=timeline_stats,
                            category_stats=category_stats,
                            categories=categories,
-                           section=section)
+                           section=section,
+                           period=period)

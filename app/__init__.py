@@ -1,6 +1,6 @@
 # app/__init__.py
 from flask import Flask, flash, redirect, url_for, render_template
-from .extensions import limiter
+from .extensions import limiter, cache
 from flask_session import Session
 from werkzeug.exceptions import RequestEntityTooLarge
 from app.models import init_db
@@ -9,6 +9,8 @@ from app.routes import auth, views, submit, admin
 
 def create_app():
     app = Flask(__name__)
+
+    cache.init_app(app)
 
     # === Load config ===
     app.config.from_object('app.config')

@@ -1,7 +1,7 @@
 # app/routes/admin.py
 import io, matplotlib
 from datetime import timedelta, datetime
-
+from app.extensions import cache
 import matplotlib.pyplot as plt
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
 from app.models import get_db_connection
@@ -132,11 +132,8 @@ def admin_download_attachment(attach_id):
         mimetype='application/octet-stream'  # or a better guess based on extension
     )
 
-@admin.route('/admin/chart/category')
-@role_required(ADMIN_ROLE_ID)
-def category_report_chart():
-    # figure out period
-    period = request.args.get('period', 'all')
+@cache.memoize()
+def _build_category_chart(period):
     now = datetime.utcnow()
     if period == 'week':
         start = now - timedelta(days=7)
@@ -145,40 +142,35 @@ def category_report_chart():
     elif period == 'year':
         start = now - timedelta(days=365)
     else:
-        start = None  # no filtering
+        start = None
 
-    # Base SQL
     sql = """
-        SELECT
-            c.category AS category,
-            SUM(f.status = 1) AS pending,
-            SUM(f.status = 2) AS inprogress,
-            SUM(f.status = 3) AS resolved
-        FROM feedback f
-        JOIN category c ON f.category = c.category_id
+      SELECT
+        c.category          AS category,
+        SUM(f.status = 1)  AS pending,
+        SUM(f.status = 2)  AS inprogress,
+        SUM(f.status = 3)  AS resolved
+      FROM feedback f
+      JOIN category c ON f.category = c.category_id
     """
-
     params = []
     if start:
-        sql += " WHERE f_date  >= %s"
+        sql += " WHERE f.f_date >= %s"
         params.append(start)
 
     sql += " GROUP BY c.category ORDER BY c.category"
 
-    # DB Query
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute(sql, params)
-    category_stats = cursor.fetchall()
-    cursor.close()
+    cur  = conn.cursor(dictionary=True)
+    cur.execute(sql, params)
+    stats = cur.fetchall()
+    cur.close()
     conn.close()
 
-    # Data prep
-    categories = [c['category'] for c in category_stats]
-    pending     = [c['pending'] or 0 for c in category_stats]
-    inprogress  = [c['inprogress'] or 0 for c in category_stats]
-    resolved    = [c['resolved'] or 0 for c in category_stats]
+    categories       = [r['category']   for r in stats]
+    pending    = [r['pending']    or 0 for r in stats]
+    inprogress     = [r['inprogress'] or 0 for r in stats]
+    resolved   = [r['resolved']   or 0 for r in stats]
 
     n = len(categories)
     n_series = 3
@@ -197,24 +189,32 @@ def category_report_chart():
     base_offset = -group_width / 2 + bar_width / 2
     offsets = [base_offset + i * bar_width for i in range(n_series)]
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10,6))
 
     ax.bar([i + offsets[0] for i in x_centers], pending, width=bar_width, label='Pending', color='lightYellow')
     ax.bar([i + offsets[1] for i in x_centers], inprogress, width=bar_width, label='In Progress', color='lightBlue')
     ax.bar([i + offsets[2] for i in x_centers], resolved, width=bar_width, label='Solved', color='lightGreen')
 
-    ax.set_xticks(x_centers)
+    ax.set_xticks(range(len(categories)))
     ax.set_xticklabels(categories, rotation=45, ha='right')
     ax.set_ylabel("Feedback Count")
     ax.set_xlabel("Feedback Categories")
-    ax.set_title("Feedback Status by Category")
+    ax.set_title(f"Feedback Status by Category ({period.capitalize()})")
     ax.legend()
-
     plt.tight_layout()
+
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     plt.close(fig)
     buf.seek(0)
+    return buf
+
+@admin.route('/admin/chart/category')
+@role_required(ADMIN_ROLE_ID)
+def category_report_chart():
+    # figure out period
+    period = request.args.get('period', 'all')
+    buf = _build_category_chart(period)
     return send_file(buf, mimetype='image/png')
 
 

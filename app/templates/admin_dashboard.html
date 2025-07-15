@@ -762,10 +762,10 @@
             <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Feedback Reports</h2>
 
             <div class="flex justify-center space-x-2 mb-4">
-              {% set current = request.args.get('period', 'all') %}
-              {% for label, key in [('Week','week'),('Month','month'),('Year','year'),('All','all')] %}
+              {% set current = period %}
+              {% for label, key in [('Weekly','week'),('Monthly','month'),('Yearly','year'),('All','all')] %}
                 <a
-                  href="{{ url_for('views.admin_dashboard') }}?period={{ key }}#reports"
+                  href="{{ url_for('views.admin_dashboard', section='reports', period=key) }}"
                   class="px-3 py-1 rounded-full font-medium transition
                          {{ 'bg-slate-800 text-white' if current==key else 'bg-gray-200 text-gray-800 hover:bg-gray-300' }}">
                   {{ label }}
@@ -775,7 +775,7 @@
 
             <!-- Chart image served by Flask -->
             <div class="flex justify-center">
-              <img src="{{ url_for('admin.category_report_chart', period=request.args.get('period','all')) }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
+              <img src="{{ url_for('admin.category_report_chart', period=period) }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
             </div>
           </div>
         </section>
