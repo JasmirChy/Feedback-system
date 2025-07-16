@@ -1,0 +1,180 @@
+<!-- app/templates/login.html-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Import Inter font from Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    /* Define CSS variables for consistent styling */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      --accent-gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%);
+      --glass-bg: rgba(255, 255, 255, 0.95);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Universal box-sizing for consistent layout */
+    * {
+      box-sizing: border-box;
+    }
+
+    /* Base body styles */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      /* Smoother font rendering */
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      /* Adjusted background to match the original's light gradient */
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+
+    /* Primary button styling with hover and shimmer effects */
+    .btn-primary {
+      background: var(--accent-gradient);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      /* For shimmer effect */
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      /* Start off-screen */
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+      /* Slide across button */
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
+    }
+
+    /* Form input styling with focus effects */
+    .form-input {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid #e2e8f0;
+      background: white;
+    }
+
+    .form-input:focus {
+      border-color: #0d9488;
+      /* Accent color for focus */
+      box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+      background: #fefefe;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen grid place-items-center font-sans relative overflow-hidden" id="page">
+
+  <div id="loginContainer" class="bg-white p-10 rounded-xl shadow-lg md:w-[480px] sm:w-96 z-10 border border-slate-200">
+    <form class="space-y-5" action="{{url_for('auth.login')}}" method="post">
+
+      <div class="flex flex-col items-center mb-4">
+        <h1 class="text-3xl font-bold text-slate-800">FEEDBACK SYSTEM</h1>
+      </div>
+
+      <h2 class="text-center text-2xl font-bold text-slate-800">Welcome back 🎉</h2>
+      <p class="text-center text-slate-600">Login to your account</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div id="flash-messages" class="space-y-2 mb-4">
+            {% for category, msg in messages %}
+              <div class="p-3 rounded
+                          {% if category == 'error' %}bg-red-100 text-red-700
+                           {% elif category == 'success' %}bg-green-100 text-green-700
+                           {% else %}bg-blue-100 text-blue-700{% endif %}">
+                {{ msg }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="space-y-2">
+        <label for="username" class="block text-sm text-slate-700 font-semibold">Username</label>
+        <input type="text" id="username" name="username" required
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+      </div>
+
+      <div class="space-y-2">
+        <label for="password" class="block text-sm text-slate-700 font-semibold">Password</label>
+        <input type="password" id="password" name="password" required
+          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+      </div>
+
+      <div class="flex items-center justify-between text-sm">
+        <div class="flex items-center">
+          <input id="remember_me" name="remember_me" type="checkbox"
+            class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded">
+          <label for="remember_me" class="ml-2 block text-slate-700">Remember me</label>
+        </div>
+        <a href="{{url_for('auth.forget_password')}}"
+          class="font-medium text-teal-600 hover:underline transition hover:text-teal-700">Forgot Password?</a>
+      </div>
+
+      <button type="submit" class="btn-primary w-full p-3 text-white rounded-lg text-base cursor-pointer">Login</button>
+      <div class="text-center mt-6">
+        <p class="text-sm text-slate-600">Don't have an account?
+          <a href="{{url_for('auth.signup')}}"
+            class="font-medium text-teal-600 hover:underline hover:text-teal-700 transition">Sign up here</a>
+        </p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // This script block remains unchanged as per the instruction to not alter functionality.
+    window.ROUTES = {
+      admin: "{{ url_for('views.admin_dashboard') }}",
+      user: "{{ url_for('views.user_dashboard') }}"
+    };
+
+    // Hide the modal when "Close" is clicked
+    function closeModal() {
+      document.getElementById('errorModal').classList.add('hidden');
+    }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const flash = document.getElementById('flash-messages');
+    if (!flash) return;
+    // after 5 seconds, fade out (you can also just hide instantly)
+    setTimeout(() => {
+      flash.classList.add('opacity-0', 'transition', 'duration-500');
+      // optional: completely remove from layout after fade-out
+      setTimeout(() => flash.style.display = 'none', 500);
+    }, 5000);
+});
+
+  </script>
+</body>
+
+</html>

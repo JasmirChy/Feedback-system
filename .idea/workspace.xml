@@ -4,10 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="3c5ff483-3a76-48ad-86a2-6945b23928e9" name="Changes" comment="signup completed">
       <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+=======
+    <list default="true" id="3c5ff483-3a76-48ad-86a2-6945b23928e9" name="Changes" comment="user panel is done only needs to add request for admin">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/db.py" afterDir="false" />
+>>>>>>> database
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,8 +23,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -33,6 +39,7 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+<<<<<<< HEAD
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "DefaultHtmlFileTemplate": "HTML File",
@@ -49,12 +56,34 @@
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "D:/Feedback System",
     "settings.editor.selected.configurable": "preferences.pluginManager"
+=======
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.admin.executor&quot;: &quot;Run&quot;,
+    &quot;Python.auth.executor&quot;: &quot;Run&quot;,
+    &quot;Python.config.executor&quot;: &quot;Run&quot;,
+    &quot;Python.db.executor&quot;: &quot;Run&quot;,
+    &quot;Python.models.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.schema.executor&quot;: &quot;Run&quot;,
+    &quot;Python.signup.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;database&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Feedback System&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;
+>>>>>>> database
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\Feedback System\app\static\images" />
       <recent name="D:\Feedback System\app" />
+      <recent name="D:\Feedback System\app\static\images" />
       <recent name="D:\Feedback System\app\models" />
       <recent name="D:\Feedback System\app\routes" />
       <recent name="D:\Feedback System\app\ststic\js" />
@@ -63,7 +92,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-53e2683a6804-9cdd278e9d02-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.26094.141" />
+        <option value="bundled-python-sdk-4c141bd692a7-e2d783800521-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-251.26927.90" />
       </set>
     </attachedChunks>
   </component>
@@ -107,7 +136,47 @@
       <option name="project" value="LOCAL" />
       <updated>1750785444218</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="added new admin.py file">
+      <option name="closed" value="true" />
+      <created>1751522798900</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1751522798900</updated>
+    </task>
+    <task id="LOCAL-00006" summary="rectified the signup module">
+      <option name="closed" value="true" />
+      <created>1751524764461</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1751524764461</updated>
+    </task>
+    <task id="LOCAL-00007" summary="rectified some more the signup module">
+      <option name="closed" value="true" />
+      <created>1751532296301</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1751532296301</updated>
+    </task>
+    <task id="LOCAL-00008" summary="user panel is done only needs to add request for admin">
+      <option name="closed" value="true" />
+      <created>1751566177990</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1751566177990</updated>
+    </task>
+    <task id="LOCAL-00009" summary="user panel is done only needs to add request for admin">
+      <option name="closed" value="true" />
+      <created>1751566365919</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1751566365919</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -160,6 +229,10 @@
     <MESSAGE value="database creation and table creation code in model.py file" />
     <MESSAGE value="small changes and file structure betterment" />
     <MESSAGE value="signup completed" />
-    <option name="LAST_COMMIT_MESSAGE" value="signup completed" />
+    <MESSAGE value="added new admin.py file" />
+    <MESSAGE value="rectified the signup module" />
+    <MESSAGE value="rectified some more the signup module" />
+    <MESSAGE value="user panel is done only needs to add request for admin" />
+    <option name="LAST_COMMIT_MESSAGE" value="user panel is done only needs to add request for admin" />
   </component>
 </project>
