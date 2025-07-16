@@ -1,4 +1,4 @@
-# app/models/dbpy
+# app/models/db.py
 import os
 import mysql.connector
 from mysql.connector import errorcode
