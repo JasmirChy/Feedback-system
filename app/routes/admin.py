@@ -191,12 +191,13 @@ def _build_category_chart(period):
 
     fig, ax = plt.subplots(figsize=(10,6))
 
-    ax.bar([i + offsets[0] for i in x_centers], pending, width=bar_width, label='Pending', color='lightYellow')
-    ax.bar([i + offsets[1] for i in x_centers], inprogress, width=bar_width, label='In Progress', color='lightBlue')
-    ax.bar([i + offsets[2] for i in x_centers], resolved, width=bar_width, label='Solved', color='lightGreen')
+    ax.bar([x + offsets[0] for x in x_centers], pending, width=bar_width, label='Pending', color='lightYellow')
+    ax.bar([x + offsets[1] for x in x_centers], inprogress, width=bar_width, label='In Progress', color='lightBlue')
+    ax.bar([x + offsets[2] for x in x_centers], resolved, width=bar_width, label='Solved', color='lightGreen')
 
-    ax.set_xticks(range(len(categories)))
+    ax.set_xticks(x_centers)
     ax.set_xticklabels(categories, rotation=45, ha='right')
+
     ax.set_ylabel("Feedback Count")
     ax.set_xlabel("Feedback Categories")
     ax.set_title(f"Feedback Status by Category ({period.capitalize()})")
@@ -216,6 +217,16 @@ def category_report_chart():
     period = request.args.get('period', 'all')
     buf = _build_category_chart(period)
     return send_file(buf, mimetype='image/png')
+
+@admin.route('/requests/pending')
+@role_required(ADMIN_ROLE_ID)
+def show_pending_requests():
+    return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+
+@admin.route('/requests/denied')
+@role_required(ADMIN_ROLE_ID)
+def show_denied_requests():
+    return redirect(url_for('views.admin_dashboard', section='deniedRequests'))
 
 
 @admin.route('/add-admin', methods=['POST'])
@@ -265,74 +276,6 @@ def add_admin():
     # Back to the Add‑Admin section (or you could send them to viewUsers)
     return redirect(url_for('views.admin_dashboard', section='addAdmin'))
 
-@admin.route('/deny-admin-request', methods=['POST'])
-@role_required(ADMIN_ROLE_ID)
-def deny_admin_request():
-
-    user_id = request.form.get('user_id')
-    if not user_id:
-        flash("Invalid request.", "error")
-        return redirect(url_for('admin.view_users'))
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "UPDATE admin_requests SET status='Denied' WHERE user_id=%s AND status='Pending'",
-            (user_id,)
-        )
-        conn.commit()
-        flash("Request denied.", "info")
-    except Exception as e:
-        conn.rollback()
-        flash(f"Could not deny request: {e}", "error")
-    finally:
-        cursor.close()
-        conn.close()
-
-    return redirect(url_for('admin.view_users'))
-
-
-
-# ---------------- View Users ------------------
-@admin.route('/view-users')
-@role_required(ADMIN_ROLE_ID)
-def view_users():
-
-    conn   = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    #  Ensure status comparison matches your DB exactly
-    cursor.execute("""
-        SELECT 
-          ar.user_id,
-          ar.username,
-          ar.requested_at,
-          ar.role_id   AS requested_role,
-          u.role_id    AS current_role_id
-        FROM admin_requests ar
-        JOIN fd_user u  ON ar.user_id = u.user_id
-        WHERE LOWER(ar.status) = 'pending'
-        ORDER BY ar.requested_at DESC
-    """)
-    user_requests = cursor.fetchall()
-
-
-    cursor.execute("SELECT * FROM fd_user WHERE user_id = %s",
-                   (session['user_id'],))
-    admin_user = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-
-    return render_template('admin_dashboard.html',
-                           section='viewUsers',
-                           user_requests=user_requests,
-                           user=admin_user)
-
-
-
 
 # ---------------- Update User Role ------------------
 @admin.route('/approve-admin-request', methods=['POST'])
@@ -344,15 +287,13 @@ def approve_admin_request():
     new_role_id = request.form.get('new_role_id')
     if not user_id or not new_role_id:
         flash("Invalid request.", "error")
-        return redirect(url_for('admin.view_users'))
-
+        return redirect(url_for('views.admin_dashboard', section='viewUsers'))
     try:
         new_role_id = int(new_role_id)
         user_id     = int(user_id)
     except ValueError:
         flash("Invalid user or role ID.", "error")
-        return redirect(url_for('admin.view_users'))
-
+        return redirect(url_for('views.admin_dashboard', section='viewUsers'))
     conn   = get_db_connection()
     cursor = conn.cursor()
 
@@ -383,7 +324,65 @@ def approve_admin_request():
         conn.close()
 
     # 4) Back to the pending‑requests view
-    return redirect(url_for('admin.view_users'))
+    return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+
+
+@admin.route('/deny-admin-request', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
+def deny_admin_request():
+
+    user_id = request.form.get('user_id')
+    if not user_id:
+        flash("Invalid request.", "error")
+        return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "UPDATE admin_requests SET status='Denied' WHERE user_id=%s AND status='Pending'",
+            (int(user_id),)
+        )
+        conn.commit()
+        flash("Request denied.", "info")
+    except Exception as e:
+        conn.rollback()
+        flash(f"Could not deny request: {e}", "error")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+
+
+@admin.route('/admin/requests/reopen', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
+def reopen_admin_request():
+    user_id = request.form.get('user_id')
+    if not user_id:
+        flash("Invalid request.", "error")
+        return redirect(url_for('views.admin_dashboard', section='deniedRequests'))
+
+    conn = get_db_connection()
+    cur  = conn.cursor()
+    try:
+        cur.execute(
+            "UPDATE admin_requests "
+            "SET status = 'Pending' "
+            "WHERE user_id = %s AND status = 'Denied'",
+            (int(user_id),)
+        )
+        conn.commit()
+        flash("Request re‑opened and moved back to pending.", "success")
+    except Exception as e:
+        conn.rollback()
+        flash(f"Could not re‑open request: {e}", "error")
+    finally:
+        cur.close()
+        conn.close()
+
+    # redirect back to the Denied‐Requests tab
+    return redirect(url_for('views.admin_dashboard', section='deniedRequests'))
 
 
 @admin.route('/add-category', methods=['POST'])

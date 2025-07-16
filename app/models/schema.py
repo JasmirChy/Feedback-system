@@ -47,7 +47,8 @@ table_statements = [
       username VARCHAR(20) NOT NULL UNIQUE,
       password VARCHAR(255) NOT NULL,
       email    VARCHAR(60) NOT NULL UNIQUE,
-      designation VARCHAR(50),
+      designation VARCHAR(20),
+      type VARCHAR(50),
       dob      DATE NOT NULL,
       role_id  INT(11) NOT NULL,
       status   INT(10) NOT NULL DEFAULT 1,
@@ -73,6 +74,7 @@ table_statements = [
       PRIMARY KEY (f_id),
       INDEX idx_feedback_category (category),
       INDEX idx_feedback_user     (user_id),
+      INDEX idx_feedback_date     (f_date),
       FOREIGN KEY (category)
         REFERENCES category(category_id)
         ON UPDATE CASCADE

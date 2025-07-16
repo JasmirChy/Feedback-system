@@ -6,7 +6,7 @@ from app.routes.auth import role_required, ADMIN_ROLE_ID, USER_ROLE_ID
 views = Blueprint('views', __name__)
 
 USER_SECTIONS  = {'home', 'submit', 'history', 'profile', 'changePassword'}
-ADMIN_SECTIONS = {'home', 'reports', 'viewUsers', 'addAdmin', 'feedbackDetail', 'profile', 'changePassword', 'addCategory', 'viewCategory'}
+ADMIN_SECTIONS = {'home', 'reports', 'viewUsers', 'addAdmin', 'deniedRequests', 'viewAdmins', 'feedbackDetail', 'profile', 'changePassword', 'addCategory', 'viewCategory'}
 
 @views.route('/')
 def index():
@@ -125,22 +125,21 @@ def admin_dashboard():
             fb['submitter_name'] = 'Anonymous'
 
     # Admin requests with the current role and requested role
-    cursor.execute("""
-            SELECT 
-              ar.user_id,
-              ar.username,
-              ar.status,
-              ar.requested_at,
-              ar.role_id        AS requested_role,
-              u.full_name,
-              u.email,
-              u.role_id         AS current_role_id
-            FROM admin_requests ar
-            JOIN fd_user u   ON ar.user_id = u.user_id
-            WHERE ar.status = 'Pending'
-            ORDER BY ar.requested_at DESC
-        """)
-    admin_requests = cursor.fetchall()
+    def _get_admin_requests(status):
+        cursor.execute(f"""
+            SELECT ar.user_id, ar.username, ar.requested_at,
+                   ar.role_id   AS requested_role,
+                   u.role_id    AS current_role_id
+              FROM admin_requests ar
+              JOIN fd_user u ON ar.user_id=u.user_id
+             WHERE ar.status=%s
+             ORDER BY ar.requested_at DESC
+        """, (status,))
+        return cursor.fetchall()
+
+
+    admin_requests = _get_admin_requests('Pending')
+    denied_requests = _get_admin_requests('Denied')
 
     # Users list
     cursor.execute("""
@@ -198,6 +197,15 @@ def admin_dashboard():
     """)
     categories = cursor.fetchall()
 
+    # ─── New: fetch all Admin users ───
+    cursor.execute("""
+        SELECT user_id, full_name, username, email
+          FROM fd_user
+         WHERE role_id = %s
+      ORDER BY full_name
+    """, (ADMIN_ROLE_ID,))
+    admin_list = cursor.fetchall()
+
     cursor.close()
     conn.close()
 
@@ -205,6 +213,8 @@ def admin_dashboard():
                            user=user,
                            feedbacks=feedbacks,
                            admin_requests=admin_requests,
+                           denied_requests=denied_requests,
+                           admin_list=admin_list,
                            users=users,
                            feedback_status_counts=feedback_status_counts,
                            timeline_stats=timeline_stats,

@@ -141,85 +141,53 @@
 
 
       <input type="hidden" id="userType" name="usertype" value="studentStaff">
-
-      <div class="flex justify-between gap-2 p-1 bg-gray-100 rounded-lg">
-        <button type="button" onclick="setUserType('studentStaff')" id="studentBtn"
-          class="btn-toggle flex-1 p-2 rounded-md font-medium">Student/Staff</button>
-        <button type="button" onclick="setUserType('general')" id="generalBtn"
-          class="btn-toggle flex-1 p-2 rounded-md font-medium">Public</button>
+      <div class="flex bg-gray-100 rounded-lg overflow-hidden">
+        <button type="button" id="studentBtn" onclick="setUserType('studentStaff')" class="btn-toggle flex-1 py-2">Student/Staff</button>
+        <button type="button" id="generalBtn" onclick="setUserType('general')" class="btn-toggle flex-1 py-2">Public</button>
       </div>
 
       <div>
-        <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Email Address</label>
-        <input type="email" id="email" name="email" required
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+        <input type="email" id="email" name="email" required class="form-input w-full p-3 rounded-lg" placeholder="you@example.com">
       </div>
-
       <div>
         <label for="fullname" class="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
-        <input type="text" id="fullname" name="fullname" required
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <input type="text" id="fullname" name="fullname" required class="form-input w-full p-3 rounded-lg" placeholder="John Doe">
       </div>
 
-      <div id="idField">
+      <!-- student/staff fields -->
+      <div id="idField" class="hidden">
         <label for="idnumber" class="block text-sm font-semibold text-slate-700 mb-1">ID Number</label>
-        <input type="text" id="idnumber" name="idnumber"
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400"
-          placeholder="Enter your ID">
+        <input type="text" id="idnumber" name="idnumber" class="form-input w-full p-3 rounded-lg" placeholder="Student or Staff ID">
+      </div>
+      <div id="designationField" class="hidden">
+        <label for="designation" class="block text-sm font-semibold text-slate-700 mb-1">Designation</label>
+        <input type="text" id="designation" name="designation" class="form-input w-full p-3 rounded-lg" placeholder="e.g. Student, Lecturer">
       </div>
 
       <div>
         <label for="dob" class="block text-sm font-semibold text-slate-700 mb-1">Date of Birth</label>
-        <input type="date" id="dob" name="dob"
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400"
-          placeholder="Enter your Date of Birth">
-      </div>
-
-      <div id="designationField">
-        <label for="designation" class="block text-sm font-semibold text-slate-700 mb-1">Designation</label>
-        <input type="text" id="designation" name="designation"
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400"
-          placeholder="Student, Lecturer, Librarian etc.">
+        <input type="date" id="dob" name="dob" required class="form-input w-full p-3 rounded-lg">
       </div>
 
       <div>
         <label for="username" class="block text-sm font-semibold text-slate-700 mb-1">Username</label>
-        <input type="text" id="username" name="username" required
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <input type="text" id="username" name="username" required class="form-input w-full p-3 rounded-lg" placeholder="Choose a username">
       </div>
 
       <div>
         <label for="password1" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
-        <input type="password" id="password1" name="password1" required
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <input type="password" id="password1" name="password1" required class="form-input w-full p-3 rounded-lg" placeholder="At least 8 characters">
       </div>
-
       <div>
         <label for="password2" class="block text-sm font-semibold text-slate-700 mb-1">Confirm Password</label>
-        <input type="password" id="password2" name="password2" required
-          class="form-input w-full p-3 rounded-lg text-sm text-slate-800 placeholder-slate-400">
+        <input type="password" id="password2" name="password2" required class="form-input w-full p-3 rounded-lg" placeholder="Re-enter your password">
       </div>
 
-      <button type="submit"
-        class="btn-primary w-full p-3 text-white rounded-lg text-base font-medium cursor-pointer shadow-md">
-        Sign Up
-      </button>
+      <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-medium">Sign Up</button>
 
-      <div class="text-center mt-6">
-        <p class="text-sm text-slate-600">Already have an account?
-          <a href="{{url_for('auth.login')}}"
-            class="font-medium text-teal-600 hover:underline hover:text-teal-700 transition">Login here</a>
-        </p>
-      </div>
+      <p class="text-center text-sm text-slate-600">Already have an account? <a href="{{ url_for('auth.login') }}" class="text-teal-600 hover:underline">Login</a></p>
     </form>
-  </div>
-
-  <!-- ❗ JS Error Modal -->
-  <div id="errorOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-xl text-center w-96">
-      <h2 class="text-xl font-bold mb-2 text-red-600" id="errorMessage">Error!</h2>
-      <button onclick="closeErrorModal()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">OK</button>
-    </div>
   </div>
 
   <script src="{{url_for('static',filename='js/signup.js')}}"></script>

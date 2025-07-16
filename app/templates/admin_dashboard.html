@@ -580,8 +580,14 @@
               <li data-target="addAdmin" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
                 <i class="fas fa-user-plus text-sm mr-3"></i>Add Admin
               </li>
-              <li data-target="viewUsers" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
-                <i class="fas fa-eye text-sm mr-3"></i>View Request
+              <li data-target="viewUsers" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all" onclick="showSection('viewUsers')">
+                <i class="fas fa-eye text-sm mr-3"></i>View Requests
+              </li>
+              <li data-target="deniedRequests" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all" onclick="showSection('deniedRequests')">
+                <i class="fas fa-user-times text-sm mr-3"></i>Denied Requests
+              </li>
+              <li data-target="viewAdmins" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all" onclick="showSection('viewAdmins')">
+                <i class="fas fa-user-shield text-sm mr-3"></i>View Admins
               </li>
             </ul>
           </div>
@@ -765,7 +771,7 @@
               {% set current = period %}
               {% for label, key in [('Weekly','week'),('Monthly','month'),('Yearly','year'),('All','all')] %}
                 <a
-                  href="{{ url_for('views.admin_dashboard', section='reports', period=key) }}"
+                  href="{{ url_for('views.admin_dashboard', section='reports', period=key) }}#reports"
                   class="px-3 py-1 rounded-full font-medium transition
                          {{ 'bg-slate-800 text-white' if current==key else 'bg-gray-200 text-gray-800 hover:bg-gray-300' }}">
                   {{ label }}
@@ -833,6 +839,7 @@
 
 
         <!-- User Management Sections -->
+        <!-- ─── pending Admin Requests ─── -->
         <section id="viewUsers" class="section {% if section != 'viewUsers' %}hidden{% endif %}">
           <div class="premium-card p-8 max-w-5xl mx-auto">
             <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
@@ -898,6 +905,7 @@
           </div>
         </section>
 
+        <!-- ─── Add Admin ─── -->
         <section id="addAdmin" class="section hidden">
           <div class="premium-card p-8 max-w-xl mx-auto">
             <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Add New Admin</h2>
@@ -927,6 +935,90 @@
                 </button>
               </div>
             </form>
+          </div>
+        </section>
+
+        <!-- ─── Denied Admin Requests ─── -->
+        <section id="deniedRequests" class="section {% if section!='deniedRequests' %}hidden{% endif %}">
+          <div class="premium-card p-8 max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+              Denied Admin Requests
+            </h2>
+            <div class="overflow-x-auto w-full">
+              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                <thead class="bg-indigo-900 text-white">
+                  <tr>
+                    <th class="py-3 px-4 text-left">User ID</th>
+                    <th class="py-3 px-4 text-left">Username</th>
+                    <th class="py-3 px-4 text-left">Current Role</th>
+                    <th class="py-3 px-4 text-left">Requested Role</th>
+                    <th class="py-3 px-4 text-left">Requested At</th>
+                    <th class="py-3 px-4 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                  {% for req in denied_requests %}
+                  <tr class="border-t border-gray-200">
+                    <td class="py-3 px-4">{{ req.user_id }}</td>
+                    <td class="py-3 px-4">{{ req.username }}</td>
+                    <td class="py-3 px-4">{{ 'Admin' if req.current_role_id==1 else 'User' }}</td>
+                    <td class="py-3 px-4">{{ 'Admin' if req.requested_role==1     else 'User' }}</td>
+                    <td class="py-3 px-4">{{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="py-3 px-4 flex gap-2">
+                      <form method="POST" action="{{ url_for('admin.reopen_admin_request') }}">
+                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
+                        <button type="submit"
+                                class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                          Re‑open
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="6" class="py-4 text-center text-gray-500">No denied requests.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─── View Admin Users ─── -->
+        <section id="viewAdmins" class="section {% if section!='viewAdmins' %}hidden{% endif %}">
+          <div class="premium-card p-8 max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+              Admin Users
+            </h2>
+            <div class="overflow-x-auto w-full">
+              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                <thead class="bg-indigo-900 text-white">
+                  <tr>
+                    <th class="py-3 px-4 text-left">User ID</th>
+                    <th class="py-3 px-4 text-left">Full Name</th>
+                    <th class="py-3 px-4 text-left">Username</th>
+                    <th class="py-3 px-4 text-left">Email</th>
+                  </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                  {% for admin in admin_list %}
+                  <tr class="border-t border-gray-200">
+                    <td class="py-3 px-4">{{ admin.user_id }}</td>
+                    <td class="py-3 px-4">{{ admin.full_name }}</td>
+                    <td class="py-3 px-4">{{ admin.username }}</td>
+                    <td class="py-3 px-4">{{ admin.email }}</td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="4" class="py-4 text-center text-gray-500">
+                      No admins found.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
         <!-- End User Management Sections -->
@@ -1017,6 +1109,7 @@
               </div>
 
               <form action="{{ url_for('auth.update_profile') }}" method="post" class="space-y-6">
+                <input type="hidden" name="form_action" value="update_profile">
                 <div id="prof" class="grid md:grid-cols-2 gap-8">
                   <div class="space-y-6">
                       <div>

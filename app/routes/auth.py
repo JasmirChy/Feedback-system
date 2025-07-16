@@ -137,8 +137,8 @@ def signup():
                     return render_template('signup.html')
 
                 cur.execute(
-                    """insert into fd_user( user_id, full_name, username, password, email, designation, dob, role_id, status) values( %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (id_number, full_name, user_name, passhash, email, designation, d_o_b, role_id, status))
+                    """insert into fd_user( user_id, full_name, username, password, email, designation, type, dob, role_id, status) values( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (id_number, full_name, user_name, passhash, email, designation,user_type, d_o_b, role_id, status))
 
                 conn.commit()
 
@@ -167,6 +167,7 @@ def signup():
                     'password': passhash,
                     'email': email,
                     'designation': 'General',
+                    'user_type':user_type,
                     'dob': d_o_b,
                     'role_id': role_id,
                     'status': status,
@@ -241,8 +242,8 @@ def verify_otp():
 
             try:
                 cursor.execute("""
-                    INSERT INTO fd_user (user_id, full_name, username, password, email, designation, dob, role_id, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO fd_user (user_id, full_name, username, password, email, designation, type, dob, role_id, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     sign['user_id'],
                     sign['full_name'],
@@ -250,6 +251,7 @@ def verify_otp():
                     sign['password'],
                     sign['email'],
                     sign['designation'],
+                    sign['type'],
                     sign['dob'],
                     sign['role_id'],
                     sign['status']
@@ -352,65 +354,56 @@ def logout():
 @auth.route('/update_profile', methods=['POST'])
 @login_required
 def update_profile():
-
-    user_id   = session['user_id']
-    role_id   = session.get('role_id')
-    role = 1
-    form_action = request.form.get('form_action')
-
-    conn = get_db_connection()
-    cur  = conn.cursor()
+    user_id  = session['user_id']
+    role_id  = session.get('role_id')
+    action   = request.form.get('form_action')
 
     try:
-        if form_action == 'request_admin':
-            username = session.get('username')
-
-            # prevent duplicate pending requests
-            cur.execute(
-                "SELECT status FROM admin_requests WHERE user_id = %s AND (status = 'Pending' OR status = 'Denied')",
-                (user_id,)
-            )
-            if cur.fetchone():
-                flash("You already have a pending admin request.", "warning")
-            else:
+        with get_db_connection() as conn, conn.cursor() as cur:
+            if action == 'request_admin':
+                # Prevent duplicate pending requests
                 cur.execute(
-                    "INSERT INTO admin_requests (user_id, username, status, role_id) VALUES (%s, %s, 'Pending', %s)",
-                    (user_id, username, role)
+                    "SELECT 1 FROM admin_requests WHERE user_id=%s AND status IN ('Pending','Denied')",
+                    (user_id,)
                 )
-                conn.commit()
-                flash("Admin access request submitted successfully.", "success")
+                if cur.fetchone():
+                    flash("You already have a pending admin request.", "warning")
+                else:
+                    cur.execute(
+                        "INSERT INTO admin_requests (user_id, username, status, role_id) "
+                        "VALUES (%s, %s, 'Pending', %s)",
+                        (user_id, session['username'], ADMIN_ROLE_ID)
+                    )
+                    flash("Admin access request submitted successfully.", "success")
 
-        elif form_action == 'update_profile':
-            full_name  = request.form['full_name']
-            email      = request.form['email']
-            designation= request.form['designation']
-            dob        = request.form['dob']
+            elif action == 'update_profile':
+                full_name   = request.form['full_name']
+                email       = request.form['email']
+                designation = request.form['designation']
+                dob         = request.form['dob']
 
-            cur.execute(
-                """
-                UPDATE fd_user
-                   SET full_name = %s,
-                       email     = %s,
-                       designation = %s,
-                       dob       = %s
-                 WHERE user_id = %s
-                """,
-                (full_name, email, designation, dob, user_id)
-            )
+                cur.execute(
+                    """
+                    UPDATE fd_user
+                       SET full_name  = %s,
+                           email      = %s,
+                           designation= %s,
+                           dob        = %s
+                     WHERE user_id   = %s
+                    """,
+                    (full_name, email, designation, dob, user_id)
+                )
+                flash("Profile updated successfully!", "success")
+
+            else:
+                flash("Unknown action requested.", "error")
+
             conn.commit()
-            flash("Profile updated successfully!", "success")
 
-        else:
-            flash("Unknown action requested.", "error")
+    except mysql.connector.Error as err:
+        # Log err.msg in real app
+        flash(f"Database error: {err.msg}", "error")
 
-    except Exception as e:
-        conn.rollback()
-        flash(f"Database error: {e}", "error")
-    finally:
-        cur.close()
-        conn.close()
-
-    # send them back to their own dashboard
     target = 'views.admin_dashboard' if role_id == ADMIN_ROLE_ID else 'views.user_dashboard'
     return redirect(url_for(target, section='profile'))
 
