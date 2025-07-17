@@ -30,7 +30,6 @@ function setUserType(type) {
 }
 
 function handleSignUp(event) {
-    event.preventDefault();
 
     const f = id => document.getElementById(id)?.value.trim() || "";
 
@@ -45,37 +44,47 @@ function handleSignUp(event) {
 
     // 1. Password match
     if (password !== confirmPassword) {
+        event.preventDefault();
         showErrorModal("Passwords do not match.");
         return;
     }
 
-    // 2. Required fields
+    // 2. Email verification
+    const emailRegex = /^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      event.preventDefault();
+      showErrorModal("Please enter a valid email address.");
+      return;
+    }
+
+    // 3. Required fields
     if (!email || !fullName || !username || !password) {
+        event.preventDefault();
         showErrorModal("Please fill in all required fields.");
         return;
     }
 
-    // 3. Password strength
+    // 4. Password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,}$/;
     if (!passwordRegex.test(password)) {
+        event.preventDefault();
         showErrorModal("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character (e.g., @, #, $).");
         return;
     }
 
-    // 4. Student/Staff fields
+    // 5. Student/Staff fields
     if (userType !== "general") {
         if (!idNumber) {
+            event.preventDefault();
             showErrorModal("ID Number is required for Student/Staff.");
             return;
         }
         if (!designation) {
+            event.preventDefault();
             showErrorModal("Designation is required for Student/Staff.");
             return;
         }
     }
-
-    // ✅ All validation passed → now submit to server
-    event.target.submit();
 }
 
 
