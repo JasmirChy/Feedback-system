@@ -6,12 +6,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.models import get_db_connection
 from app.services.email import generate_unique_user_id, send_otp_email
 from functools import wraps
-from app.extensions import limiter
 
 
 auth = Blueprint('auth', __name__)
 ADMIN_ROLE_ID = 1
 USER_ROLE_ID = 2
+
+LOCKOUT_ATTEMPTS = 3
+LOCKOUT_MINUTES = 1
 
 def role_required(role_id):
     def decorator(f):
@@ -44,7 +46,6 @@ def login_required(f):
 
 
 @auth.route('/login', methods=['GET', 'POST'])
-@limiter.limit("3 per hour")
 def login():
 
     # if they already have a valid session, skip the form
@@ -63,14 +64,64 @@ def login():
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT user_id, full_name, role_id, password FROM fd_user WHERE BINARY username = %s AND status = 1",(username,))
+        cursor.execute("""
+                    SELECT user_id, full_name, role_id, password, failed_attempts, lock_until
+                    FROM fd_user
+                    WHERE BINARY username = %s AND status = 1
+                """, (username,))
 
         user = cursor.fetchone()
-        cursor.close()
-
-        if not user or not check_password_hash(user['password'], password):
-            flash("Invalid username or password", "error")
+        if not user:
+            flash("Invalid username.", "error")
             return render_template('login.html')
+
+        now = datetime.utcnow()
+        lock_until = user['lock_until']
+
+        # Check if locked
+        if lock_until:
+            if now < lock_until:
+                remaining = (lock_until - now).seconds
+                flash(f"Too many failed attempts. Try again in {remaining} seconds.", "danger")
+                cursor.close()
+                return render_template('login.html')
+            else:
+                # Lockout expired → reset counter
+                cursor.execute(
+                    "UPDATE fd_user SET failed_attempts = 0, lock_until = NULL WHERE user_id = %s",
+                    (user['user_id'],)
+                )
+                conn.commit()
+                user['failed_attempts'] = 0
+                user['lock_until'] = None
+
+        if not check_password_hash(user['password'], password):
+            # Increment failed attempts
+            failed = user['failed_attempts'] + 1
+            lock_until = None
+
+            if failed >= LOCKOUT_ATTEMPTS:
+                lock_until = now + timedelta(minutes=LOCKOUT_MINUTES)
+                flash(f"Too many failed attempts. Try again after {LOCKOUT_MINUTES} minutes.", "danger")
+            else:
+                flash("Invalid password.", "error")
+
+            cursor.execute(
+                "UPDATE fd_user SET failed_attempts = %s, lock_until = %s WHERE user_id = %s",
+                (failed, lock_until, user['user_id'])
+            )
+            conn.commit()
+            cursor.close()
+            return render_template('login.html')
+
+        # Password OK-reset attempts
+        cursor.execute(
+            "UPDATE fd_user SET failed_attempts = 0, lock_until = NULL WHERE user_id = %s",
+            (user['user_id'],)
+        )
+        conn.commit()
+
+        cursor.close()
 
         # store minimal session info
         session['user_id'] = user['user_id']

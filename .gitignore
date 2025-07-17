@@ -1,7 +1,5 @@
-app/__pycache__/*
-*.py[cod]
-
 __pycache__/
+*.py[cod]
 *.pyc
 
 # OS files
@@ -14,6 +12,3 @@ node_modules/
 # Build outputs
 dist/
 
-.idea/*
-
-app/config.py

@@ -52,6 +52,8 @@ table_statements = [
       dob      DATE NOT NULL,
       role_id  INT(11) NOT NULL,
       status   INT(10) NOT NULL DEFAULT 1,
+      failed_attempts INT DEFAULT 0,
+      lock_until DATETIME DEFAULT NULL,
       PRIMARY KEY (user_id),
       FOREIGN KEY (role_id)
         REFERENCES role(role_id)
