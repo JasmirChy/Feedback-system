@@ -15,3 +15,5 @@ dist/
 /.idea/
 
 app/config.py
+
+flask_session/

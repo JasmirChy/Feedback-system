@@ -54,7 +54,7 @@ def init_db():
     cfg = current_app.config['MYSQL']
     conn = mysql.connector.connect(
         host=cfg['host'],
-        port=cfg.get('port', 330),
+        port=cfg.get('port', 3306),
         user=cfg['user'],
         password=cfg['password'],
         database=cfg['database'],

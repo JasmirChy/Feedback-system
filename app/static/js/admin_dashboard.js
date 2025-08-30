@@ -74,15 +74,58 @@ function filterFeedback(type) {
 
 // FEEDBACK ROW CLICK
 function setupFeedbackClick() {
-  document.querySelectorAll('[data-target="feedbackDetail"]').forEach(row => {
+  document.querySelectorAll('tr[data-url]').forEach(row => {
     row.addEventListener('click', () => {
-      const feedbackId = row.getAttribute('data-f-id');
-      if (feedbackId) {
-        window.location.href = `/admin/feedback/${feedbackId}`;
-      }
+      const url = row.dataset.url;
+      if (url) window.location.href = url;
     });
   });
 }
+
+
+// following function is to handle the reload issue of report section in admin page
+(function () {
+  const chartBase = window.Admin_Chart_Base || '/adminUser/admin/chart/category';
+  const chartImg = document.getElementById('category-chart-img');
+  if (!chartImg) return;
+
+  document.querySelectorAll('.period-link').forEach(link => {
+    link.addEventListener('click', function (ev) {
+
+      if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button === 1) return;
+
+      ev.preventDefault();
+      const period = this.dataset.period || 'all';
+
+      chartImg.classList.add('opacity-30');
+
+      document.querySelectorAll('.period-link').forEach(a => a.classList.remove('bg-slate-800','text-white'));
+      this.classList.add('bg-slate-800','text-white');
+
+
+      chartImg.src = chartBase + '?period=' + encodeURIComponent(period);
+
+      chartImg.onload = () => {
+        chartImg.classList.remove('opacity-30');
+      };
+      chartImg.onerror = () => {
+        chartImg.classList.remove('opacity-30');
+        // Optionally flash an error or revert active state
+        alert('Could not load chart. Try reloading the page.');
+      };
+
+      // Update the URL in the address bar without reloading (nice to have)
+      try {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('period', period);
+        newUrl.hash = 'reports';
+        window.history.replaceState({}, '', newUrl.toString());
+      } catch (e) {
+
+      }
+    });
+  });
+})();
 
 // USER ROLE CHANGE
 function changeUserRole(userId, currentRoleId) {
@@ -90,7 +133,7 @@ function changeUserRole(userId, currentRoleId) {
   const roleLabel = newRoleId === 1 ? 'Admin' : 'User';
   if (!confirm(`Change this user's role to ${roleLabel}?`)) return;
 
-  fetch('/admin/update-role', {
+  fetch('/adminUser/update-role', {
     method:'POST',
     headers:{'Content-Type':'application/x-www-form-urlencoded'},
     body:`user_id=${userId}&new_role_id=${newRoleId}`

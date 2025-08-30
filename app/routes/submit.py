@@ -1,5 +1,6 @@
 # app/routes/submit.py
 import io
+import os
 from datetime import date
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
 from werkzeug.utils import secure_filename
@@ -57,6 +58,14 @@ def submit_feedback():
 
         # 4) Process attachments
         files = request.files.getlist('attachment[]')
+        max_file_size = 5 * 1024 * 1024  # 5 MB file limit
+        for f in files:
+            if f:
+                f.seek(0, os.SEEK_END)
+                size = f.tell()
+                f.seek(0)
+                if size > max_file_size:
+                    raise ValueError("Attachment too large")
         for f in files:
             if f and allowed_file(f.filename):
                 original = secure_filename(f.filename)

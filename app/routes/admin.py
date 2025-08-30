@@ -3,7 +3,7 @@ import io, matplotlib
 from datetime import timedelta, datetime
 from app.extensions import cache
 import matplotlib.pyplot as plt
-from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
+from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file, current_app
 from app.models import get_db_connection
 from app.routes.auth import role_required, ADMIN_ROLE_ID
 
@@ -98,9 +98,9 @@ def update_status():
         )
         conn.commit()
         flash('Feedback status updated.', 'success')
-    except Exception as e:
+    except Exception() :
         conn.rollback()
-        flash(f'Could not update status: {e}', 'error')
+        flash('DB error while updating status', 'error')
     finally:
         cursor.close()
         conn.close()
@@ -133,7 +133,7 @@ def admin_download_attachment(attach_id):
     )
 
 @cache.memoize()
-def _build_category_chart(period):
+def _build_category_chart_bytes(period):
     now = datetime.utcnow()
     if period == 'week':
         start = now - timedelta(days=7)
@@ -191,9 +191,9 @@ def _build_category_chart(period):
 
     fig, ax = plt.subplots(figsize=(10,6))
 
-    ax.bar([x + offsets[0] for x in x_centers], pending, width=bar_width, label='Pending', color='lightYellow')
-    ax.bar([x + offsets[1] for x in x_centers], inprogress, width=bar_width, label='In Progress', color='lightBlue')
-    ax.bar([x + offsets[2] for x in x_centers], resolved, width=bar_width, label='Solved', color='lightGreen')
+    ax.bar([x + offsets[0] for x in x_centers], pending, width=bar_width, label='Pending', color='#fef3c7') #light yellow
+    ax.bar([x + offsets[1] for x in x_centers], inprogress, width=bar_width, label='In Progress', color='#bfdbfe') #light blue
+    ax.bar([x + offsets[2] for x in x_centers], resolved, width=bar_width, label='Solved', color='#bbf7d0') #light green
 
     ax.set_xticks(x_centers)
     ax.set_xticklabels(categories, rotation=45, ha='right')
@@ -207,16 +207,17 @@ def _build_category_chart(period):
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     plt.close(fig)
-    buf.seek(0)
-    return buf
+    buf_bytes = buf.getvalue()
+    buf.close()
+    return buf_bytes
 
 @admin.route('/admin/chart/category')
 @role_required(ADMIN_ROLE_ID)
 def category_report_chart():
     # figure out period
     period = request.args.get('period', 'all')
-    buf = _build_category_chart(period)
-    return send_file(buf, mimetype='image/png')
+    img_bytes = _build_category_chart_bytes(period)
+    return send_file(io.BytesIO(img_bytes), mimetype='image/png', download_name=f'category_{period}.png')
 
 @admin.route('/requests/pending')
 @role_required(ADMIN_ROLE_ID)
@@ -266,9 +267,9 @@ def add_admin():
             )
             conn.commit()
             flash(f"{user['full_name']} has been promoted to Admin.", "success")
-        except Exception as e:
+        except Exception():
             conn.rollback()
-            flash(f"Could not promote user: {e}", "error")
+            flash("Could not promote user( Internal server error)", "error")
 
     cursor.close()
     conn.close()
@@ -345,9 +346,9 @@ def deny_admin_request():
         )
         conn.commit()
         flash("Request denied.", "info")
-    except Exception as e:
+    except Exception():
         conn.rollback()
-        flash(f"Could not deny request: {e}", "error")
+        flash("Could not deny request ( Internal server error ) ", "error")
     finally:
         cursor.close()
         conn.close()
@@ -374,9 +375,9 @@ def reopen_admin_request():
         )
         conn.commit()
         flash("Request re‑opened and moved back to pending.", "success")
-    except Exception as e:
+    except Exception() :
         conn.rollback()
-        flash(f"Could not re‑open request: {e}", "error")
+        flash("Could not re‑open request ( Internal server error )", "error")
     finally:
         cur.close()
         conn.close()
@@ -414,3 +415,26 @@ def add_category():
         conn.close()
 
     return redirect(url_for('views.admin_dashboard', section='viewCategory'))
+
+
+@admin.route('/update-role', methods=['POST'])
+@role_required(ADMIN_ROLE_ID)
+def update_role_api():
+    user_id = request.form.get('user_id')
+    new_role_id = request.form.get('new_role_id')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    if not user_id or not new_role_id:
+        return {"success": False, "message": "Missing params"}, 400
+    try:
+        cur.execute("UPDATE fd_user SET role_id=%s WHERE user_id=%s", (int(new_role_id), int(user_id)))
+        conn.commit()
+    except Exception():
+        current_app.logger.exception("Error updating role")
+        return {"success": False, "message":"Internal error"}, 500
+    finally:
+        cur.close()
+        conn.close()
+    return {"success": True}

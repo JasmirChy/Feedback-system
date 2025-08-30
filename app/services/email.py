@@ -1,6 +1,7 @@
 # app/services/email.py
 import smtplib,random
 from flask import current_app
+from email.message import EmailMessage
 
 def generate_unique_user_id(curser):
     while True:
@@ -12,15 +13,15 @@ def generate_unique_user_id(curser):
 
 def send_otp_email(to_email, otp):
     cfg = current_app.config
-    msg = (
-        f"Subject: Your Verification Code\r\n"
-        f"\r\n"
-        f"Your OTP is {otp}. It expires in 15 minutes."
-    )
+    msg = EmailMessage()
+    msg['Subject'] = "Your Verification Code"
+    msg['From'] = cfg.get('SMTP_FROM', 'no-reply@example.com')
+    msg['To'] = to_email
+    msg.set_content(f"Your OTP is {otp}. It expires in 15 minutes.")
 
     try:
-        with smtplib.SMTP_SSL(cfg['SMTP_HOST'], cfg['SMTP_PORT']) as smtp:
+        with smtplib.SMTP_SSL(cfg['SMTP_HOST'], int(cfg['SMTP_PORT'])) as smtp:
             smtp.login(cfg['SMTP_USER'], cfg['SMTP_PASS'])
-            smtp.sendmail(cfg['SMTP_FROM'], to_email, msg)
+            smtp.send_message(msg)
     except Exception as e:
         current_app.logger.warning(f"Could not send real email, OTP is {otp}: {e}")

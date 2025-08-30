@@ -9,7 +9,7 @@
   <title>User Dashboard</title>
   <script src="{{url_for('static', filename='js/user_dashboard.js')}}" defer></script>
   <script>
-    var userFeedbacks = JSON.parse('{{ feedback_list | tojson | safe }}');
+    var userFeedbacks = ({{ feedback_list | tojson | safe }});
   </script>
   <style>
     /* ensure text-size-adjust and user-select are prefixed */

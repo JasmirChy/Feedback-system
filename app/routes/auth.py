@@ -1,12 +1,12 @@
 # app/routes/auth.py
-import random, datetime, mysql.connector, re
+import random, mysql.connector, re
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, url_for, request, redirect, flash, session
+from flask import Blueprint, render_template, url_for, request, redirect, flash, session, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
+from app import limiter
 from app.models import get_db_connection
 from app.services.email import generate_unique_user_id, send_otp_email
 from functools import wraps
-
 
 auth = Blueprint('auth', __name__)
 ADMIN_ROLE_ID = 1
@@ -20,7 +20,7 @@ def role_required(role_id):
         @wraps(f)
         def wrapped(*args, **kwargs):
             user_id = session.get('user_id')
-            role    = session.get('role_id')
+            role = session.get('role_id')
 
             if not user_id or role != role_id:
                 if not user_id:
@@ -30,7 +30,9 @@ def role_required(role_id):
                 return redirect(url_for('auth.login'))
 
             return f(*args, **kwargs)
+
         return wrapped
+
     return decorator
 
 
@@ -42,12 +44,13 @@ def login_required(f):
             flash('Please log in to continue.', 'error')
             return redirect(url_for('auth.login'))
         return f(*args, **kwargs)
+
     return wrapped
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per 15 minutes")
 def login():
-
     # if they already have a valid session, skip the form
     if 'user_id' in session:
         return redirect(
@@ -189,7 +192,7 @@ def signup():
 
                 cur.execute(
                     """insert into fd_user( user_id, full_name, username, password, email, designation, type, dob, role_id, status) values( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (id_number, full_name, user_name, passhash, email, designation,user_type, d_o_b, role_id, status))
+                    (id_number, full_name, user_name, passhash, email, designation, user_type, d_o_b, role_id, status))
 
                 conn.commit()
 
@@ -218,7 +221,7 @@ def signup():
                     'password': passhash,
                     'email': email,
                     'designation': 'General',
-                    'user_type':user_type,
+                    'user_type': user_type,
                     'dob': d_o_b,
                     'role_id': role_id,
                     'status': status,
@@ -311,8 +314,9 @@ def verify_otp():
 
                 session.pop('pending_user', None)  # clear session after success
                 flash("Account created successfully!", "success")
-            except mysql.connector.Error as err:
-                flash(f"Database error: {err.msg}", "error")
+            except mysql.connector.Error:
+                #flash(f"Database error: {err.msg}", "error")
+                flash("Internal server error. Please try again later.", "error")
                 return render_template('verify_otp.html')
             return redirect(url_for('auth.login'))
         else:
@@ -353,10 +357,10 @@ def forget_password():
 
         send_otp_email(email, otp)
         session['reset_email'] = {
-                'email': email,
-                'otp': otp,
-                'expires_at': expires.isoformat(),
-                # we'll fill in 'new_password' later once they enter it
+            'email': email,
+            'otp': otp,
+            'expires_at': expires.isoformat(),
+            # we'll fill in 'new_password' later once they enter it
         }
         return redirect(url_for('auth.verify_otp'))
     return render_template('forgot_password.html')
@@ -364,7 +368,6 @@ def forget_password():
 
 @auth.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
-
     if 'reset_verified_email' not in session:
         return redirect(url_for('auth.forget_password'))
 
@@ -396,74 +399,80 @@ def reset_password():
 
     return render_template('reset_password.html')
 
+
 @auth.route('/logout')
 def logout():
     session.clear()
-    flash("You've been signed out.",'success')
+    flash("You've been signed out.", 'success')
     return redirect(url_for('auth.login'))
+
 
 @auth.route('/update_profile', methods=['POST'])
 @login_required
 def update_profile():
-    user_id  = session['user_id']
-    role_id  = session.get('role_id')
-    action   = request.form.get('form_action')
+    user_id = session['user_id']
+    role_id = session.get('role_id')
+    action = request.form.get('form_action')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
 
     try:
-        with get_db_connection() as conn, conn.cursor() as cur:
-            if action == 'request_admin':
-                # Prevent duplicate pending requests
-                cur.execute(
-                    "SELECT 1 FROM admin_requests WHERE user_id=%s AND status IN ('Pending','Denied')",
-                    (user_id,)
-                )
-                if cur.fetchone():
-                    flash("You already have a pending admin request.", "warning")
-                else:
-                    cur.execute(
-                        "INSERT INTO admin_requests (user_id, username, status, role_id) "
-                        "VALUES (%s, %s, 'Pending', %s)",
-                        (user_id, session['username'], ADMIN_ROLE_ID)
-                    )
-                    flash("Admin access request submitted successfully.", "success")
-
-            elif action == 'update_profile':
-                full_name   = request.form['full_name']
-                email       = request.form['email']
-                designation = request.form['designation']
-                dob         = request.form['dob']
-
-                cur.execute(
-                    """
-                    UPDATE fd_user
-                       SET full_name  = %s,
-                           email      = %s,
-                           designation= %s,
-                           dob        = %s
-                     WHERE user_id   = %s
-                    """,
-                    (full_name, email, designation, dob, user_id)
-                )
-                flash("Profile updated successfully!", "success")
-
+        if action == 'request_admin':
+            # Prevent duplicate pending requests
+            cur.execute(
+                "SELECT 1 FROM admin_requests WHERE user_id=%s AND status IN ('Pending','Denied')",
+                (user_id,)
+            )
+            if cur.fetchone():
+                flash("You already have a pending admin request.", "warning")
             else:
-                flash("Unknown action requested.", "error")
+                cur.execute(
+                    "INSERT INTO admin_requests (user_id, username, status, role_id) "
+                    "VALUES (%s, %s, 'Pending', %s)",
+                    (user_id, session['username'], ADMIN_ROLE_ID)
+                )
+                flash("Admin access request submitted successfully.", "success")
 
-            conn.commit()
+        elif action == 'update_profile':
+            full_name = request.form['full_name']
+            email = request.form['email']
+            designation = request.form['designation']
+            dob = request.form['dob']
 
-    except mysql.connector.Error as err:
+            cur.execute(
+                """
+                UPDATE fd_user
+                   SET full_name  = %s,
+                       email      = %s,
+                       designation= %s,
+                       dob        = %s
+                 WHERE user_id   = %s
+                """,
+                (full_name, email, designation, dob, user_id)
+            )
+            flash("Profile updated successfully!", "success")
+
+        else:
+            flash("Unknown action requested.", "error")
+
+        conn.commit()
+
+    except mysql.connector.Error :
         # Log err.msg in real app
-        flash(f"Database error: {err.msg}", "error")
+        conn.rollback()
+        current_app.logger.exception("DB error in update_profile")
+        flash("Internal error while updating profile.", "error")
+    cur.close()
+    conn.close()
 
     target = 'views.admin_dashboard' if role_id == ADMIN_ROLE_ID else 'views.user_dashboard'
     return redirect(url_for(target, section='profile'))
 
 
-
 @auth.route('/change_password', methods=['POST'])
 @login_required
 def change_password():
-
     user_id = session['user_id']
     role_id = session.get('role_id')
 
@@ -472,7 +481,7 @@ def change_password():
     confirm_new_password = request.form.get('confirm_new_password')
 
     conn = get_db_connection()
-    cur = conn.cursor(dictionary=True) # Use dictionary=True to fetch user by username
+    cur = conn.cursor(dictionary=True)  # Use dictionary=True to fetch user by username
 
     # Fetch user's current hashed password
     cur.execute("SELECT password FROM fd_user WHERE user_id = %s", (user_id,))
@@ -486,41 +495,48 @@ def change_password():
 
     if current_password is None:
         flash("Please! Enter the current password", "error")
-        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+        return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                                section='changePassword'))
     elif current_password.strip() == '':
         flash("Please! Enter the current password", "error")
-        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+        return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                                section='changePassword'))
 
     if new_password is None:
         flash("Please! Enter the new password", "error")
-        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+        return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                                section='changePassword'))
     elif new_password.strip() == '':
         flash("Please! Enter the new password", "error")
-        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+        return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                                section='changePassword'))
 
     if confirm_new_password is None:
         flash("Please! Enter the confirm new password", "error")
-        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+        return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                                section='changePassword'))
     elif confirm_new_password.strip() == '':
         flash("Please! Enter the confirm new password", "error")
-        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))
+        return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                                section='changePassword'))
 
     # Verify the current password
     if not check_password_hash(user['password'], current_password):
         flash('Incorrect current password.', 'error')
         cur.close()
         conn.close()
-        return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword')) # Stay on a change password section
+        return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                                section='changePassword'))  # Stay on a change password section
 
     # Validate new password
-    if current_password == new_password == confirm_new_password :
+    if current_password == new_password == confirm_new_password:
         flash('Old password can\'t be used again.', 'error')
-    elif not new_password or len(new_password) < 6:
+    elif not new_password or len(new_password) < 8:
         flash('New password must be at least 8 characters.', 'error')
     elif new_password != confirm_new_password:
         flash('New password and conformation do not match.', 'error')
     elif not re.match(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$', new_password):
-        flash('Password must contain a letter and a number.', 'error')
+        flash('Password must contain a letter and a number and be at least 8 characters.', 'error')
     else:
         # All good → update
         hashed = generate_password_hash(new_password, method='pbkdf2:sha256')
@@ -530,11 +546,12 @@ def change_password():
             session.clear()  # force re-login
             flash('Password changed! Please log in again.', 'success')
             return redirect(url_for('auth.login'))
-        except Exception as e:
+        except Exception():
             conn.rollback()
-            flash(f'Error updating password: {e}', 'error')
+            flash('Error updating password', 'error')
 
     cur.close()
     conn.close()
 
-    return redirect(url_for('views.user_dashboard' if role_id==USER_ROLE_ID else 'views.admin_dashboard', section='changePassword')) # Redirect back to the change password section
+    return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
+                            section='changePassword'))  # Redirect back to the change password section

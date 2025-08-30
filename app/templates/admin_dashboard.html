@@ -733,7 +733,7 @@
                       </thead>
                       <tbody id="feedbackTableBody" class="text-gray-700">
                         {% for fb in feedbacks %}
-                        <tr onclick="window.location.href='{{ url_for('admin.feedback_detail', f_id=fb.f_id)}}'" data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
+                        <tr data-url="{{ url_for('admin.feedback_detail', f_id=fb.f_id)}}" data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
                           class="cursor-pointer hover:bg-slate-100 transition">
                           <td class="py-3 px-4">{{ fb.f_title }}</td>
                           <td class="py-3 px-4">{{ fb.submitter_name }}</td>
@@ -772,8 +772,9 @@
               {% for label, key in [('Weekly','week'),('Monthly','month'),('Yearly','year'),('All','all')] %}
                 <a
                   href="{{ url_for('views.admin_dashboard', section='reports', period=key) }}#reports"
-                  class="px-3 py-1 rounded-full font-medium transition
-                         {{ 'bg-slate-800 text-white' if current==key else 'bg-gray-200 text-gray-800 hover:bg-gray-300' }}">
+                  class="period-link px-3 py-1 rounded-full font-medium transition
+                         {{ 'bg-slate-800 text-white' if current==key else 'bg-gray-200 text-gray-800 hover:bg-gray-300' }}"
+                  data-period="{{ key }}">
                   {{ label }}
                 </a>
               {% endfor %}
@@ -781,7 +782,7 @@
 
             <!-- Chart image served by Flask -->
             <div class="flex justify-center">
-              <img src="{{ url_for('admin.category_report_chart', period=period) }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
+              <img id="category-chart-img" src="{{ url_for('admin.category_report_chart', period=period) }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
             </div>
           </div>
         </section>
@@ -1228,6 +1229,7 @@
 
 </body>
 <script>
+  window.ADMIN_CHART_BASE = "{{ url_for('admin.category_report_chart') }}";
   // Grab elements
   const signOutBtn = document.querySelector('.signOutBtn');
   const logoutModal = document.getElementById('logoutModal');
