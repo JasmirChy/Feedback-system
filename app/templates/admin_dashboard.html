@@ -678,7 +678,7 @@
                   <div onclick="filterFeedback('all')" role="button" tabindex="0"
                        class="col-span-12 sm:col-span-3 cursor-pointer">
                     <div class="text-center p-4 bg-gradient-to-br from-indigo-50 to-teal-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-blue-600">{{ feedbacks|length }}</div>
+                      <div class="text-2xl font-bold text-blue-600" data-count="total">{{ feedbacks|length }}</div>
                       <div class="text-sm text-blue-700 font-medium">All Feedback</div>
                     </div>
                   </div>
@@ -687,7 +687,7 @@
                   <div onclick="filterFeedback('pending')" role="button" tabindex="0"
                        class="col-span-12 sm:col-span-3 cursor-pointer">
                     <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-yellow-600">
+                      <div class="text-2xl font-bold text-yellow-600" data-count="pending">
                         {{ feedbacks | selectattr('status','equalto',1) | list | length }}
                       </div>
                       <div class="text-sm text-yellow-700 font-medium">Pending</div>
@@ -698,7 +698,7 @@
                   <div onclick="filterFeedback('inprogress')" role="button" tabindex="0"
                        class="col-span-12 sm:col-span-3 cursor-pointer">
                     <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-purple-600">
+                      <div class="text-2xl font-bold text-purple-600" data-count="inprogress">
                         {{ feedbacks | selectattr('status','equalto',2) | list | length }}
                       </div>
                       <div class="text-sm text-purple-700 font-medium">In Progress</div>
@@ -709,7 +709,7 @@
                   <div onclick="filterFeedback('resolved')" role="button" tabindex="0"
                        class="col-span-12 sm:col-span-3 cursor-pointer">
                     <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-green-600">
+                      <div class="text-2xl font-bold text-green-600" data-count="solved">
                         {{ feedbacks | selectattr('status','equalto',3) | list | length }}
                       </div>
                       <div class="text-sm text-green-700 font-medium">Solved</div>
@@ -733,15 +733,19 @@
                       </thead>
                       <tbody id="feedbackTableBody" class="text-gray-700">
                         {% for fb in feedbacks %}
-                        <tr data-url="{{ url_for('admin.feedback_detail', f_id=fb.f_id)}}" data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
+                        <tr
+                          data-url="{{ url_for('admin.feedback_detail', f_id=fb.f_id) }}"
+                          data-fid="{{ fb.f_id }}"
+                          data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
                           class="cursor-pointer hover:bg-slate-100 transition">
                           <td class="py-3 px-4">{{ fb.f_title }}</td>
                           <td class="py-3 px-4">{{ fb.submitter_name }}</td>
                           <td class="py-3 px-4">{{ fb.category_name }}</td>
                           <td class="py-3 px-4" onclick="event.stopPropagation()">
-                            <form method="POST" action="{{ url_for('admin.update_status') }}" onsubmit="event.stopPropagation()">
+                            <form method="POST" action="{{ url_for('admin.update_status') }}" class="ajax-form" onsubmit="event.stopPropagation()">
                               <input type="hidden" name="f_id" value="{{ fb.f_id }}">
-                              <select name="status" onchange="this.form.submit()" class="border rounded px-2 py-1 font-medium {% if fb.status == 1 %}bg-yellow-100 text-yellow-800{% elif fb.status == 2 %}bg-blue-100 text-blue-800{% elif fb.status == 3 %}bg-green-100 text-green-800{% endif %}">
+                              <!-- remove inline onchange: JS change handler will handle sending -->
+                              <select name="status" class="border rounded px-2 py-1 font-medium {% if fb.status == 1 %}bg-yellow-100 text-yellow-800{% elif fb.status == 2 %}bg-blue-100 text-blue-800{% elif fb.status == 3 %}bg-green-100 text-green-800{% endif %}">
                                 <option value="1" {% if fb.status == 1 %}selected{% endif %}{% if fb.status > 1 %}disabled{% endif %}>Pending</option>
                                 <option value="2" {% if fb.status == 2 %}selected{% endif %}{% if fb.status > 2 %}disabled{% endif %}>In Progress</option>
                                 <option value="3" {% if fb.status == 3 %}selected{% endif %}>Solved</option>
@@ -792,7 +796,7 @@
             <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">
               Add New Category
             </h2>
-            <form method="POST" action="{{ url_for('admin.add_category') }}" class="space-y-4">
+            <form method="POST" action="{{ url_for('admin.add_category') }}" class="space-y-4 ajax-form">
               <div>
                 <label for="category" class="block text-sm font-medium text-gray-700">Category Name</label>
                 <input type="text" name="category" id="category" required
@@ -840,72 +844,6 @@
 
 
         <!-- User Management Sections -->
-        <!-- ─── pending Admin Requests ─── -->
-        <section id="viewUsers" class="section {% if section != 'viewUsers' %}hidden{% endif %}">
-          <div class="premium-card p-8 max-w-5xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
-              Pending Admin Requests
-            </h2>
-            <div class="overflow-x-auto w-full">
-              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
-                <thead class="bg-indigo-900 text-white">
-                  <tr>
-                    <th class="py-3 px-4 text-left">User ID</th>
-                    <th class="py-3 px-4 text-left">Username</th>
-                    <th class="py-3 px-4 text-left">Current Role</th>
-                    <th class="py-3 px-4 text-left">Requested Role</th>
-                    <th class="py-3 px-4 text-left">Requested At</th>
-                    <th class="py-3 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody class="text-gray-700">
-                  {% for req in admin_requests %}
-                  <tr class="border-t border-gray-200">
-                    <td class="py-3 px-4">{{ req.user_id }}</td>
-                    <td class="py-3 px-4">{{ req.username }}</td>
-                    <td class="py-3 px-4">
-                      {{ 'Admin' if req.current_role_id == 1 else 'User' }}
-                    </td>
-                    <td class="py-3 px-4">
-                      {{ 'Admin' if req.requested_role == 1 else 'User' }}
-                    </td>
-                    <td class="py-3 px-4">
-                      {{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}
-                    </td>
-                    <td class="py-3 px-4 flex flex-wrap gap-2">
-                      <!-- Approve Form -->
-                      <form method="POST" action="{{ url_for('admin.approve_admin_request') }}">
-                        <input type="hidden" name="user_id"     value="{{ req.user_id }}">
-                        <input type="hidden" name="new_role_id" value="{{ req.requested_role }}">
-                        <button type="submit"
-                                class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-                          Accept
-                        </button>
-                      </form>
-
-                      <!-- Deny Form -->
-                      <form method="POST" action="{{ url_for('admin.deny_admin_request') }}">
-                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
-                        <button type="submit"
-                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
-                          Deny
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                  {% else %}
-                  <tr>
-                    <td colspan="6" class="py-4 text-center text-gray-500">
-                      No pending requests.
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
         <!-- ─── Add Admin ─── -->
         <section id="addAdmin" class="section hidden">
           <div class="premium-card p-8 max-w-xl mx-auto">
@@ -913,7 +851,7 @@
             <form id="addAdminForm"
                   method="POST"
                   action="{{ url_for('admin.add_admin') }}"
-                  class="space-y-5">
+                  class="space-y-5 ajax-form">
               <div>
                 <label for="newAdminEmail" class="block text-sm font-semibold text-slate-700 mb-2">
                   Email
@@ -939,6 +877,73 @@
           </div>
         </section>
 
+        <!-- ─── pending Admin Requests ─── -->
+        <section id="viewUsers" class="section {% if section != 'viewUsers' %}hidden{% endif %}">
+          <div class="premium-card p-8 max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+              Pending Admin Requests
+            </h2>
+            <div class="overflow-x-auto w-full">
+              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                <thead class="bg-indigo-900 text-white">
+                  <tr>
+                    <th class="py-3 px-4 text-left">User ID</th>
+                    <th class="py-3 px-4 text-left">Username</th>
+                    <th class="py-3 px-4 text-left">Current Role</th>
+                    <th class="py-3 px-4 text-left">Requested Role</th>
+                    <th class="py-3 px-4 text-left">Requested At</th>
+                    <th class="py-3 px-4 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="pendingRequestsBody" class="text-gray-700">
+                  {% for req in admin_requests %}
+                  <tr class="border-t border-gray-200" data-userid="{{ req.user_id }}">
+                    <td class="py-3 px-4">{{ req.user_id }}</td>
+                    <td class="py-3 px-4">{{ req.username }}</td>
+                    <td class="py-3 px-4">
+                      {{ 'Admin' if req.current_role_id == 1 else 'User' }}
+                    </td>
+                    <td class="py-3 px-4">
+                      {{ 'Admin' if req.requested_role == 1 else 'User' }}
+                    </td>
+                    <td class="py-3 px-4">
+                      {{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="py-3 px-4 flex flex-wrap gap-2">
+                      <!-- Approve Form -->
+                      <form method="POST" action="{{ url_for('admin.approve_admin_request') }}" class="ajax-admin-request" data-userid="{{ req.user_id }}">
+                        <input type="hidden" name="user_id"     value="{{ req.user_id }}">
+                        <input type="hidden" name="new_role_id" value="{{ req.requested_role }}">
+                        <button type="submit"
+                                class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+                          Accept
+                        </button>
+                      </form>
+
+                      <!-- Deny Form -->
+                      <form method="POST" action="{{ url_for('admin.deny_admin_request') }}" class="ajax-admin-request" data-userid="{{ req.user_id }}">
+                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
+                        <button type="submit"
+                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                          Deny
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% else %}
+                  <tr>
+                    <td colspan="6" class="py-4 text-center text-gray-500">
+                      No pending requests.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
         <!-- ─── Denied Admin Requests ─── -->
         <section id="deniedRequests" class="section {% if section!='deniedRequests' %}hidden{% endif %}">
           <div class="premium-card p-8 max-w-5xl mx-auto">
@@ -957,16 +962,16 @@
                     <th class="py-3 px-4 text-left">Actions</th>
                   </tr>
                 </thead>
-                <tbody class="text-gray-700">
+                <tbody id="deniedRequestsBody" class="text-gray-700">
                   {% for req in denied_requests %}
-                  <tr class="border-t border-gray-200">
+                  <tr class="border-t border-gray-200" data-userid="{{ req.user_id }}">
                     <td class="py-3 px-4">{{ req.user_id }}</td>
                     <td class="py-3 px-4">{{ req.username }}</td>
                     <td class="py-3 px-4">{{ 'Admin' if req.current_role_id==1 else 'User' }}</td>
                     <td class="py-3 px-4">{{ 'Admin' if req.requested_role==1     else 'User' }}</td>
                     <td class="py-3 px-4">{{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td class="py-3 px-4 flex gap-2">
-                      <form method="POST" action="{{ url_for('admin.reopen_admin_request') }}">
+                      <form method="POST" action="{{ url_for('admin.reopen_admin_request') }}" class="ajax-admin-request" data-userid="{{ req.user_id }}">
                         <input type="hidden" name="user_id" value="{{ req.user_id }}">
                         <button type="submit"
                                 class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
@@ -1058,10 +1063,12 @@
                 <p class="text-slate-600">{{ feedback.date or 'N/A' }}</p>
               </div>
             </div>
+
             <div>
               <h3 class="font-semibold text-slate-700 mb-1">Submitted by </h3>
               <p class="text-slate-600"> {{ feedback.submitter_name }} </p>
             </div>
+
             <br/><br/>
             <div class="mb-6">
               <h3 class="font-semibold text-slate-700 mb-2">Message</h3>
@@ -1086,7 +1093,7 @@
             {% endif %}
 
             <div class="flex justify-end pt-4 border-t border-slate-200">
-              <a href="{{ url_for('views.admin_dashboard', section='home') }}" class="px-6 py-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 font-medium">
+              <a href="{{ url_for('views.admin_dashboard', section='home') }}" class="spa-back px-6 py-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 font-medium">
                 <i class="fas fa-arrow-left mr-2"></i>Back
               </a>
             </div>
@@ -1156,8 +1163,6 @@
             </div>
          </section>
 
-        <!-- Removed Support Center Section -->
-
         <section id="changePassword" class="section hidden">
           <div class="premium-card p-8 max-w-4xl mx-auto">
             <div class="flex items-center mb-8">
@@ -1210,68 +1215,63 @@
   </div>
 
    <!-- Logout Confirmation Modal -->
-  <div id="logoutModal"
-    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div id="logoutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
       <h2 class="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
       <div class="flex justify-around mt-6">
-        <button id="confirmLogoutBtn"
-          class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
-          OK
-        </button>
-        <button id="cancelLogoutBtn"
-          class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
-          Cancel
-        </button>
+        <button id="confirmLogoutBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">OK</button>
+        <button id="cancelLogoutBtn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">Cancel</button>
       </div>
     </div>
   </div>
 
+
 </body>
 <script>
-  window.ADMIN_CHART_BASE = "{{ url_for('admin.category_report_chart') }}";
-  // Grab elements
-  const signOutBtn = document.querySelector('.signOutBtn');
-  const logoutModal = document.getElementById('logoutModal');
-  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
-  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+    window.ADMIN_CHART_BASE = "{{ url_for('admin.category_report_chart') }}";
+    window.UPDATE_ROLE_URL = "{{ url_for('admin.update_role_api') }}";
+    window.ADMIN_REQUESTS_LIST_URL = "{{ url_for('admin.admin_requests_list_json') }}";
+    window.LOGOUT_URL = "{{ url_for('auth.logout') }}";
 
-  // Show the modal when sign-out is clicked
-  signOutBtn.addEventListener('click', () => {
-    logoutModal.classList.remove('hidden');
-  });
+    // Wire logout modal handlers defensively (JS file also wires; this ensures initial availability)
+    (function () {
+      const signOutBtn = document.querySelector('.signOutBtn');
+      const logoutModal = document.getElementById('logoutModal');
+      const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+      const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
 
-  // Confirm logout: redirect to log out endpoint
-  confirmLogoutBtn.addEventListener('click', () => {
-    window.location.href = "{{ url_for('auth.logout') }}";
-  });
+      if (signOutBtn && logoutModal) {
+        signOutBtn.addEventListener('click', () => logoutModal.classList.remove('hidden'));
+      }
+      if (confirmLogoutBtn) {
+        confirmLogoutBtn.addEventListener('click', () => {
+          window.location.href = window.LOGOUT_URL || '/auth/logout';
+        });
+      }
+      if (cancelLogoutBtn && logoutModal) {
+        cancelLogoutBtn.addEventListener('click', () => logoutModal.classList.add('hidden'));
+      }
+      if (logoutModal) {
+        logoutModal.addEventListener('click', (e) => {
+          if (e.target === logoutModal) logoutModal.classList.add('hidden');
+        });
+      }
 
-  // Cancel logout: hide the modal
-  cancelLogoutBtn.addEventListener('click', () => {
-    logoutModal.classList.add('hidden');
-  });
+      document.addEventListener('DOMContentLoaded', () => {
+        const initialSection = "{{ section | default('home') }}";
+        // Expose initial section for JS history initialization
+        window.initialSection = initialSection;
+        // show the right section on load
+        if (typeof showSection === 'function') showSection(initialSection);
 
-  // Optional: Close modal by clicking outside content
-  logoutModal.addEventListener('click', (e) => {
-    if (e.target === logoutModal) {
-      logoutModal.classList.add('hidden');
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const initialSection = "{{ section | default('home') }}";
-    showSection(initialSection);
-
-    const flash = document.getElementById('flash-messages');
-    if (!flash) return;
-    // after 5 seconds, fade out (you can also just hide instantly)
-    setTimeout(() => {
-      flash.classList.add('opacity-0', 'transition', 'duration-500');
-      // optional: completely remove from layout after fade-out
-      setTimeout(() => flash.style.display = 'none', 500);
-    }, 5000);
-  });
-
-</script>
+        const flash = document.getElementById('flash-messages');
+        if (!flash) return;
+        setTimeout(() => {
+          flash.classList.add('opacity-0', 'transition', 'duration-500');
+          setTimeout(() => flash.style.display = 'none', 500);
+        }, 5000);
+      });
+    })();
+  </script>
 
 </html>

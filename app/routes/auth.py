@@ -67,82 +67,86 @@ def login():
 
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-                    SELECT user_id, full_name, role_id, password, failed_attempts, lock_until
-                    FROM fd_user
-                    WHERE BINARY username = %s AND status = 1
-                """, (username,))
+        try:
+            cursor.execute("""
+                        SELECT user_id, full_name, role_id, password, failed_attempts, lock_until
+                        FROM fd_user
+                        WHERE BINARY username = %s AND status = 1
+                    """, (username,))
 
-        user = cursor.fetchone()
-        if not user:
-            flash("Invalid username.", "error")
-            return render_template('login.html')
-
-        now = datetime.utcnow()
-        lock_until = user['lock_until']
-
-        # Check if locked
-        if lock_until:
-            if now < lock_until:
-                remaining = (lock_until - now).seconds
-                flash(f"Too many failed attempts. Try again in {remaining} seconds.", "danger")
-                cursor.close()
+            user = cursor.fetchone()
+            if not user:
+                flash("Invalid username.", "error")
                 return render_template('login.html')
-            else:
-                # Lockout expired → reset counter
+
+            now = datetime.utcnow()
+            lock_until = user['lock_until']
+
+            # Check if locked
+            if lock_until:
+                if now < lock_until:
+                    remaining = (lock_until - now).seconds
+                    flash(f"Too many failed attempts. Try again in {remaining} seconds.", "danger")
+                    cursor.close()
+                    return render_template('login.html')
+                else:
+                    # Lockout expired → reset counter
+                    cursor.execute(
+                        "UPDATE fd_user SET failed_attempts = 0, lock_until = NULL WHERE user_id = %s",
+                        (user['user_id'],)
+                    )
+                    conn.commit()
+                    user['failed_attempts'] = 0
+                    user['lock_until'] = None
+
+            if not check_password_hash(user['password'], password):
+                # Increment failed attempts
+                failed = user['failed_attempts'] + 1
+                lock_until = None
+
+                if failed >= LOCKOUT_ATTEMPTS:
+                    lock_until = now + timedelta(minutes=LOCKOUT_MINUTES)
+                    flash(f"Too many failed attempts. Try again after {LOCKOUT_MINUTES} minutes.", "danger")
+                else:
+                    flash("Invalid password.", "error")
+
                 cursor.execute(
-                    "UPDATE fd_user SET failed_attempts = 0, lock_until = NULL WHERE user_id = %s",
-                    (user['user_id'],)
+                    "UPDATE fd_user SET failed_attempts = %s, lock_until = %s WHERE user_id = %s",
+                    (failed, lock_until, user['user_id'])
                 )
                 conn.commit()
-                user['failed_attempts'] = 0
-                user['lock_until'] = None
+                cursor.close()
+                return render_template('login.html')
 
-        if not check_password_hash(user['password'], password):
-            # Increment failed attempts
-            failed = user['failed_attempts'] + 1
-            lock_until = None
-
-            if failed >= LOCKOUT_ATTEMPTS:
-                lock_until = now + timedelta(minutes=LOCKOUT_MINUTES)
-                flash(f"Too many failed attempts. Try again after {LOCKOUT_MINUTES} minutes.", "danger")
-            else:
-                flash("Invalid password.", "error")
-
+            # Password OK-reset attempts
             cursor.execute(
-                "UPDATE fd_user SET failed_attempts = %s, lock_until = %s WHERE user_id = %s",
-                (failed, lock_until, user['user_id'])
+                "UPDATE fd_user SET failed_attempts = 0, lock_until = NULL WHERE user_id = %s",
+                (user['user_id'],)
             )
             conn.commit()
+
+            # store minimal session info
+            session['user_id'] = user['user_id']
+            session['username'] = username
+            session['full_name'] = user['full_name']
+            session['role_id'] = user['role_id']
+
+            # set permanent session if “remember me” checked
+            session.permanent = bool(remember)
+
+            # redirect based on a role
+            target = 'views.admin_dashboard' if user['role_id'] == ADMIN_ROLE_ID else 'views.user_dashboard'
+            return redirect(url_for(target))
+        finally:
+            # ensure resources closed
             cursor.close()
-            return render_template('login.html')
-
-        # Password OK-reset attempts
-        cursor.execute(
-            "UPDATE fd_user SET failed_attempts = 0, lock_until = NULL WHERE user_id = %s",
-            (user['user_id'],)
-        )
-        conn.commit()
-
-        cursor.close()
-
-        # store minimal session info
-        session['user_id'] = user['user_id']
-        session['username'] = username
-        session['full_name'] = user['full_name']
-        session['role_id'] = user['role_id']
-
-        # set permanent session if “remember me” checked
-        session.permanent = bool(remember)
-
-        # redirect based on a role
-        target = 'views.admin_dashboard' if user['role_id'] == ADMIN_ROLE_ID else 'views.user_dashboard'
-        return redirect(url_for(target))
+            conn.close()
 
     return render_template('login.html')
 
 
 @auth.route('/signup', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def signup():
     if request.method == 'POST':
         data = request.form
@@ -159,8 +163,6 @@ def signup():
         role_id = 2
         status = 1
 
-        passhash = generate_password_hash(password, 'pbkdf2:sha256')
-
         # 1) Basic validations
         if password != confirm:
             flash("Passwords do not match.", "error")
@@ -168,6 +170,11 @@ def signup():
         if not all([email, full_name, user_name, password]):
             flash("Please fill in all required fields.", "error")
             return render_template('signup.html')
+        if len(password) < 8 or not re.match(r'^(?=.*[A-Za-z])(?=.*\d).+$', password):
+            flash("Password must be at least 8 characters and include a letter and a number.", "error")
+            return render_template('signup.html')
+
+        passhash = generate_password_hash(password, 'pbkdf2:sha256')
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -230,14 +237,19 @@ def signup():
                 }
 
                 return redirect(url_for('auth.verify_otp'))
-        except mysql.connector.Error as err:
-            flash(f'Database error: {err.msg}', 'error')
+        except mysql.connector.Error:
+            current_app.logger.exception("DB error during signup")
+            flash("Database error. Please try again later.", 'error')
             return render_template('signup.html')
+        finally:
+            cur.close()
+            conn.close()
 
     return render_template('signup.html')
 
 
 @auth.route('/verify-otp', methods=['GET', 'POST'])
+@limiter.limit("10 per hour")
 def verify_otp():
     sign = session.get('pending_user')
     reset = session.get('reset_email')
@@ -315,9 +327,12 @@ def verify_otp():
                 session.pop('pending_user', None)  # clear session after success
                 flash("Account created successfully!", "success")
             except mysql.connector.Error:
-                #flash(f"Database error: {err.msg}", "error")
+                current_app.logger.exception("DB error inserting verified user")
                 flash("Internal server error. Please try again later.", "error")
                 return render_template('verify_otp.html')
+            finally:
+                cursor.close()
+                conn.close()
             return redirect(url_for('auth.login'))
         else:
             # Mark that the user can now set a new password
@@ -329,6 +344,7 @@ def verify_otp():
 
 
 @auth.route('/forget_password', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def forget_password():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -336,33 +352,40 @@ def forget_password():
 
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT user_id FROM fd_user WHERE email=%s", (email,))
+        try:
+            cur.execute("SELECT user_id FROM fd_user WHERE email=%s", (email,))
 
-        row = cur.fetchone()
-        if not row:
-            flash("No account with that email.", "error")
+            row = cur.fetchone()
+            if not row:
+                flash("No account with that email.", "error")
+                return render_template('forget_password.html')
+
+            # generate & store OTP
+            otp = f"{random.randint(0, 999999):06d}"
+            expires = datetime.utcnow() + timedelta(minutes=10)
+            cur.execute(
+                """INSERT INTO email_verifications(email,otp,expires_at)
+                   VALUES (%s,%s,%s)
+                   ON DUPLICATE KEY UPDATE otp=%s,expires_at=%s""",
+                (email, otp, expires, otp, expires)
+            )
+            conn.commit()
+
+            send_otp_email(email, otp)
+            session['reset_email'] = {
+                'email': email,
+                'otp': otp,
+                'expires_at': expires.isoformat(),
+                # we'll fill in 'new_password' later once they enter it
+            }
+            return redirect(url_for('auth.verify_otp'))
+        except mysql.connector.Error:
+            current_app.logger.exception("DB error in forget_password")
+            flash("Internal error. Please try again later.", "error")
             return render_template('forget_password.html')
-
-        # generate & store OTP
-        otp = f"{random.randint(0, 999999):06d}"
-        expires = datetime.utcnow() + timedelta(minutes=10)
-        cur.execute(
-            """INSERT INTO email_verifications(email,otp,expires_at)
-               VALUES (%s,%s,%s)
-               ON DUPLICATE KEY UPDATE otp=%s,expires_at=%s""",
-            (email, otp, expires, otp, expires)
-        )
-        conn.commit()
-        cur.close()
-
-        send_otp_email(email, otp)
-        session['reset_email'] = {
-            'email': email,
-            'otp': otp,
-            'expires_at': expires.isoformat(),
-            # we'll fill in 'new_password' later once they enter it
-        }
-        return redirect(url_for('auth.verify_otp'))
+        finally:
+            cur.close()
+            conn.close()
     return render_template('forgot_password.html')
 
 
@@ -377,20 +400,30 @@ def reset_password():
         pw = request.form.get('password')
         pw2 = request.form.get('confirm_password')
 
-        passhash = generate_password_hash(pw)
-
         if pw != pw2:
             flash("Passwords do not match.", "error")
             return render_template('reset_password.html')
+        if len(pw) < 8 or not re.match(r'^(?=.*[A-Za-z])(?=.*\d).+$', pw):
+            flash("Password must be at least 8 characters and include a letter and a number.", "error")
+            return render_template('reset_password.html')
+
+        passhash = generate_password_hash(pw)
 
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute(
-            "UPDATE fd_user SET password=%s WHERE email=%s",
-            (passhash, email)
-        )
-        conn.commit()
-        cur.close()
+        try:
+            cur.execute(
+                "UPDATE fd_user SET password=%s WHERE email=%s",
+                (passhash, email)
+            )
+            conn.commit()
+        except mysql.connector.Error:
+            current_app.logger.exception("DB error updating password")
+            flash("Internal error. Please try again later.", "error")
+            return render_template('reset_password.html')
+        finally:
+            cur.close()
+            conn.close()
 
         # clean up
         session.pop('reset_verified_email')
@@ -463,9 +496,9 @@ def update_profile():
         conn.rollback()
         current_app.logger.exception("DB error in update_profile")
         flash("Internal error while updating profile.", "error")
-    cur.close()
-    conn.close()
-
+    finally:
+        cur.close()
+        conn.close()
     target = 'views.admin_dashboard' if role_id == ADMIN_ROLE_ID else 'views.user_dashboard'
     return redirect(url_for(target, section='profile'))
 
@@ -489,8 +522,7 @@ def change_password():
 
     if not user:
         flash('User not found. Please log in again.', 'error')
-        cur.close()
-        conn.close()
+
         return redirect(url_for('auth.login'))
 
     if current_password is None:
@@ -546,12 +578,12 @@ def change_password():
             session.clear()  # force re-login
             flash('Password changed! Please log in again.', 'success')
             return redirect(url_for('auth.login'))
-        except Exception():
+        except mysql.connector.Error:
             conn.rollback()
+            current_app.logger.exception("DB error updating password")
             flash('Error updating password', 'error')
 
     cur.close()
     conn.close()
 
-    return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard',
-                            section='changePassword'))  # Redirect back to the change password section
+    return redirect(url_for('views.user_dashboard' if role_id == USER_ROLE_ID else 'views.admin_dashboard', section='changePassword'))  # Redirect back to the change password section
