@@ -17,3 +17,5 @@ dist/
 app/config.py
 
 flask_session/
+
+.env

@@ -3,1227 +3,1299 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="{{url_for('static', filename='js/admin_dashboard.js')}}" defer></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <style>
-    /* Import Inter font from Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-    /* Define CSS variables for consistent styling */
-    :root {
-      --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-      --accent-gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%);
-      --glass-bg: rgba(255, 255, 255, 0.95);
-      --glass-border: rgba(255, 255, 255, 0.2);
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-      --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Universal box-sizing for consistent layout */
-    * {
-      box-sizing: border-box;
-    }
-
-    /* Base body styles */
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* Smoother font rendering */
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Desktop grid layout for main dashboard structure */
-    .desktop-grid {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      /* Fixed sidebar width, flexible main content */
-      grid-template-rows: auto 1fr;
-      /* Auto height for header, flexible for main content */
-      height: 100vh;
-      /* Full viewport height */
-      gap: 0;
-      /* No gaps between grid items */
-    }
-
-    /* Header styling for desktop */
-    .desktop-header {
-      grid-column: 1 / -1;
-      /* Spans all columns */
-      position: sticky;
-      /* Stays at the top when scrolling */
-      top: 0;
-      z-index: 50;
-      /* Ensures it stays on top */
-      backdrop-filter: blur(20px);
-      /* Glassmorphism effect */
-      background: var(--glass-bg);
-      border-bottom: 1px solid var(--glass-border);
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Sidebar styling for desktop */
-    .desktop-sidebar {
-      grid-row: 2;
-      /* Positions in the second row of the grid */
-      position: sticky;
-      /* Stays fixed relative to its container when scrolling */
-      top: 80px;
-      /* Offset from the top (below header) */
-      height: calc(100vh - 80px);
-      /* Full height minus header height */
-      overflow-y: auto;
-      /* Enables vertical scrolling for long content */
-      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-      /* Light gradient background */
-      border-right: 1px solid #e2e8f0;
-      z-index: 40;
-      /* Stacks below header */
-    }
-
-    /* Main content area styling for desktop */
-    .desktop-main {
-      grid-row: 2;
-      /* Positions in the second row of the grid */
-      padding: 2rem;
-      overflow-y: auto;
-      /* Enables vertical scrolling for long content */
-      height: calc(100vh - 80px);
-      /* Full height minus header height */
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-      /* Light gradient background */
-    }
-
-    /* Media queries for mobile responsiveness (screen width <= 767px) */
-    @media (max-width: 767px) {
-      .desktop-grid {
-        grid-template-columns: 1fr;
-        /* Single column layout for mobile */
-        grid-template-rows: auto 1fr;
-      }
-
-      .desktop-sidebar {
-        position: fixed;
-        /* Fixed position for mobile sidebar overlay */
-        top: 80px;
-        left: 0;
-        width: 280px;
-        transform: translateX(-100%);
-        /* Hidden by default */
-        transition: transform 0.3s ease-in-out;
-        /* Smooth slide animation */
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-        height: calc(100vh - 80px);
-        /* Adjust height for mobile header */
-      }
-
-      .desktop-main {
-        padding: 1rem;
-        /* Reduced padding for mobile */
-        height: calc(100vh - 80px);
-        /* Full height minus header height */
-      }
-
-      .desktop-header {
-        padding: 0 1rem;
-        /* Adjusted header padding */
-      }
-
-      .premium-card {
-        padding: 1.5rem;
-        /* Adjusted card padding */
-      }
-
-      /* Force single column for specific grid layouts on mobile */
-      .grid-cols-12,
-      .md\:grid-cols-2 {
-        grid-template-columns: 1fr !important;
-      }
-
-      /* Adjust form input padding */
-      .form-input,
-      textarea {
-        padding: 0.75rem !important;
-      }
-
-      /* Adjust border radius for cards */
-      .dashboard-card,
-      .premium-card {
-        border-radius: 12px !important;
-      }
-
-      /* Adjust font sizes for mobile */
-      .text-3xl {
-        font-size: 1.5rem !important;
-      }
-
-      .text-2xl {
-        font-size: 1.25rem !important;
-      }
-
-      /* Adjust width and height for icons/avatars */
-      .w-16 {
-        width: 3rem !important;
-        height: 3rem !important;
-      }
-
-      .w-14 {
-        width: 2.5rem !important;
-        height: 2.5rem !important;
-      }
-
-      .w-20 {
-        width: 4rem !important;
-        height: 4rem !important;
-      }
-
-      .w-24 {
-        width: 4.5rem !important;
-        height: 4.5rem !important;
-      }
-
-      .text-lg {
-        font-size: 0.875rem !important;
-      }
-
-      /* Adjust padding for mobile */
-      .p-8 {
-        padding: 1.5rem !important;
-      }
-
-      .p-6 {
-        padding: 1.25rem !important;
-      }
-
-      /* Adjust text size */
-      .text-sm {
-        font-size: 0.75rem !important;
-      }
-
-      /* Adjust spacing for mobile */
-      .space-y-8 {
-        gap: 1.5rem !important;
-      }
-
-      .space-y-6 {
-        gap: 1.25rem !important;
-      }
-
-      .space-y-4 {
-        gap: 1rem !important;
-      }
-
-      /* Adjust spacing for flex items */
-      .flex.items-center.space-x-4 {
-        gap: 0.75rem;
-      }
-
-      .flex.items-center.space-x-3 {
-        gap: 0.5rem;
-      }
-
-      /* Adjust width for elements */
-      .w-12 {
-        width: 2.5rem !important;
-        height: 2.5rem !important;
-      }
-
-      /* Adjust border radius */
-      .rounded-2xl {
-        border-radius: 0.75rem !important;
-      }
-
-      /* Adjust font size */
-      .text-xl {
-        font-size: 1rem !important;
-      }
-
-      /* Adjust primary button padding */
-      .btn-primary {
-        padding: 0.75rem 1.5rem !important;
-      }
-
-      /* Adjust spacing */
-      .flex.space-x-2 {
-        gap: 0.5rem;
-      }
-
-      /* Adjust padding */
-      .px-4 {
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-      }
-
-      .py-2 {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
-      }
-    }
-
-    /* Glassmorphism effect for elements */
-    .glass-effect {
-      backdrop-filter: blur(20px);
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-    }
-
-    /* Dark glassmorphism effect */
-    .glass-dark {
-      backdrop-filter: blur(20px);
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Premium card styling with hover effects */
-    .premium-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      box-shadow: var(--shadow-md);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 16px;
-    }
-
-    .premium-card:hover {
-      transform: translateY(-4px);
-      /* Lift effect */
-      box-shadow: var(--shadow-xl);
-      /* Larger shadow on hover */
-      border-color: #0d9488;
-      /* Accent border on hover */
-    }
-
-    /* Navigation item styling with hover and active states */
-    .nav-item {
-      position: relative;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 12px;
-      margin: 4px 0;
-    }
-
-    .nav-item::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 0;
-      /* Hidden by default */
-      background: var(--accent-gradient);
-      border-radius: 0 4px 4px 0;
-      transition: height 0.2s ease;
-    }
-
-    .nav-item:hover::before {
-      height: 60%;
-      /* Show indicator on hover */
-    }
-
-    .nav-item:hover {
-      background: linear-gradient(90deg, rgba(13, 148, 136, 0.1) 0%, transparent 50%);
-      /* Light background on hover */
-      transform: translateX(8px);
-      /* Slide effect on hover */
-    }
-
-    .nav-item.active {
-      background: linear-gradient(90deg, rgba(13, 148, 136, 0.1) 0%, white 100%);
-      color: #0d9488;
-      border: 1px solid rgba(13, 148, 136, 0.2);
-      transform: translateX(8px);
-    }
-
-    .nav-item.active::before {
-      height: 60%;
-      background: var(--accent-gradient);
-    }
-
-    .nav-item.active:hover {
-      transform: translateX(8px);
-    }
-
-    /* Primary button styling with hover and shimmer effects */
-    .btn-primary {
-      background: var(--accent-gradient);
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-      /* For shimmer effect */
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      /* Start off-screen */
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
-    }
-
-    .btn-primary:hover::before {
-      left: 100%;
-      /* Slide across button */
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
-    }
-
-    /* Form input styling with focus effects */
-    .form-input {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 2px solid #e2e8f0;
-      background: white;
-    }
-
-    .form-input:focus {
-      border-color: #0d9488;
-      box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
-      background: #fefefe;
-    }
-
-    /* Section fade-in animation */
-    .section {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .section:not(.hidden) {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .fade-in {
-      animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Fade effect for table content */
-    .table-fade-out {
-      opacity: 0;
-      transition: opacity 0.3s ease-out;
-    }
-
-    .table-fade-in {
-      opacity: 1;
-      transition: opacity 0.3s ease-in;
-    }
-
-    /* Status indicator shimmer effect */
-    .status-indicator {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .status-indicator::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      0% {
-        left: -100%;
-      }
-
-      100% {
-        left: 100%;
-      }
-    }
-
-    /* Custom scrollbar styling */
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, #0d9488, #06b6d4);
-      border-radius: 3px;
-    }
-
-    /* Dashboard card styling with hover effects */
-    .dashboard-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .dashboard-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--accent-gradient);
-      transform: scaleX(0);
-      /* Hidden by default */
-      transition: transform 0.3s ease;
-    }
-
-    .dashboard-card:hover::before {
-      transform: scaleX(1);
-      /* Expand on hover */
-    }
-
-    .dashboard-card:hover {
-      transform: translateY(-8px);
-      box-shadow: var(--shadow-xl);
-    }
-
-    /* Rotate utility class */
-    .rotate-180 {
-      transform: rotate(180deg);
-    }
-  </style>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{url_for('static', filename='js/admin_dashboard.js')}}" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Import Inter font from Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        /* Define CSS variables for consistent styling */
+        :root {
+          --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+          --accent-gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%);
+          --glass-bg: rgba(255, 255, 255, 0.95);
+          --glass-border: rgba(255, 255, 255, 0.2);
+          --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+          --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+          --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+          --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Universal box-sizing for consistent layout */
+        * {
+          box-sizing: border-box;
+        }
+
+        /* Base body styles */
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          /* Smoother font rendering */
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Desktop grid layout for main dashboard structure */
+        .desktop-grid {
+          display: grid;
+          grid-template-columns: 280px 1fr;
+          /* Fixed sidebar width, flexible main content */
+          grid-template-rows: auto 1fr;
+          /* Auto height for header, flexible for main content */
+          height: 100vh;
+          /* Full viewport height */
+          gap: 0;
+          /* No gaps between grid items */
+        }
+
+        /* Header styling for desktop */
+        .desktop-header {
+          grid-column: 1 / -1;
+          /* Spans all columns */
+          position: sticky;
+          /* Stays at the top when scrolling */
+          top: 0;
+          z-index: 50;
+          /* Ensures it stays on top */
+          backdrop-filter: blur(20px);
+          /* Glassmorphism effect */
+          background: var(--glass-bg);
+          border-bottom: 1px solid var(--glass-border);
+          box-shadow: var(--shadow-sm);
+        }
+
+        /* Sidebar styling for desktop */
+        .desktop-sidebar {
+          grid-row: 2;
+          /* Positions in the second row of the grid */
+          position: sticky;
+          /* Stays fixed relative to its container when scrolling */
+          top: 80px;
+          /* Offset from the top (below header) */
+          height: calc(100vh - 80px);
+          /* Full height minus header height */
+          overflow-y: auto;
+          /* Enables vertical scrolling for long content */
+          background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+          /* Light gradient background */
+          border-right: 1px solid #e2e8f0;
+          z-index: 40;
+          /* Stacks below header */
+        }
+
+        /* Main content area styling for desktop */
+        .desktop-main {
+          grid-row: 2;
+          /* Positions in the second row of the grid */
+          padding: 2rem;
+          overflow-y: auto;
+          /* Enables vertical scrolling for long content */
+          height: calc(100vh - 80px);
+          /* Full height minus header height */
+          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+          /* Light gradient background */
+        }
+
+        /* Media queries for mobile responsiveness (screen width <= 767px) */
+        @media (max-width: 767px) {
+          .desktop-grid {
+            grid-template-columns: 1fr;
+            /* Single column layout for mobile */
+            grid-template-rows: auto 1fr;
+          }
+
+          .desktop-sidebar {
+            position: fixed;
+            /* Fixed position for mobile sidebar overlay */
+            top: 80px;
+            left: 0;
+            width: 280px;
+            transform: translateX(-100%);
+            /* Hidden by default */
+            transition: transform 0.3s ease-in-out;
+            /* Smooth slide animation */
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+            height: calc(100vh - 80px);
+            /* Adjust height for mobile header */
+          }
+
+          .desktop-main {
+            padding: 1rem;
+            /* Reduced padding for mobile */
+            height: calc(100vh - 80px);
+            /* Full height minus header height */
+          }
+
+          .desktop-header {
+            padding: 0 1rem;
+            /* Adjusted header padding */
+          }
+
+          .premium-card {
+            padding: 1.5rem;
+            /* Adjusted card padding */
+          }
+
+          /* Force single column for specific grid layouts on mobile */
+          .grid-cols-12,
+          .md\:grid-cols-2 {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Adjust form input padding */
+          .form-input,
+          textarea {
+            padding: 0.75rem !important;
+          }
+
+          /* Adjust border radius for cards */
+          .dashboard-card,
+          .premium-card {
+            border-radius: 12px !important;
+          }
+
+          /* Adjust font sizes for mobile */
+          .text-3xl {
+            font-size: 1.5rem !important;
+          }
+
+          .text-2xl {
+            font-size: 1.25rem !important;
+          }
+
+          /* Adjust width and height for icons/avatars */
+          .w-16 {
+            width: 3rem !important;
+            height: 3rem !important;
+          }
+
+          .w-14 {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+          }
+
+          .w-20 {
+            width: 4rem !important;
+            height: 4rem !important;
+          }
+
+          .w-24 {
+            width: 4.5rem !important;
+            height: 4.5rem !important;
+          }
+
+          .text-lg {
+            font-size: 0.875rem !important;
+          }
+
+          /* Adjust padding for mobile */
+          .p-8 {
+            padding: 1.5rem !important;
+          }
+
+          .p-6 {
+            padding: 1.25rem !important;
+          }
+
+          /* Adjust text size */
+          .text-sm {
+            font-size: 0.75rem !important;
+          }
+
+          /* Adjust spacing for mobile */
+          .space-y-8 {
+            gap: 1.5rem !important;
+          }
+
+          .space-y-6 {
+            gap: 1.25rem !important;
+          }
+
+          .space-y-4 {
+            gap: 1rem !important;
+          }
+
+          /* Adjust spacing for flex items */
+          .flex.items-center.space-x-4 {
+            gap: 0.75rem;
+          }
+
+          .flex.items-center.space-x-3 {
+            gap: 0.5rem;
+          }
+
+          /* Adjust width for elements */
+          .w-12 {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+          }
+
+          /* Adjust border radius */
+          .rounded-2xl {
+            border-radius: 0.75rem !important;
+          }
+
+          /* Adjust font size */
+          .text-xl {
+            font-size: 1rem !important;
+          }
+
+          /* Adjust primary button padding */
+          .btn-primary {
+            padding: 0.75rem 1.5rem !important;
+          }
+
+          /* Adjust spacing */
+          .flex.space-x-2 {
+            gap: 0.5rem;
+          }
+
+          /* Adjust padding */
+          .px-4 {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+          }
+
+          .py-2 {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+          }
+        }
+
+        /* Glassmorphism effect for elements */
+        .glass-effect {
+          backdrop-filter: blur(20px);
+          background: var(--glass-bg);
+          border: 1px solid var(--glass-border);
+        }
+
+        /* Dark glassmorphism effect */
+        .glass-dark {
+          backdrop-filter: blur(20px);
+          background: rgba(15, 23, 42, 0.95);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Premium card styling with hover effects */
+        .premium-card {
+          background: white;
+          border: 1px solid #e2e8f0;
+          box-shadow: var(--shadow-md);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border-radius: 16px;
+        }
+
+        .premium-card:hover {
+          transform: translateY(-4px);
+          /* Lift effect */
+          box-shadow: var(--shadow-xl);
+          /* Larger shadow on hover */
+          border-color: #0d9488;
+          /* Accent border on hover */
+        }
+
+        /* Navigation item styling with hover and active states */
+        .nav-item {
+          position: relative;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          border-radius: 12px;
+          margin: 4px 0;
+        }
+
+        .nav-item::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 4px;
+          height: 0;
+          /* Hidden by default */
+          background: var(--accent-gradient);
+          border-radius: 0 4px 4px 0;
+          transition: height 0.2s ease;
+        }
+
+        .nav-item:hover::before {
+          height: 60%;
+          /* Show indicator on hover */
+        }
+
+        .nav-item:hover {
+          background: linear-gradient(90deg, rgba(13, 148, 136, 0.1) 0%, transparent 50%);
+          /* Light background on hover */
+          transform: translateX(8px);
+          /* Slide effect on hover */
+        }
+
+        .nav-item.active {
+          background: linear-gradient(90deg, rgba(13, 148, 136, 0.1) 0%, white 100%);
+          color: #0d9488;
+          border: 1px solid rgba(13, 148, 136, 0.2);
+          transform: translateX(8px);
+        }
+
+        .nav-item.active::before {
+          height: 60%;
+          background: var(--accent-gradient);
+        }
+
+        .nav-item.active:hover {
+          transform: translateX(8px);
+        }
+
+        /* Primary button styling with hover and shimmer effects */
+        .btn-primary {
+          background: var(--accent-gradient);
+          box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+          /* For shimmer effect */
+        }
+
+        .btn-primary::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          /* Start off-screen */
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+          transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+          left: 100%;
+          /* Slide across button */
+        }
+
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
+        }
+
+        /* Form input styling with focus effects */
+        .form-input {
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 2px solid #e2e8f0;
+          background: white;
+        }
+
+        .form-input:focus {
+          border-color: #0d9488;
+          box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+          background: #fefefe;
+        }
+
+        /* Section fade-in animation */
+        .section {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section:not(.hidden) {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .fade-in {
+          animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Fade effect for table content */
+        .table-fade-out {
+          opacity: 0;
+          transition: opacity 0.3s ease-out;
+        }
+
+        .table-fade-in {
+          opacity: 1;
+          transition: opacity 0.3s ease-in;
+        }
+
+        /* Status indicator shimmer effect */
+        .status-indicator {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .status-indicator::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+          0% {
+            left: -100%;
+          }
+
+          100% {
+            left: 100%;
+          }
+        }
+
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, #0d9488, #06b6d4);
+          border-radius: 3px;
+        }
+
+        /* Dashboard card styling with hover effects */
+        .dashboard-card {
+          background: white;
+          border: 1px solid #e2e8f0;
+          box-shadow: var(--shadow-sm);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .dashboard-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: var(--accent-gradient);
+          transform: scaleX(0);
+          /* Hidden by default */
+          transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover::before {
+          transform: scaleX(1);
+          /* Expand on hover */
+        }
+
+        .dashboard-card:hover {
+          transform: translateY(-8px);
+          box-shadow: var(--shadow-xl);
+        }
+
+        /* Rotate utility class */
+        .rotate-180 {
+          transform: rotate(180deg);
+        }
+    </style>
 </head>
 
 <body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 font-medium">
-  <div class="desktop-grid">
+<div class="desktop-grid">
     <!-- Header Section -->
     <header class="desktop-header">
-      <div class="px-8 py-6 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center shadow-lg">
-            <i class="fas fa-comments text-white text-xl"></i>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent ">
-              Feedback System
-            </h1>
-            <p class="text-sm text-slate-500 font-medium">Admin Dashboard</p>
-          </div>
-        </div>
-
-        <div class="flex items-center space-x-3">
-          <div class="flex items-center space-x-3 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200">
-
-            <div
-              class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-              <a onclick="showSection('profile')" class="fas fa-user  text-sm"> </a>
+        <div class="px-8 py-6 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-comments text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent ">
+                        Feedback System
+                    </h1>
+                    <p class="text-sm text-slate-500 font-medium">Admin Dashboard</p>
+                </div>
             </div>
 
-            <div class="text-sm hidden sm:block">
-              <div class="font-semibold text-slate-800">{{user.username}}</div>
-              <div class="text-slate-500">ID: {{user.user_id}}</div>
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-3 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200">
+
+                    <div
+                            class="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+                        <a onclick="showSection('profile')" class="fas fa-user  text-sm"> </a>
+                    </div>
+
+                    <div class="text-sm hidden sm:block">
+                        <div class="font-semibold text-slate-800">{{user.username}}</div>
+                        <div class="text-slate-500">ID: {{user.user_id}}</div>
+                    </div>
+                </div>
+                <button id="hamburger-button" onclick="toggleMobileMenu()"
+                        class="md:hidden text-slate-700 hover:text-teal-600 p-2">
+                    <i id="hamburger-icon" class="fas fa-bars text-xl"></i>
+                </button>
             </div>
-          </div>
-          <button id="hamburger-button" onclick="toggleMobileMenu()" class="md:hidden text-slate-700 hover:text-teal-600 p-2">
-            <i id="hamburger-icon" class="fas fa-bars text-xl"></i>
-          </button>
         </div>
-      </div>
     </header>
 
     <!-- Sidebar Navigation -->
     <aside id="mobile-sidebar" class="desktop-sidebar custom-scrollbar">
-      <div class="p-6">
-        <nav class="space-y-2">
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Main Menu</div>
+        <div class="p-6">
+            <nav class="space-y-2">
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Main Menu</div>
 
-          <a data-target="home" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
-            <i class="fas fa-home w-5 text-lg"></i>
-            <span class="font-semibold">All Feedback</span>
-          </a>
+                <a data-target="home"
+                   class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+                    <i class="fas fa-home w-5 text-lg"></i>
+                    <span class="font-semibold">All Feedback</span>
+                </a>
 
-          <a data-target="reports" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
-            <i class="fas fa-chart-pie w-5 text-lg"></i>
-            <span class="font-semibold">Reports</span>
-          </a>
+                <a data-target="reports"
+                   class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+                    <i class="fas fa-chart-pie w-5 text-lg"></i>
+                    <span class="font-semibold">Reports</span>
+                </a>
 
-          <!-- User Management Menu -->
-          <div>
-            <div data-submenu-target="userManagementSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-users w-5 text-lg"></i>
-                <span class="font-semibold">User Management</span>
-              </div>
-              <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
-            </div>
-            <ul id="userManagementSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
-              <li data-target="addAdmin" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
-                <i class="fas fa-user-plus text-sm mr-3"></i>Add Admin
-              </li>
-              <li data-target="viewUsers" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all" onclick="showSection('viewUsers')">
-                <i class="fas fa-eye text-sm mr-3"></i>View Requests
-              </li>
-              <li data-target="deniedRequests" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all" onclick="showSection('deniedRequests')">
-                <i class="fas fa-user-times text-sm mr-3"></i>Denied Requests
-              </li>
-              <li data-target="viewAdmins" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all" onclick="showSection('viewAdmins')">
-                <i class="fas fa-user-shield text-sm mr-3"></i>View Admins
-              </li>
-            </ul>
-          </div>
-          <!-- End User Management Menu -->
+                <!-- User Management Menu -->
+                <div>
+                    <div data-submenu-target="userManagementSubmenuSidebar"
+                         class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-users w-5 text-lg"></i>
+                            <span class="font-semibold">User Management</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                    </div>
+                    <ul id="userManagementSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
+                        <li data-target="addAdmin"
+                            class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
+                            <i class="fas fa-user-plus text-sm mr-3"></i>Add Admin
+                        </li>
+                        <li data-target="viewUsers"
+                            class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all"
+                            onclick="showSection('viewUsers')">
+                            <i class="fas fa-eye text-sm mr-3"></i>View Requests
+                        </li>
+                        <li data-target="deniedRequests"
+                            class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all"
+                            onclick="showSection('deniedRequests')">
+                            <i class="fas fa-user-times text-sm mr-3"></i>Denied Requests
+                        </li>
+                        <li data-target="viewAdmins"
+                            class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all"
+                            onclick="showSection('viewAdmins')">
+                            <i class="fas fa-user-shield text-sm mr-3"></i>View Admins
+                        </li>
+                    </ul>
+                </div>
+                <!-- End User Management Menu -->
 
-          <!-- Category Management -->
-          <div>
-            <div data-submenu-target="categoryManagementSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-folder w-5 text-lg"></i>
-                <span class="font-semibold">Category Management</span>
-              </div>
-              <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
-            </div>
-            <ul id="categoryManagementSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
-              <li data-target="addCategory" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
-                <i class="fas fa-folder-plus text-sm mr-3"></i>Add Category
-              </li>
-              <li data-target="viewCategory" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
-                <i class="fas fa-list text-sm mr-3"></i>View Categories
-              </li>
-            </ul>
-          </div>
+                <!-- Category Management -->
+                <div>
+                    <div data-submenu-target="categoryManagementSubmenuSidebar"
+                         class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-folder w-5 text-lg"></i>
+                            <span class="font-semibold">Category Management</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                    </div>
+                    <ul id="categoryManagementSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
+                        <li data-target="addCategory"
+                            class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
+                            <i class="fas fa-folder-plus text-sm mr-3"></i>Add Category
+                        </li>
+                        <li data-target="viewCategory"
+                            class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
+                            <i class="fas fa-list text-sm mr-3"></i>View Categories
+                        </li>
+                    </ul>
+                </div>
 
-          <a data-target="profile" class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
-            <i class="fas fa-user-circle w-5 text-lg"></i>
-            <span class="font-semibold">Profile Settings</span>
-          </a>
+                <a data-target="profile"
+                   class="nav-item flex items-center space-x-3 p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+                    <i class="fas fa-user-circle w-5 text-lg"></i>
+                    <span class="font-semibold">Profile Settings</span>
+                </a>
 
-          <div>
-            <div data-submenu-target="settingsSubmenuSidebar" class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-cog w-5 text-lg"></i>
-                <span class="font-semibold">System Settings</span>
-              </div>
-              <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
-            </div>
-            <ul id="settingsSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
-              <li data-target="changePassword" class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
-                <i class="fas fa-shield-alt text-sm mr-3"></i>Change Password
-              </li>
-            </ul>
-          </div>
+                <div>
+                    <div data-submenu-target="settingsSubmenuSidebar"
+                         class="nav-item flex items-center justify-between p-4 cursor-pointer text-slate-700 hover:text-teal-600">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-cog w-5 text-lg"></i>
+                            <span class="font-semibold">System Settings</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                    </div>
+                    <ul id="settingsSubmenuSidebar" class="ml-12 mt-2 hidden space-y-2">
+                        <li data-target="changePassword"
+                            class="nav-item cursor-pointer p-3 rounded-lg text-slate-600 hover:text-teal-600 hover:bg-teal-50 transition-all">
+                            <i class="fas fa-shield-alt text-sm mr-3"></i>Change Password
+                        </li>
+                    </ul>
+                </div>
 
-          <div class="pt-8 border-t border-slate-200 mt-8">
-            <button class="nav-item signOutBtn flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
-              <i class="fas fa-sign-out-alt w-5 text-lg"></i>
-              <span class="font-semibold">Sign Out</span>
-            </button>
-          </div>
-        </nav>
-      </div>
+                <div class="pt-8 border-t border-slate-200 mt-8">
+                    <button class="nav-item signOutBtn flex items-center space-x-3 p-4 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
+                        <i class="fas fa-sign-out-alt w-5 text-lg"></i>
+                        <span class="font-semibold">Sign Out</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
     </aside>
 
     <!-- Main Content Area -->
     <main class="desktop-main custom-scrollbar">
 
-      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-          <div id="flash-messages" class="mx-auto max-w-4xl space-y-2 my-4">
+        <div id="flash-messages" class="mx-auto max-w-4xl space-y-2 my-4">
             {% for category, msg in messages %}
-              <div
-                class="p-4 rounded {{
+            <div
+                    class="p-4 rounded {{
                   'bg-green-100 text-green-800' if category=='success' else
                   'bg-yellow-100 text-yellow-800' if category=='warning' else
                   'bg-red-100 text-red-800' if category=='error' else
                   'bg-blue-100 text-blue-800'
                 }}">
                 {{ msg }}
-              </div>
+            </div>
             {% endfor %}
-          </div>
+        </div>
         {% endif %}
-      {% endwith %}
+        {% endwith %}
 
-      <div class="max-w-6xl mx-auto space-y-8">
-        <!-- Home Section: Dashboard Overview and Feedback Table -->
-        <section id="home" class="section fade-in">
-          <div class="grid grid-cols-12 gap-8">
+        <div class="max-w-6xl mx-auto space-y-8">
+            <!-- Home Section: Dashboard Overview and Feedback Table -->
+            <section id="home" class="section fade-in">
+                <div class="grid grid-cols-12 gap-8">
 
-            <!-- Feedback Table Section -->
-            <section id="allFeedback" class="col-span-12 block premium-card">
-              <div class="px-4 max-w-6x1 mx-auto">
-                <h2 class="text-xl md:text-2xl font-bold mb-4 text-center pt-5">Feedbacks</h2>
-                <!-- Insert this inside your <section id="home">, before the table -->
-                <div class="grid grid-cols-12 gap-6 mb-8">
-                  <!-- Total -->
-                  <div onclick="filterFeedback('all')" role="button" tabindex="0"
-                       class="col-span-12 sm:col-span-3 cursor-pointer">
-                    <div class="text-center p-4 bg-gradient-to-br from-indigo-50 to-teal-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-blue-600" data-count="total">{{ feedbacks|length }}</div>
-                      <div class="text-sm text-blue-700 font-medium">All Feedback</div>
-                    </div>
-                  </div>
+                    <!-- Feedback Table Section -->
+                    <section id="allFeedback" class="col-span-12 block premium-card">
+                        <div class="px-4 max-w-6x1 mx-auto">
+                            <h2 class="text-xl md:text-2xl font-bold mb-4 text-center pt-5">Feedbacks</h2>
+                            <!-- Insert this inside your <section id="home">, before the table -->
+                            <div class="grid grid-cols-12 gap-6 mb-8">
+                                <!-- Total -->
+                                <div onclick="filterFeedback('all')" role="button" tabindex="0"
+                                     class="col-span-12 sm:col-span-3 cursor-pointer">
+                                    <div class="text-center p-4 bg-gradient-to-br from-indigo-50 to-teal-100 rounded-xl hover:shadow-lg transition">
+                                        <div class="text-2xl font-bold text-blue-600" data-count="total">{{
+                                            feedbacks|length }}
+                                        </div>
+                                        <div class="text-sm text-blue-700 font-medium">All Feedback</div>
+                                    </div>
+                                </div>
 
-                  <!-- Pending -->
-                  <div onclick="filterFeedback('pending')" role="button" tabindex="0"
-                       class="col-span-12 sm:col-span-3 cursor-pointer">
-                    <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-yellow-600" data-count="pending">
-                        {{ feedbacks | selectattr('status','equalto',1) | list | length }}
-                      </div>
-                      <div class="text-sm text-yellow-700 font-medium">Pending</div>
-                    </div>
-                  </div>
+                                <!-- Pending -->
+                                <div onclick="filterFeedback('pending')" role="button" tabindex="0"
+                                     class="col-span-12 sm:col-span-3 cursor-pointer">
+                                    <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl hover:shadow-lg transition">
+                                        <div class="text-2xl font-bold text-yellow-600" data-count="pending">
+                                            {{ feedbacks | selectattr('status','equalto',1) | list | length }}
+                                        </div>
+                                        <div class="text-sm text-yellow-700 font-medium">Pending</div>
+                                    </div>
+                                </div>
 
-                  <!-- In Progress -->
-                  <div onclick="filterFeedback('inprogress')" role="button" tabindex="0"
-                       class="col-span-12 sm:col-span-3 cursor-pointer">
-                    <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-purple-600" data-count="inprogress">
-                        {{ feedbacks | selectattr('status','equalto',2) | list | length }}
-                      </div>
-                      <div class="text-sm text-purple-700 font-medium">In Progress</div>
-                    </div>
-                  </div>
+                                <!-- In Progress -->
+                                <div onclick="filterFeedback('inprogress')" role="button" tabindex="0"
+                                     class="col-span-12 sm:col-span-3 cursor-pointer">
+                                    <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:shadow-lg transition">
+                                        <div class="text-2xl font-bold text-purple-600" data-count="inprogress">
+                                            {{ feedbacks | selectattr('status','equalto',2) | list | length }}
+                                        </div>
+                                        <div class="text-sm text-purple-700 font-medium">In Progress</div>
+                                    </div>
+                                </div>
 
-                  <!-- Solved -->
-                  <div onclick="filterFeedback('resolved')" role="button" tabindex="0"
-                       class="col-span-12 sm:col-span-3 cursor-pointer">
-                    <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-lg transition">
-                      <div class="text-2xl font-bold text-green-600" data-count="solved">
-                        {{ feedbacks | selectattr('status','equalto',3) | list | length }}
-                      </div>
-                      <div class="text-sm text-green-700 font-medium">Solved</div>
-                    </div>
-                  </div>
+                                <!-- Solved -->
+                                <div onclick="filterFeedback('resolved')" role="button" tabindex="0"
+                                     class="col-span-12 sm:col-span-3 cursor-pointer">
+                                    <div class="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:shadow-lg transition">
+                                        <div class="text-2xl font-bold text-green-600" data-count="solved">
+                                            {{ feedbacks | selectattr('status','equalto',3) | list | length }}
+                                        </div>
+                                        <div class="text-sm text-green-700 font-medium">Solved</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 w-full max-w-6xl">
+                            <div class="overflow-x-auto rounded-lg shadow border border-gray-200">
+                                <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
+                                    <table class="min-w-full bg-white">
+                                        <thead class="sticky top-0 z-10 bg-[#0d9488] text-white">
+                                        <tr>
+                                            <th class="py-3 px-4 text-left">Title</th>
+                                            <th class="py-3 px-4 text-left">Submitted By</th>
+                                            <th class="py-3 px-4 text-left">Category</th>
+                                            <th class="py-3 px-4 text-left">Status</th>
+                                            <th class="py-3 px-4 text-left">Date</th>
+                                            <th class="py-3 px-4 text-left">Message</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="feedbackTableBody" class="text-gray-700">
+                                        {% for fb in feedbacks %}
+                                        <tr
+                                                data-url="{{ url_for('admin.feedback_detail', f_id=fb.f_id) }}"
+                                                data-fid="{{ fb.f_id }}"
+                                                data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
+                                                class="cursor-pointer hover:bg-slate-100 transition">
+                                            <td class="py-3 px-4">{{ fb.f_title }}</td>
+                                            <td class="py-3 px-4">{{ fb.submitter_name }}</td>
+                                            <td class="py-3 px-4">{{ fb.category_name }}</td>
+                                            <td class="py-3 px-4" onclick="event.stopPropagation()">
+                                                <form method="POST" action="{{ url_for('admin.update_status') }}"
+                                                      class="ajax-form" onsubmit="event.stopPropagation()">
+                                                    <input type="hidden" name="f_id" value="{{ fb.f_id }}">
+                                                    <!-- remove inline onchange: JS change handler will handle sending -->
+                                                    <select name="status"
+                                                            class="border rounded px-2 py-1 font-medium {% if fb.status == 1 %}bg-yellow-100 text-yellow-800{% elif fb.status == 2 %}bg-blue-100 text-blue-800{% elif fb.status == 3 %}bg-green-100 text-green-800{% endif %}">
+                                                        <option value="1" {% if fb.status== 1 %}selected{% endif %}{% if
+                                                                fb.status> 1 %}disabled{% endif %}>Pending
+                                                        </option>
+                                                        <option value="2" {% if fb.status== 2 %}selected{% endif %}{% if
+                                                                fb.status> 2 %}disabled{% endif %}>In Progress
+                                                        </option>
+                                                        <option value="3" {% if fb.status== 3 %}selected{% endif %}>
+                                                            Solved
+                                                        </option>
+                                                    </select>
+                                                </form>
+                                            </td>
+                                            <td class="py-3 px-4">{{ fb.f_date }}</td>
+                                            <td class="py-3 px-4 truncate max-w-sm">{{ fb.f_body[:60] }}{% if
+                                                fb.f_body|length > 60 %}...{% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <br><br>
                 </div>
-              </div>
-              <div class="px-4 w-full max-w-6xl">
-                <div class="overflow-x-auto rounded-lg shadow border border-gray-200">
-                  <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
-                    <table class="min-w-full bg-white">
-                      <thead class="sticky top-0 z-10 bg-[#0d9488] text-white">
-                        <tr>
-                          <th class="py-3 px-4 text-left">Title</th>
-                          <th class="py-3 px-4 text-left">Submitted By</th>
-                          <th class="py-3 px-4 text-left">Category</th>
-                          <th class="py-3 px-4 text-left">Status</th>
-                          <th class="py-3 px-4 text-left">Date</th>
-                          <th class="py-3 px-4 text-left">Message</th>
-                        </tr>
-                      </thead>
-                      <tbody id="feedbackTableBody" class="text-gray-700">
-                        {% for fb in feedbacks %}
-                        <tr
-                          data-url="{{ url_for('admin.feedback_detail', f_id=fb.f_id) }}"
-                          data-fid="{{ fb.f_id }}"
-                          data-status="{% if fb.status == 1 %}pending{% elif fb.status == 2 %}inprogress{% elif fb.status == 3 %}solved{% endif %}"
-                          class="cursor-pointer hover:bg-slate-100 transition">
-                          <td class="py-3 px-4">{{ fb.f_title }}</td>
-                          <td class="py-3 px-4">{{ fb.submitter_name }}</td>
-                          <td class="py-3 px-4">{{ fb.category_name }}</td>
-                          <td class="py-3 px-4" onclick="event.stopPropagation()">
-                            <form method="POST" action="{{ url_for('admin.update_status') }}" class="ajax-form" onsubmit="event.stopPropagation()">
-                              <input type="hidden" name="f_id" value="{{ fb.f_id }}">
-                              <!-- remove inline onchange: JS change handler will handle sending -->
-                              <select name="status" class="border rounded px-2 py-1 font-medium {% if fb.status == 1 %}bg-yellow-100 text-yellow-800{% elif fb.status == 2 %}bg-blue-100 text-blue-800{% elif fb.status == 3 %}bg-green-100 text-green-800{% endif %}">
-                                <option value="1" {% if fb.status == 1 %}selected{% endif %}{% if fb.status > 1 %}disabled{% endif %}>Pending</option>
-                                <option value="2" {% if fb.status == 2 %}selected{% endif %}{% if fb.status > 2 %}disabled{% endif %}>In Progress</option>
-                                <option value="3" {% if fb.status == 3 %}selected{% endif %}>Solved</option>
-                              </select>
-                            </form>
-                          </td>
-                          <td class="py-3 px-4">{{ fb.f_date }}</td>
-                          <td class="py-3 px-4 truncate max-w-sm">{{ fb.f_body[:60] }}{% if fb.f_body|length > 60 %}...{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
             </section>
-            <br><br>
-          </div>
-        </section>
 
-        <!-- Reports Section -->
-        <section id="reports" class="section">
-          <div class="premium-card p-8 max-w-4xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Feedback Reports</h2>
+            <!-- Reports Section -->
+            <section id="reports" class="section">
+                <div class="premium-card p-8 max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Feedback Reports</h2>
 
-            <div class="flex justify-center space-x-2 mb-4">
-              {% set current = period %}
-              {% for label, key in [('Weekly','week'),('Monthly','month'),('Yearly','year'),('All','all')] %}
-                <a
-                  href="{{ url_for('views.admin_dashboard', section='reports', period=key) }}#reports"
-                  class="period-link px-3 py-1 rounded-full font-medium transition
+                    <div class="flex justify-center space-x-2 mb-4">
+                        {% set current = period %}
+                        {% for label, key in [('Weekly','week'),('Monthly','month'),('Yearly','year'),('All','all')] %}
+                        <a
+                                href="{{ url_for('views.admin_dashboard', section='reports', period=key) }}#reports"
+                                class="period-link px-3 py-1 rounded-full font-medium transition
                          {{ 'bg-slate-800 text-white' if current==key else 'bg-gray-200 text-gray-800 hover:bg-gray-300' }}"
-                  data-period="{{ key }}">
-                  {{ label }}
-                </a>
-              {% endfor %}
-            </div>
+                                data-period="{{ key }}">
+                            {{ label }}
+                        </a>
+                        {% endfor %}
+                    </div>
 
-            <!-- Chart image served by Flask -->
-            <div class="flex justify-center">
-              <img id="category-chart-img" src="{{ url_for('admin.category_report_chart', period=period) }}" alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
-            </div>
-          </div>
-        </section>
+                    <!-- Chart image served by Flask -->
+                    <div class="flex justify-center">
+                        <img id="category-chart-img" src="{{ url_for('admin.category_report_chart', period=period) }}"
+                             alt="Feedback Category Chart" class="w-full h-auto rounded shadow-md">
+                    </div>
+                </div>
+            </section>
 
-        <section id="addCategory" class="section {% if section != 'addCategory' %}hidden{% endif %}">
-          <div class="premium-card p-8 max-w-xl mx-auto bg-white shadow-lg rounded-lg">
-            <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">
-              Add New Category
-            </h2>
-            <form method="POST" action="{{ url_for('admin.add_category') }}" class="space-y-4 ajax-form">
-              <div>
-                <label for="category" class="block text-sm font-medium text-gray-700">Category Name</label>
-                <input type="text" name="category" id="category" required
-                       class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              </div>
-              <div class="flex justify-end">
-                <button type="submit"
-                        class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                  Add Category
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
+            <section id="addCategory" class="section {% if section != 'addCategory' %}hidden{% endif %}">
+                <div class="premium-card p-8 max-w-xl mx-auto bg-white shadow-lg rounded-lg">
+                    <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">
+                        Add New Category
+                    </h2>
+                    <form method="POST" action="{{ url_for('admin.add_category') }}" class="space-y-4 ajax-form">
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700">Category Name</label>
+                            <input type="text" name="category" id="category" required
+                                   class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                    class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                                Add Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
 
-        <section id="viewCategory" class="section {% if section != 'viewCategory' %}hidden{% endif %}">
-          <div class="premium-card p-8 max-w-3xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">All Categories</h2>
+            <section id="viewCategory" class="section {% if section != 'viewCategory' %}hidden{% endif %}">
+                <div class="premium-card p-8 max-w-3xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">All Categories</h2>
 
-            <div class="overflow-x-auto">
-              <table class="w-full bg-white border border-gray-300 shadow rounded-lg">
-                <thead class="bg-indigo-900 text-white">
-                  <tr>
-                    <th class="py-3 px-4 text-left">#</th>
-                    <th class="py-3 px-4 text-left">Category Name</th>
-                  </tr>
-                </thead>
-                <tbody class="text-gray-700">
-                  {% for cat in categories %}
-                  <tr class="border-t border-gray-200">
-                    <td class="py-3 px-4">{{ loop.index }}</td>
-                    <td class="py-3 px-4">{{ cat.category }}</td>
-                  </tr>
-                  {% else %}
-                  <tr>
-                    <td colspan="2" class="py-4 text-center text-gray-500">No categories found.</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-
-
-        <!-- User Management Sections -->
-        <!-- ─── Add Admin ─── -->
-        <section id="addAdmin" class="section hidden">
-          <div class="premium-card p-8 max-w-xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Add New Admin</h2>
-            <form id="addAdminForm"
-                  method="POST"
-                  action="{{ url_for('admin.add_admin') }}"
-                  class="space-y-5 ajax-form">
-              <div>
-                <label for="newAdminEmail" class="block text-sm font-semibold text-slate-700 mb-2">
-                  Email
-                </label>
-                <input type="email"
-                       name="email"
-                       id="newAdminEmail"
-                       class="form-input w-full p-3 rounded-lg"
-                       placeholder="Enter admin's email address"
-                       required>
-              </div>
-              <div class="flex justify-end space-x-4 pt-4 border-t border-slate-200">
-                <button type="button" onclick="showSection('home')"
-                  class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                  Cancel
-                </button>
-                <button type="submit"
-                        class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                  <i class="fas fa-user-plus mr-2"></i>Add Admin
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <!-- ─── pending Admin Requests ─── -->
-        <section id="viewUsers" class="section {% if section != 'viewUsers' %}hidden{% endif %}">
-          <div class="premium-card p-8 max-w-5xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
-              Pending Admin Requests
-            </h2>
-            <div class="overflow-x-auto w-full">
-              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
-                <thead class="bg-indigo-900 text-white">
-                  <tr>
-                    <th class="py-3 px-4 text-left">User ID</th>
-                    <th class="py-3 px-4 text-left">Username</th>
-                    <th class="py-3 px-4 text-left">Current Role</th>
-                    <th class="py-3 px-4 text-left">Requested Role</th>
-                    <th class="py-3 px-4 text-left">Requested At</th>
-                    <th class="py-3 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="pendingRequestsBody" class="text-gray-700">
-                  {% for req in admin_requests %}
-                  <tr class="border-t border-gray-200" data-userid="{{ req.user_id }}">
-                    <td class="py-3 px-4">{{ req.user_id }}</td>
-                    <td class="py-3 px-4">{{ req.username }}</td>
-                    <td class="py-3 px-4">
-                      {{ 'Admin' if req.current_role_id == 1 else 'User' }}
-                    </td>
-                    <td class="py-3 px-4">
-                      {{ 'Admin' if req.requested_role == 1 else 'User' }}
-                    </td>
-                    <td class="py-3 px-4">
-                      {{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}
-                    </td>
-                    <td class="py-3 px-4 flex flex-wrap gap-2">
-                      <!-- Approve Form -->
-                      <form method="POST" action="{{ url_for('admin.approve_admin_request') }}" class="ajax-admin-request" data-userid="{{ req.user_id }}">
-                        <input type="hidden" name="user_id"     value="{{ req.user_id }}">
-                        <input type="hidden" name="new_role_id" value="{{ req.requested_role }}">
-                        <button type="submit"
-                                class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
-                          Accept
-                        </button>
-                      </form>
-
-                      <!-- Deny Form -->
-                      <form method="POST" action="{{ url_for('admin.deny_admin_request') }}" class="ajax-admin-request" data-userid="{{ req.user_id }}">
-                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
-                        <button type="submit"
-                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
-                          Deny
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                  {% else %}
-                  <tr>
-                    <td colspan="6" class="py-4 text-center text-gray-500">
-                      No pending requests.
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+                    <div class="overflow-x-auto">
+                        <table class="w-full bg-white border border-gray-300 shadow rounded-lg">
+                            <thead class="bg-indigo-900 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left">#</th>
+                                <th class="py-3 px-4 text-left">Category Name</th>
+                            </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                            {% for cat in categories %}
+                            <tr class="border-t border-gray-200">
+                                <td class="py-3 px-4">{{ loop.index }}</td>
+                                <td class="py-3 px-4">{{ cat.category }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" class="py-4 text-center text-gray-500">No categories found.</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
 
-        <!-- ─── Denied Admin Requests ─── -->
-        <section id="deniedRequests" class="section {% if section!='deniedRequests' %}hidden{% endif %}">
-          <div class="premium-card p-8 max-w-5xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
-              Denied Admin Requests
-            </h2>
-            <div class="overflow-x-auto w-full">
-              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
-                <thead class="bg-indigo-900 text-white">
-                  <tr>
-                    <th class="py-3 px-4 text-left">User ID</th>
-                    <th class="py-3 px-4 text-left">Username</th>
-                    <th class="py-3 px-4 text-left">Current Role</th>
-                    <th class="py-3 px-4 text-left">Requested Role</th>
-                    <th class="py-3 px-4 text-left">Requested At</th>
-                    <th class="py-3 px-4 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="deniedRequestsBody" class="text-gray-700">
-                  {% for req in denied_requests %}
-                  <tr class="border-t border-gray-200" data-userid="{{ req.user_id }}">
-                    <td class="py-3 px-4">{{ req.user_id }}</td>
-                    <td class="py-3 px-4">{{ req.username }}</td>
-                    <td class="py-3 px-4">{{ 'Admin' if req.current_role_id==1 else 'User' }}</td>
-                    <td class="py-3 px-4">{{ 'Admin' if req.requested_role==1     else 'User' }}</td>
-                    <td class="py-3 px-4">{{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td class="py-3 px-4 flex gap-2">
-                      <form method="POST" action="{{ url_for('admin.reopen_admin_request') }}" class="ajax-admin-request" data-userid="{{ req.user_id }}">
-                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
-                        <button type="submit"
-                                class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
-                          Re‑open
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                  {% else %}
-                  <tr>
-                    <td colspan="6" class="py-4 text-center text-gray-500">No denied requests.</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+            <!-- User Management Sections -->
+            <!-- ─── Add Admin ─── -->
+            <section id="addAdmin" class="section hidden">
+                <div class="premium-card p-8 max-w-xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">Add New Admin</h2>
+                    <form id="addAdminForm"
+                          method="POST"
+                          action="{{ url_for('admin.add_admin') }}"
+                          class="space-y-5 ajax-form">
+                        <div>
+                            <label for="newAdminEmail" class="block text-sm font-semibold text-slate-700 mb-2">
+                                Email
+                            </label>
+                            <input type="email"
+                                   name="email"
+                                   id="newAdminEmail"
+                                   class="form-input w-full p-3 rounded-lg"
+                                   placeholder="Enter admin's email address"
+                                   required>
+                        </div>
+                        <div class="flex justify-end space-x-4 pt-4 border-t border-slate-200">
+                            <button type="button" onclick="showSection('home')"
+                                    class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                                <i class="fas fa-user-plus mr-2"></i>Add Admin
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
 
-        <!-- ─── View Admin Users ─── -->
-        <section id="viewAdmins" class="section {% if section!='viewAdmins' %}hidden{% endif %}">
-          <div class="premium-card p-8 max-w-5xl mx-auto">
-            <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
-              Admin Users
-            </h2>
-            <div class="overflow-x-auto w-full">
-              <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
-                <thead class="bg-indigo-900 text-white">
-                  <tr>
-                    <th class="py-3 px-4 text-left">User ID</th>
-                    <th class="py-3 px-4 text-left">Full Name</th>
-                    <th class="py-3 px-4 text-left">Username</th>
-                    <th class="py-3 px-4 text-left">Email</th>
-                  </tr>
-                </thead>
-                <tbody class="text-gray-700">
-                  {% for admin in admin_list %}
-                  <tr class="border-t border-gray-200">
-                    <td class="py-3 px-4">{{ admin.user_id }}</td>
-                    <td class="py-3 px-4">{{ admin.full_name }}</td>
-                    <td class="py-3 px-4">{{ admin.username }}</td>
-                    <td class="py-3 px-4">{{ admin.email }}</td>
-                  </tr>
-                  {% else %}
-                  <tr>
-                    <td colspan="4" class="py-4 text-center text-gray-500">
-                      No admins found.
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-        <!-- End User Management Sections -->
+            <!-- ─── pending Admin Requests ─── -->
+            <section id="viewUsers" class="section {% if section != 'viewUsers' %}hidden{% endif %}">
+                <div class="premium-card p-8 max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+                        Pending Admin Requests
+                    </h2>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                            <thead class="bg-indigo-900 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left">User ID</th>
+                                <th class="py-3 px-4 text-left">Username</th>
+                                <th class="py-3 px-4 text-left">Current Role</th>
+                                <th class="py-3 px-4 text-left">Requested Role</th>
+                                <th class="py-3 px-4 text-left">Requested At</th>
+                                <th class="py-3 px-4 text-left">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="pendingRequestsBody" class="text-gray-700">
+                            {% for req in admin_requests %}
+                            <tr class="border-t border-gray-200" data-userid="{{ req.user_id }}">
+                                <td class="py-3 px-4">{{ req.user_id }}</td>
+                                <td class="py-3 px-4">{{ req.username }}</td>
+                                <td class="py-3 px-4">
+                                    {{ 'Admin' if req.current_role_id == 1 else 'User' }}
+                                </td>
+                                <td class="py-3 px-4">
+                                    {{ 'Admin' if req.requested_role == 1 else 'User' }}
+                                </td>
+                                <td class="py-3 px-4">
+                                    {{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}
+                                </td>
+                                <td class="py-3 px-4 flex flex-wrap gap-2">
+                                    <!-- Approve Form -->
+                                    <form method="POST" action="{{ url_for('admin.approve_admin_request') }}"
+                                          class="ajax-admin-request" data-userid="{{ req.user_id }}">
+                                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
+                                        <input type="hidden" name="new_role_id" value="{{ req.requested_role }}">
+                                        <button type="submit"
+                                                class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+                                            Accept
+                                        </button>
+                                    </form>
 
-        <!--detail of feedback-->
-        <section id="feedbackDetail" class="section {% if section != 'feedbackDetail' %}hidden{% endif %}">
-          {% if section == 'feedbackDetail' and feedback %}
-          <div class="premium-card p-8 max-w-4xl mx-auto my-10 w-full">
-            <div class="flex items-center mb-8">
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
-                <i class="fas fa-info-circle text-white text-xl"></i>
-              </div>
-              <div>
-                <h2 class="text-3xl font-bold text-slate-800">Feedback Details</h2>
-                <p class="text-slate-600 mt-1">A deep dive into your submitted feedback</p>
-              </div>
-            </div>
+                                    <!-- Deny Form -->
+                                    <form method="POST" action="{{ url_for('admin.deny_admin_request') }}"
+                                          class="ajax-admin-request" data-userid="{{ req.user_id }}">
+                                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
+                                        <button type="submit"
+                                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                                            Deny
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="py-4 text-center text-gray-500">
+                                    No pending requests.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h3 class="font-semibold text-slate-700 mb-1">Title</h3>
-                <p class="text-slate-600">{{ feedback.title }}</p>
-              </div>
-              <div>
-                <h3 class="font-semibold text-slate-700 mb-1">Category</h3>
-                <p class="text-slate-600">{{ feedback.category }}</p>
-              </div>
-              <div>
-                <h3 class="font-semibold text-slate-700 mb-1">Status</h3>
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {% if feedback.status == 1 %}bg-yellow-100 text-yellow-800{% elif feedback.status == 2 %}bg-blue-100 text-blue-800{% elif feedback.status == 3 %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+
+            <!-- ─── Denied Admin Requests ─── -->
+            <section id="deniedRequests" class="section {% if section!='deniedRequests' %}hidden{% endif %}">
+                <div class="premium-card p-8 max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+                        Denied Admin Requests
+                    </h2>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                            <thead class="bg-indigo-900 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left">User ID</th>
+                                <th class="py-3 px-4 text-left">Username</th>
+                                <th class="py-3 px-4 text-left">Current Role</th>
+                                <th class="py-3 px-4 text-left">Requested Role</th>
+                                <th class="py-3 px-4 text-left">Requested At</th>
+                                <th class="py-3 px-4 text-left">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="deniedRequestsBody" class="text-gray-700">
+                            {% for req in denied_requests %}
+                            <tr class="border-t border-gray-200" data-userid="{{ req.user_id }}">
+                                <td class="py-3 px-4">{{ req.user_id }}</td>
+                                <td class="py-3 px-4">{{ req.username }}</td>
+                                <td class="py-3 px-4">{{ 'Admin' if req.current_role_id==1 else 'User' }}</td>
+                                <td class="py-3 px-4">{{ 'Admin' if req.requested_role==1 else 'User' }}</td>
+                                <td class="py-3 px-4">{{ req.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td class="py-3 px-4 flex gap-2">
+                                    <form method="POST" action="{{ url_for('admin.reopen_admin_request') }}"
+                                          class="ajax-admin-request" data-userid="{{ req.user_id }}">
+                                        <input type="hidden" name="user_id" value="{{ req.user_id }}">
+                                        <button type="submit"
+                                                class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                                            Re‑open
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="py-4 text-center text-gray-500">No denied requests.</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ─── View Admin Users ─── -->
+            <section id="viewAdmins" class="section {% if section!='viewAdmins' %}hidden{% endif %}">
+                <div class="premium-card p-8 max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-6 text-center">
+                        Admin Users
+                    </h2>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full bg-white border border-gray-300 shadow-md rounded-lg">
+                            <thead class="bg-indigo-900 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left">User ID</th>
+                                <th class="py-3 px-4 text-left">Full Name</th>
+                                <th class="py-3 px-4 text-left">Username</th>
+                                <th class="py-3 px-4 text-left">Email</th>
+                            </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                            {% for admin in admin_list %}
+                            <tr class="border-t border-gray-200">
+                                <td class="py-3 px-4">{{ admin.user_id }}</td>
+                                <td class="py-3 px-4">{{ admin.full_name }}</td>
+                                <td class="py-3 px-4">{{ admin.username }}</td>
+                                <td class="py-3 px-4">{{ admin.email }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="py-4 text-center text-gray-500">
+                                    No admins found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            <!-- End User Management Sections -->
+
+            <!--detail of feedback-->
+            <section id="feedbackDetail" class="section {% if section != 'feedbackDetail' %}hidden{% endif %}">
+                {% if section == 'feedbackDetail' and feedback %}
+                <div class="premium-card p-8 max-w-4xl mx-auto my-10 w-full">
+                    <div class="flex items-center mb-8">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                            <i class="fas fa-info-circle text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800">Feedback Details</h2>
+                            <p class="text-slate-600 mt-1">A deep dive into your submitted feedback</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h3 class="font-semibold text-slate-700 mb-1">Title</h3>
+                            <p class="text-slate-600">{{ feedback.title }}</p>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-700 mb-1">Category</h3>
+                            <p class="text-slate-600">{{ feedback.category }}</p>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-700 mb-1">Status</h3>
+                            <span class="inline-block px-3 py-1 rounded-full text-sm font-medium {% if feedback.status == 1 %}bg-yellow-100 text-yellow-800{% elif feedback.status == 2 %}bg-blue-100 text-blue-800{% elif feedback.status == 3 %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
                   {% if feedback.status == 1 %}Pending{% elif feedback.status == 2 %}In Progress{% elif feedback.status == 3 %}Solved{% else %}Unknown{% endif %}
                 </span>
-              </div>
-              <div>
-                <h3 class="font-semibold text-slate-700 mb-1">Date</h3>
-                <p class="text-slate-600">{{ feedback.date or 'N/A' }}</p>
-              </div>
-            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-700 mb-1">Date</h3>
+                            <p class="text-slate-600">{{ feedback.date or 'N/A' }}</p>
+                        </div>
+                    </div>
 
-            <div>
-              <h3 class="font-semibold text-slate-700 mb-1">Submitted by </h3>
-              <p class="text-slate-600"> {{ feedback.submitter_name }} </p>
-            </div>
+                    <div>
+                        <h3 class="font-semibold text-slate-700 mb-1">Submitted by </h3>
+                        <p class="text-slate-600"> {{ feedback.submitter_name }} </p>
+                    </div>
 
-            <br/><br/>
-            <div class="mb-6">
-              <h3 class="font-semibold text-slate-700 mb-2">Message</h3>
-              <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-600">
-                {{ feedback.message }}
-              </div>
-            </div>
+                    <br/><br/>
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-slate-700 mb-2">Message</h3>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-600">
+                            {{ feedback.message }}
+                        </div>
+                    </div>
 
-            {% if attachments %}
-            <div class="mb-6">
-              <h3 class="font-semibold text-slate-700 mb-2">Attachments</h3>
-              <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {% for att in attachments %}
-                <li>
-                  <a href="{{ url_for('admin.admin_download_attachment', attach_id=att.attach_id) }}" target="_blank" class="block p-3 bg-white border border-slate-200 rounded-lg hover:shadow-md">
-                    <i class="fas fa-paperclip mr-2 text-teal-600"></i>{{ att.filename }}
-                  </a>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-            {% endif %}
+                    {% if attachments %}
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-slate-700 mb-2">Attachments</h3>
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {% for att in attachments %}
+                            <li>
+                                <a href="{{ url_for('admin.admin_download_attachment', attach_id=att.attach_id) }}"
+                                   target="_blank"
+                                   class="block p-3 bg-white border border-slate-200 rounded-lg hover:shadow-md">
+                                    <i class="fas fa-paperclip mr-2 text-teal-600"></i>{{ att.filename }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
 
-            <div class="flex justify-end pt-4 border-t border-slate-200">
-              <a href="{{ url_for('views.admin_dashboard', section='home') }}" class="spa-back px-6 py-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 font-medium">
-                <i class="fas fa-arrow-left mr-2"></i>Back
-              </a>
-            </div>
-          </div>
-          {% else %}
-          <p class="text-slate-500 text-center mt-12">No feedback data available to show.</p>
-          {% endif %}
-        </section>
-
-         <section id="profile" class="section hidden">
-            <div class="premium-card p-8 max-w-4xl mx-auto">
-              <div class="flex items-center mb-8">
-                <div
-                  class="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
-                  <i class="fas fa-user text-white text-2xl"></i>
+                    <div class="flex justify-end pt-4 border-t border-slate-200">
+                        <a href="{{ url_for('views.admin_dashboard', section='home') }}"
+                           class="spa-back px-6 py-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 font-medium">
+                            <i class="fas fa-arrow-left mr-2"></i>Back
+                        </a>
+                    </div>
                 </div>
-                <div>
-                  <h2 class="text-3xl font-bold text-slate-800">Profile Settings</h2>
-                  <p class="text-slate-600 mt-1">Manage your account information and preferences</p>
+                {% else %}
+                <p class="text-slate-500 text-center mt-12">No feedback data available to show.</p>
+                {% endif %}
+            </section>
+
+            <section id="profile" class="section hidden">
+                <!-- profile content kept as in original template -->
+                <div class="premium-card p-8 max-w-4xl mx-auto">
+                    <div class="flex items-center mb-8">
+                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                            <i class="fas fa-user text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800">Profile Settings</h2>
+                            <p class="text-slate-600 mt-1">Manage your account information and preferences</p>
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('auth.update_profile') }}" method="post" class="space-y-6">
+                        <input type="hidden" name="form_action" value="update_profile">
+                        <div id="prof" class="grid md:grid-cols-2 gap-8">
+                            <div class="space-y-6">
+                                <div>
+                                    <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
+                                        <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
+                                    </label>
+                                    <input type="text" id="fullName" name="full_name"
+                                           class="form-input w-full p-3 rounded-lg bg-slate-100 cursor-not-allowed"
+                                           value="{{ user.full_name }}" required readonly>
+                                </div>
+
+                                <div>
+                                    <label for="designation" class="block text-sm font-semibold text-slate-700 mb-2">
+                                        <i class="fas fa-briefcase mr-2 text-teal-600"></i>Designation
+                                    </label>
+                                    <input type="text" id="designation" name="designation"
+                                           class="form-input w-full p-3 rounded-lg bg-slate-100 cursor-not-allowed"
+                                           value="{{ user.designation }}" required readonly>
+                                </div>
+
+                                <div>
+                                    <label for="dob" class="block text-sm font-semibold text-slate-700 mb-2">
+                                        <i class="fas fa-calendar-alt mr-2 text-teal-600"></i>Date of Birth
+                                    </label>
+                                    <input type="date" id="dob" name="dob"
+                                           class="form-input w-full p-3 rounded-lg bg-slate-100 cursor-not-allowed"
+                                           value="{{ user.dob or '' }}" required readonly>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6">
+                                <div>
+                                    <label for="username" class="block text-sm font-semibold text-slate-700 mb-2">
+                                        <i class="fas fa-user mr-2 text-teal-600"></i>Username
+                                    </label>
+                                    <input type="text" id="username" name="username"
+                                           class="form-input w-full p-3 rounded-lg" value="{{ user.username }}"
+                                           required>
+                                </div>
+
+                                <div>
+                                    <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
+                                        <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
+                                    </label>
+                                    <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg"
+                                           value="{{ user.email }}" required>
+                                </div>
+
+                                <div>
+                                    <label for="id" class="block text-sm font-semibold text-slate-700 mb-2">
+                                        <i class="fas fa-id-card mr-2 text-teal-600"></i>Id
+                                    </label>
+                                    <input type="number" id="id" name="id"
+                                           class="form-input w-full p-3 rounded-lg bg-slate-100 cursor-not-allowed"
+                                           value="{{ user.user_id }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
+                            <button type="button" onclick="showSection('home')"
+                                    class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg"><i
+                                    class="fas fa-save mr-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
                 </div>
-              </div>
+            </section>
 
-              <form action="{{ url_for('auth.update_profile') }}" method="post" class="space-y-6">
-                <input type="hidden" name="form_action" value="update_profile">
-                <div id="prof" class="grid md:grid-cols-2 gap-8">
-                  <div class="space-y-6">
-                      <div>
-                          <label for="fullName" class="block text-sm font-semibold text-slate-700 mb-2">
-                              <i class="fas fa-signature mr-2 text-teal-600"></i>Full Name
-                          </label>
-                          <input type="text" id="fullName" name="full_name" class="form-input w-full p-3 rounded-lg" value="{{ user.full_name }}">
-                      </div>
 
-                      <div>
-                          <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">
-                              <i class="fas fa-envelope mr-2 text-teal-600"></i>Email Address
-                          </label>
-                          <input type="email" id="email" name="email" class="form-input w-full p-3 rounded-lg" value="{{ user.email }}">
-                      </div>
-                  </div>
+            <section id="changePassword" class="section hidden">
+                <div class="premium-card p-8 max-w-4xl mx-auto">
+                    <div class="flex items-center mb-8">
+                        <div
+                                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
+                            <i class="fas fa-shield-alt text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800">Security & Password</h2>
+                            <p class="text-slate-600 mt-1">Update your password and security settings</p>
+                        </div>
+                    </div>
 
-                  <div class="space-y-6">
-                      <div>
-                          <label for="designation" class="block text-sm font-semibold text-slate-700 mb-2">
-                              <i class="fas fa-briefcase mr-2 text-teal-600"></i>Designation
-                          </label>
-                          <input type="text" id="designation" name="designation" class="form-input w-full p-3 rounded-lg" value="{{ user.designation }}">
-                      </div>
-                      <div>
-                          <label for="dob" class="block text-sm font-semibold text-slate-700 mb-2">
-                              <i class="fas fa-calendar-alt mr-2 text-teal-600"></i>Date of Birth
-                          </label>
-                          <input type="date" id="dob" name="dob" class="form-input w-full p-3 rounded-lg" value="{{ user.dob or '' }}">
-                      </div>
-                  </div>
+                    <form action="{{ url_for('auth.change_password') }}" method="post" class="space-y-6">
+                        <div>
+                            <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
+                            </label>
+                            <input type="password" id="currentPassword" name="current_password"
+                                   class="form-input w-full p-3 rounded-lg" placeholder="Enter current password"
+                                   required>
+                        </div>
+
+                        <div>
+                            <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
+                            </label>
+                            <input type="password" id="newPassword" name="new_password"
+                                   class="form-input w-full p-3 rounded-lg" placeholder="Enter new password" required>
+                        </div>
+
+                        <div>
+                            <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
+                            </label>
+                            <input type="password" id="confirmPassword" name="confirm_new_password"
+                                   class="form-input w-full p-3 rounded-lg" placeholder="Confirm new password" required>
+                        </div>
+
+                        <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200">
+                            <button type="button" onclick="showSection('home')"
+                                    class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
+                                <i class="fas fa-save mr-2"></i>Update Password
+                            </button>
+                        </div>
+                    </form>
                 </div>
+            </section>
 
-                <div class="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-200">
-                    <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                        <i class="fas fa-save mr-2"></i>Save Changes
-                    </button>
-                </div>
-              </form>
-            </div>
-         </section>
-
-        <section id="changePassword" class="section hidden">
-          <div class="premium-card p-8 max-w-4xl mx-auto">
-            <div class="flex items-center mb-8">
-              <div
-                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mr-6 shadow-lg">
-                <i class="fas fa-shield-alt text-white text-xl"></i>
-              </div>
-              <div>
-                <h2 class="text-3xl font-bold text-slate-800">Security & Password</h2>
-                <p class="text-slate-600 mt-1">Update your password and security settings</p>
-              </div>
-            </div>
-
-            <form action="{{ url_for('auth.change_password') }}" method="post" class="space-y-6">
-              <div>
-                  <label for="currentPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                      <i class="fas fa-lock mr-2 text-teal-600"></i>Current Password
-                  </label>
-                  <input type="password" id="currentPassword" name="current_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter current password" required>
-              </div>
-
-              <div>
-                    <label for="newPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                        <i class="fas fa-lock mr-2 text-teal-600"></i>New Password
-                    </label>
-                    <input type="password" id="newPassword" name="new_password" class="form-input w-full p-3 rounded-lg" placeholder="Enter new password" required>
-              </div>
-
-              <div>
-                    <label for="confirmPassword" class="block text-sm font-semibold text-slate-700 mb-2">
-                        <i class="fas fa-lock mr-2 text-teal-600"></i>Confirm New Password
-                    </label>
-                    <input type="password" id="confirmPassword" name="confirm_new_password" class="form-input w-full p-3 rounded-lg" placeholder="Confirm new password" required>
-              </div>
-
-              <div class="flex justify-end space-x-4 pt-6 border-t border-slate-200">
-                    <button type="button" onclick="showSection('home')" class="px-6 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn-primary px-8 py-3 text-white font-medium rounded-lg">
-                        <i class="fas fa-save mr-2"></i>Update Password
-                    </button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-      </div>
+        </div>
     </main>
-  </div>
+</div>
 
-   <!-- Logout Confirmation Modal -->
-  <div id="logoutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 shadow-xl w-80 text-center">
-      <h2 class="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
-      <div class="flex justify-around mt-6">
-        <button id="confirmLogoutBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">OK</button>
-        <button id="cancelLogoutBtn" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">Cancel</button>
-      </div>
+        <h2 class="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
+        <div class="flex justify-around mt-6">
+            <button id="confirmLogoutBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                OK
+            </button>
+            <button id="cancelLogoutBtn"
+                    class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">Cancel
+            </button>
+        </div>
     </div>
-  </div>
+</div>
 
 
 </body>
@@ -1272,6 +1344,6 @@
         }, 5000);
       });
     })();
-  </script>
+</script>
 
 </html>

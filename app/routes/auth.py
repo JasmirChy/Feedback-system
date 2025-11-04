@@ -470,19 +470,22 @@ def update_profile():
         elif action == 'update_profile':
             full_name = request.form['full_name']
             email = request.form['email']
+            username = request.form['username']
             designation = request.form['designation']
             dob = request.form['dob']
+            id = request.form['id']
 
             cur.execute(
                 """
                 UPDATE fd_user
                    SET full_name  = %s,
                        email      = %s,
+                       username   = %s,
                        designation= %s,
                        dob        = %s
                  WHERE user_id   = %s
                 """,
-                (full_name, email, designation, dob, user_id)
+                (full_name, email, username, designation, dob, user_id)
             )
             flash("Profile updated successfully!", "success")
 
