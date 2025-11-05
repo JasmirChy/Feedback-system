@@ -5,24 +5,11 @@ matplotlib.use('Agg')  # headless rendering for server environments
 from datetime import timedelta, datetime
 from app.extensions import cache
 import matplotlib.pyplot as plt
-from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file, current_app, jsonify
+from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file, current_app
 from app.models import get_db_connection
 from app.routes.auth import role_required, ADMIN_ROLE_ID
 
 admin = Blueprint('admin', __name__)
-
-def is_ajax(req):
-    return req.headers.get('X-Requested-With') == 'XMLHttpRequest'
-
-
-def json_response(success, message=None, status=200, category=None, **extra):
-    payload = {'success': bool(success)}
-    if message is not None:
-        payload['message'] = message
-    if category:
-        payload['category'] = category
-    payload.update(extra)
-    return jsonify(payload), status
 
 # ---------------- feedback detail ------------------
 @admin.route('/feedback/<int:f_id>')
@@ -84,15 +71,6 @@ def feedback_detail(f_id):
         flash("Feedback not found.", "error")
         return redirect(url_for('views.admin_dashboard'))
 
-    # If AJAX or explicit ajax=1 param, return only the fragment HTML (text/html)
-    # NOTE: frontend expects an HTML fragment it can parse and extract #feedbackDetail from.
-    if is_ajax(request) or request.args.get('ajax') == '1':
-        html = render_template('partials/feedback_detail_fragment.html',
-                               feedback=selected,
-                               attachments=attachments)
-        # Return the HTML fragment (content-type text/html) so client DOMParser flow works.
-        return html, 200
-
     # Otherwise return full dashboard page as before
     return render_template(
         'admin_dashboard.html',
@@ -107,66 +85,44 @@ def feedback_detail(f_id):
 @admin.route('/update-status', methods=['POST'])
 @role_required(ADMIN_ROLE_ID)
 def update_status():
-
-    f_id   = request.form.get('f_id')
+    f_id = request.form.get('f_id')
     status = request.form.get('status')
+    section_to_redirect = request.form.get('current_section', 'home')
 
-    if not (f_id and status in {'1','2','3'}):
-        msg = 'Invalid feedback ID or status.'
-        if is_ajax(request):
-            return json_response(False, msg, status=400)
-        flash(msg, 'error')
-        return redirect(url_for('views.admin_dashboard')), 400
+    if not (f_id and status in {'1', '2', '3'}):
+        flash('Invalid feedback ID or status.', 'error')
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
-    conn   = get_db_connection()
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        # Check if the feedback exists first, and get its current status for the flash message
+        cursor.execute("SELECT f_title, status FROM feedback WHERE f_id = %s", (f_id,))
+        feedback = cursor.fetchone()
+        if not feedback:
+            flash(f"Feedback ID {f_id} not found.", 'error')
+            return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
+
+        # Update status
         cursor.execute(
             "UPDATE feedback SET status = %s WHERE f_id = %s",
             (status, f_id)
         )
         conn.commit()
-        msg = 'Feedback status updated.'
 
-        # If AJAX: return success + latest aggregated counts so client can update cards without full reload
-        if is_ajax(request):
-            try:
-                # Re-query counts
-                cursor.execute("""
-                    SELECT
-                      COUNT(*) AS total,
-                      SUM(status = 1) AS pending,
-                      SUM(status = 2) AS inprogress,
-                      SUM(status = 3) AS solved
-                    FROM feedback
-                """)
-                counts = cursor.fetchone() or {}
-                # ensure ints (DB may return Decimal/None)
-                counts_normalized = {
-                    'total': int(counts.get('total') or 0),
-                    'pending': int(counts.get('pending') or 0),
-                    'inprogress': int(counts.get('inprogress') or 0),
-                    'solved': int(counts.get('solved') or 0)
-                }
-            except Exception:
-                # fallback: zeroed counts if something odd
-                counts_normalized = {'total': 0, 'pending': 0, 'inprogress': 0, 'solved': 0}
-
-            return json_response(True, msg, status=200, category='success',
-                                 status_updated=status, counts=counts_normalized)
-
+        status_map = {'1': 'Pending', '2': 'In Progress', '3': 'Solved'}
+        msg = f"Status for '{feedback['f_title']}' updated to {status_map[status]}."
         flash(msg, 'success')
-    except Exception:
+
+    except Exception as e:
         conn.rollback()
-        msg = 'DB error while updating status'
-        if is_ajax(request):
-            return json_response(False, msg, status=500)
-        flash(msg, 'error')
+        flash(f"Could not update status: {e}", 'error')
     finally:
         cursor.close()
         conn.close()
 
-    return redirect(url_for('views.admin_dashboard'))
+    # Redirect using PRG pattern
+    return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
 
 
@@ -294,63 +250,48 @@ def show_denied_requests():
 @admin.route('/add-admin', methods=['POST'])
 @role_required(ADMIN_ROLE_ID)
 def add_admin():
-
     email = request.form.get('email', '').strip()
-    if not email:
-        msg = "Email is required."
-        if is_ajax(request):
-            return json_response(False, msg, status=400, category='error')
-        flash(msg, "error")
-        return redirect(url_for('views.admin_dashboard', section='addAdmin'))
+    section_to_redirect = request.form.get('current_section', 'addAdmin')  # Default to where the form is located
 
-    conn   = get_db_connection()
+    if not email:
+        flash("Email is required.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
+
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 1) Look up the user by email
-    cursor.execute(
-        "SELECT user_id, full_name, role_id FROM fd_user WHERE email = %s",
-        (email,)
-    )
-    user = cursor.fetchone()
+    try:
+        # 1) Look up the user by email
+        cursor.execute(
+            "SELECT user_id, full_name, role_id FROM fd_user WHERE email = %s",
+            (email,)
+        )
+        user = cursor.fetchone()
 
-    if not user:
-        msg = "User not found."
-        cursor.close()
-        conn.close()
-        if is_ajax(request):
-            return json_response(False, msg, status=404, category='error')
-        flash(msg, "error")
-        return redirect(url_for('views.admin_dashboard', section='addAdmin'))
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
-    # 2) Check their current role
-    if user['role_id'] == 1:
-        msg = f"{user['full_name']} is already an Admin."
-        if is_ajax(request):
-            return json_response(False, msg, status=200, category='info')
-        flash(msg, "info")
-    else:
-        # 3) Promote to admin
-        try:
+        # 2) Check their current role
+        if user['role_id'] == ADMIN_ROLE_ID:
+            flash(f"{user['full_name']} is already an Admin.", "info")
+        else:
+            # 3) Promote to admin
             cursor.execute(
-                "UPDATE fd_user SET role_id = 1 WHERE user_id = %s",
-                (user['user_id'],)
+                "UPDATE fd_user SET role_id = %s WHERE user_id = %s",
+                (ADMIN_ROLE_ID, user['user_id'])
             )
             conn.commit()
-            msg = f"{user['full_name']} has been promoted to Admin."
-            if is_ajax(request):
-                return json_response(True, msg, status=200, category='success', user_id=user['user_id'], full_name=user['full_name'])
-            flash(msg, "success")
-        except Exception:
-            conn.rollback()
-            msg = "Could not promote user( Internal server error)"
-            if is_ajax(request):
-                return json_response(False, msg, status=500, category='error')
-            flash(msg, "error")
+            flash(f"{user['full_name']} has been promoted to Admin.", "success")
+    except Exception:
+        conn.rollback()
+        current_app.logger.exception("Could not promote user")
+        flash("Could not promote user (Internal server error)", "error")
+    finally:
+        cursor.close()
+        conn.close()
 
-    cursor.close()
-    conn.close()
-
-    return redirect(url_for('views.admin_dashboard', section='addAdmin'))
+    return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
 
 # ---------------- Update User Role ------------------
@@ -359,218 +300,160 @@ def add_admin():
 def approve_admin_request():
     user_id = request.form.get('user_id')
     new_role_id = request.form.get('new_role_id')
+    section_to_redirect = request.form.get('current_section', 'addAdmin')  # Used for PRG
 
     if not user_id or not new_role_id:
-        if is_ajax(request):
-            return json_response(False, "Invalid request", status=400)
-        flash("Invalid request.", "error")
-        return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+        flash("Invalid request: Missing user ID or new role ID.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     try:
-        user_id = int(user_id)
-        new_role_id = int(new_role_id)
+        user_id_i = int(user_id)
+        new_role_id_i = int(new_role_id)
     except ValueError:
-        if is_ajax(request):
-            return json_response(False, "Invalid IDs", status=400)
-        flash("Invalid user or role ID.", "error")
-        return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+        flash("Invalid user or role ID format.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE fd_user SET role_id = %s WHERE user_id = %s", (new_role_id, user_id))
-        cursor.execute("UPDATE admin_requests SET status = 'Approved' WHERE user_id = %s AND status = 'Pending'", (user_id,))
+        # 1. Update user role
+        cursor.execute("UPDATE fd_user SET role_id = %s WHERE user_id = %s", (new_role_id_i, user_id_i))
+        # 2. Update request status
+        cursor.execute("UPDATE admin_requests SET status = 'Approved' WHERE user_id = %s AND status = 'Pending'",
+                       (user_id_i,))
         conn.commit()
-        msg = "User has been promoted to Admin."
-        if is_ajax(request):
-            # Tell the client which user-row to remove from the pending list
-            return json_response(True, msg, status=200, category='success', removed_user_id=user_id)
-        flash(msg, "success")
+
+        # Fetch the user's name for a better message
+        name_cursor = conn.cursor(dictionary=True)
+        name_cursor.execute("SELECT full_name FROM fd_user WHERE user_id = %s", (user_id_i,))
+        user_name = (name_cursor.fetchone() or {}).get('full_name', f'User {user_id_i}')
+        name_cursor.close()
+
+        flash(f"{user_name} has been promoted and their request approved.", "success")
     except Exception:
         conn.rollback()
         current_app.logger.exception("Failed to approve admin request")
-        if is_ajax(request):
-            return json_response(False, "Internal error", status=500)
-        flash("Failed to update role: Internal error", "error")
+        flash("Failed to update role: Internal server error.", "error")
     finally:
         cursor.close()
         conn.close()
 
-    return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+    return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
 
 @admin.route('/deny-admin-request', methods=['POST'])
 @role_required(ADMIN_ROLE_ID)
 def deny_admin_request():
     user_id = request.form.get('user_id')
+    section_to_redirect = request.form.get('current_section', 'addAdmin')
+
     if not user_id:
-        if is_ajax(request):
-            return json_response(False, "Invalid request", status=400)
-        flash("Invalid request.", "error")
-        return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+        flash("Invalid request: Missing user ID.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     try:
-        user_id = int(user_id)
+        user_id_i = int(user_id)
     except ValueError:
-        if is_ajax(request):
-            return json_response(False, "Invalid user id", status=400)
-        flash("Invalid user id.", "error")
-        return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+        flash("Invalid user ID format.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE admin_requests SET status='Denied' WHERE user_id=%s AND status='Pending'", (user_id,))
+        # 1. Deny the request
+        cursor.execute("UPDATE admin_requests SET status='Denied' WHERE user_id=%s AND status='Pending'", (user_id_i,))
         conn.commit()
-        msg = "Request denied."
-        if is_ajax(request):
-            # Tell the client to remove this row from pending list (so it can appear under denied list if needed)
-            return json_response(True, msg, status=200, category='info', removed_user_id=user_id)
-        flash(msg, "info")
+
+        # Fetch the username for a better message
+        name_cursor = conn.cursor(dictionary=True)
+        name_cursor.execute("SELECT full_name FROM fd_user WHERE user_id = %s", (user_id_i,))
+        user_name = (name_cursor.fetchone() or {}).get('full_name', f'User {user_id_i}')
+        name_cursor.close()
+
+        flash(f"Admin request for {user_name} denied.", "info")
     except Exception:
         conn.rollback()
         current_app.logger.exception("Could not deny request")
-        if is_ajax(request):
-            return json_response(False, "Internal error", status=500)
-        flash("Could not deny request (Internal server error)", "error")
+        flash("Could not deny request (Internal server error).", "error")
     finally:
         cursor.close()
         conn.close()
 
-    return redirect(url_for('views.admin_dashboard', section='viewUsers'))
+    return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
 
 @admin.route('/admin/requests/reopen', methods=['POST'])
 @role_required(ADMIN_ROLE_ID)
 def reopen_admin_request():
     user_id = request.form.get('user_id')
+    section_to_redirect = request.form.get('current_section', 'deniedRequests')
+
     if not user_id:
-        if is_ajax(request):
-            return json_response(False, "Invalid request", status=400)
-        flash("Invalid request.", "error")
-        return redirect(url_for('views.admin_dashboard', section='deniedRequests'))
+        flash("Invalid request: Missing user ID.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     try:
-        user_id = int(user_id)
+        user_id_i = int(user_id)
     except ValueError:
-        if is_ajax(request):
-            return json_response(False, "Invalid user id", status=400)
-        flash("Invalid user id.", "error")
-        return redirect(url_for('views.admin_dashboard', section='deniedRequests'))
+        flash("Invalid user ID format.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     conn = get_db_connection()
     cur = conn.cursor()
     try:
-        cur.execute("UPDATE admin_requests SET status = 'Pending' WHERE user_id = %s AND status = 'Denied'", (user_id,))
+        cur.execute("UPDATE admin_requests SET status = 'Pending' WHERE user_id = %s AND status = 'Denied'",
+                    (user_id_i,))
         conn.commit()
-        msg = "Request re-opened and moved back to pending."
-        if is_ajax(request):
-            # Remove from denied list in the UI (client may choose to re-insert into pending list)
-            return json_response(True, msg, status=200, category='success', removed_user_id=user_id)
-        flash(msg, "success")
+        flash("Request re-opened and moved back to pending list.", "success")
     except Exception:
         conn.rollback()
         current_app.logger.exception("Could not re-open request")
-        if is_ajax(request):
-            return json_response(False, "Internal error", status=500)
-        flash("Could not re-open request ( Internal server error )", "error")
+        flash("Could not re-open request (Internal server error).", "error")
     finally:
         cur.close()
         conn.close()
 
-    return redirect(url_for('views.admin_dashboard', section='deniedRequests'))
+    return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
 @admin.route('/admin/requests/list.json')
 @role_required(ADMIN_ROLE_ID)
 def admin_requests_list_json():
-    """
-    Return current pending and denied admin requests as JSON.
-    This is used by the frontend to refresh the Pending/Denied tables
-    after an AJAX action so UI reflects DB state without full reload.
-    """
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-    try:
-        cur.execute("""
-            SELECT user_id, username, current_role_id, requested_role, requested_at
-            FROM admin_requests
-            WHERE status = 'Pending'
-            ORDER BY requested_at DESC
-        """)
-        pending = cur.fetchall() or []
-
-        cur.execute("""
-            SELECT user_id, username, current_role_id, requested_role, requested_at
-            FROM admin_requests
-            WHERE status = 'Denied'
-            ORDER BY requested_at DESC
-        """)
-        denied = cur.fetchall() or []
-    finally:
-        cur.close()
-        conn.close()
-
-    def serialize(rows):
-        out = []
-        for r in rows:
-            requested_at = r.get('requested_at')
-            if isinstance(requested_at, datetime):
-                requested_at = requested_at.strftime('%Y-%m-%d %H:%M')
-            else:
-                requested_at = str(requested_at or '')
-            out.append({
-                'user_id': r.get('user_id'),
-                'username': r.get('username') or '',
-                'current_role_id': r.get('current_role_id'),
-                'requested_role': r.get('requested_role'),
-                'requested_at': requested_at
-            })
-        return out
-
-    return jsonify({'pending': serialize(pending), 'denied': serialize(denied)})
+    flash("This endpoint is deprecated. Lists are loaded with the page.", "warning")
+    return redirect(url_for('views.admin_dashboard', section='addAdmin'))
 
 
 @admin.route('/add-category', methods=['POST'])
 @role_required(ADMIN_ROLE_ID)
 def add_category():
-
     category = request.form.get('category', '').strip()
+    # Redirect to viewCategory as the result will be seen there
+    section_to_redirect = 'viewCategory'
 
     if not category:
-        msg = 'Category name is required.'
-        if is_ajax(request):
-            return json_response(False, msg, status=400, category='error')
-        flash(msg, 'error')
-        return redirect(url_for('views.admin_dashboard', section='addCategory'))
+        flash('Category name is required.', 'error')
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        cursor.execute("SELECT * FROM category WHERE category = %s", (category,))
+        # Check if category exists (case-insensitive)
+        cursor.execute("SELECT category FROM category WHERE LOWER(category) = LOWER(%s)", (category,))
         if cursor.fetchone():
-            msg = 'Category already exists.'
-            if is_ajax(request):
-                return json_response(False, msg, status=409, category='warning')
-            flash(msg, 'warning')
+            flash(f"Category '{category}' already exists.", 'warning')
         else:
             cursor.execute("INSERT INTO category (category) VALUES (%s)", (category,))
             conn.commit()
-            msg = 'Category added successfully!'
-            if is_ajax(request):
-                return json_response(True, msg, status=201, category='success', category_name=category)
-            flash(msg, 'success')
-    except Exception as e:
+            flash(f"Category '{category}' added successfully!", 'success')
+    except Exception:
         conn.rollback()
-        msg = f'Database error: {e}'
-        if is_ajax(request):
-            return json_response(False, msg, status=500, category='error')
-        flash(msg, 'error')
+        current_app.logger.exception("Database error adding category")
+        flash('Database error adding category.', 'error')
     finally:
         cursor.close()
         conn.close()
 
-    return redirect(url_for('views.admin_dashboard', section='viewCategory'))
+    return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
 
 
@@ -579,26 +462,37 @@ def add_category():
 def update_role_api():
     user_id = request.form.get('user_id')
     new_role_id = request.form.get('new_role_id')
+    section_to_redirect = request.form.get('current_section', 'viewUsers')
 
     if not user_id or not new_role_id:
-        return json_response(False, "Missing params", status=400)
+        flash("Missing user ID or new role ID.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     try:
         user_id_i = int(user_id)
         new_role_id_i = int(new_role_id)
     except ValueError:
-        return json_response(False, "Invalid params", status=400)
+        flash("Invalid parameters for role update.", "error")
+        return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
 
     conn = get_db_connection()
     cur = conn.cursor()
     try:
         cur.execute("UPDATE fd_user SET role_id=%s WHERE user_id=%s", (new_role_id_i, user_id_i))
         conn.commit()
+        # Fetch the user's name for a better message
+        name_cursor = conn.cursor(dictionary=True)
+        name_cursor.execute("SELECT full_name FROM fd_user WHERE user_id = %s", (user_id_i,))
+        user_name = (name_cursor.fetchone() or {}).get('full_name', f'User {user_id_i}')
+        name_cursor.close()
+
+        flash(f"Role for {user_name} updated successfully.", "success")
     except Exception:
         conn.rollback()
         current_app.logger.exception("Error updating role")
-        return json_response(False, "Internal error", status=500)
+        flash("Internal error updating role.", "error")
     finally:
         cur.close()
         conn.close()
-    return json_response(True, "Role updated", status=200, category='success')
+
+    return redirect(url_for('views.admin_dashboard', section=section_to_redirect))
