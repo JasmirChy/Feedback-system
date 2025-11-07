@@ -1,6 +1,6 @@
 # app/routes/auth.py
 import random, mysql.connector, re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, render_template, url_for, request, redirect, flash, session, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import limiter
@@ -79,8 +79,10 @@ def login():
                 flash("Invalid username.", "error")
                 return render_template('login.html')
 
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             lock_until = user['lock_until']
+
+
 
             # Check if locked
             if lock_until:
@@ -102,17 +104,17 @@ def login():
             if not check_password_hash(user['password'], password):
                 # Increment failed attempts
                 failed = user['failed_attempts'] + 1
-                lock_until = None
+                new_lock_until = None
 
                 if failed >= LOCKOUT_ATTEMPTS:
-                    lock_until = now + timedelta(minutes=LOCKOUT_MINUTES)
+                    new_lock_until = now + timedelta(minutes=LOCKOUT_MINUTES)
                     flash(f"Too many failed attempts. Try again after {LOCKOUT_MINUTES} minutes.", "danger")
                 else:
                     flash("Invalid password.", "error")
 
                 cursor.execute(
                     "UPDATE fd_user SET failed_attempts = %s, lock_until = %s WHERE user_id = %s",
-                    (failed, lock_until, user['user_id'])
+                    (failed, new_lock_until, user['user_id'])
                 )
                 conn.commit()
                 cursor.close()
