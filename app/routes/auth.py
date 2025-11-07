@@ -319,7 +319,7 @@ def verify_otp():
                     sign['password'],
                     sign['email'],
                     sign['designation'],
-                    sign['type'],
+                    sign['user_type'],
                     sign['dob'],
                     sign['role_id'],
                     sign['status']
