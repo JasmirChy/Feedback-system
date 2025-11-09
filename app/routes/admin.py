@@ -208,9 +208,9 @@ def _build_category_chart_bytes(period):
 
     fig, ax = plt.subplots(figsize=(10,6))
 
-    ax.bar([x + offsets[0] for x in x_centers], pending, width=bar_width, label='Pending', color='#fef3c7') #light yellow
-    ax.bar([x + offsets[1] for x in x_centers], inprogress, width=bar_width, label='In Progress', color='#bfdbfe') #light blue
-    ax.bar([x + offsets[2] for x in x_centers], resolved, width=bar_width, label='Solved', color='#bbf7d0') #light green
+    b_pending = ax.bar([x + offsets[0] for x in x_centers], pending, width=bar_width, label='Pending', color='#fef3c7') #light yellow
+    b_inprogress = ax.bar([x + offsets[1] for x in x_centers], inprogress, width=bar_width, label='In Progress', color='#bfdbfe') #light blue
+    b_solved = ax.bar([x + offsets[2] for x in x_centers], resolved, width=bar_width, label='Solved', color='#bbf7d0') #light green
 
     ax.set_xticks(x_centers)
     ax.set_xticklabels(categories, rotation=45, ha='right')
@@ -219,6 +219,24 @@ def _build_category_chart_bytes(period):
     ax.set_xlabel("Feedback Categories")
     ax.set_title(f"Feedback Status by Category ({period.capitalize()})")
     ax.legend()
+
+    def add_labels(bars):
+        for bar in bars:
+            height = bar.get_height()
+            if height >=1:
+                ax.annotate(
+                    f"{int(height)}",
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 5),
+                    textcoords="offset points",
+                    ha='center', va='bottom',
+                    fontsize=9, weight='bold', color="#374151"
+                )
+
+    add_labels(b_pending)
+    add_labels(b_inprogress)
+    add_labels(b_solved)
+
     plt.tight_layout()
 
     buf = io.BytesIO()

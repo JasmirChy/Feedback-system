@@ -185,9 +185,14 @@ def signup():
             if user_type == 'studentStaff':
 
                 # Check for existing username/email
-                cur.execute("SELECT 1 FROM fd_user WHERE username = %s OR email = %s", (user_name, email))
+                cur.execute("SELECT 1 FROM fd_user WHERE username = %s", (user_name,))
                 if cur.fetchone():
-                    flash("Username or email already exists.", "error")
+                    flash("Username already exists.", "error")
+                    return render_template('signup.html')
+
+                cur.execute("SELECT 1 FROM fd_user WHERE email = %s", (email,))
+                if cur.fetchone():
+                    flash("Email already exists.", "error")
                     return render_template('signup.html')
 
                 # Verify ID exists in student_table or staff_table
@@ -214,6 +219,16 @@ def signup():
 
                 otp = f"{random.randint(0, 999999):06d}"
                 expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+                cur.execute("SELECT 1 FROM fd_user WHERE username = %s", (user_name,))
+                if cur.fetchone():
+                    flash("Username already exists.", "error")
+                    return render_template('signup.html')
+
+                cur.execute("SELECT 1 FROM fd_user WHERE email = %s", (email,))
+                if cur.fetchone():
+                    flash("Email already exists.", "error")
+                    return render_template('signup.html')
 
                 cur.execute(
                     """insert into email_verifications( email, otp, expires_at) values( %s, %s, %s) on duplicate key update otp=%s, expires_at=%s""",

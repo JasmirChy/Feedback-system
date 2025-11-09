@@ -43,7 +43,7 @@ def user_dashboard():
            JOIN category AS c
              ON f.category = c.category_id
            WHERE f.user_id = %s
-           ORDER BY f.f_date DESC
+           ORDER BY f.f_date DESC, f.f_id DESC
        """, (user_id,))
     feedback_list = cur.fetchall()
 
@@ -117,7 +117,7 @@ def admin_dashboard():
         FROM feedback f
         JOIN category c ON f.category = c.category_id
         JOIN fd_user u ON f.user_id = u.user_id
-        ORDER BY f.f_date DESC
+        ORDER BY f.f_date DESC, f.f_id DESC
     """)
     feedbacks = cursor.fetchall()
     for fb in feedbacks:

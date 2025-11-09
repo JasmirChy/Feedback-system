@@ -1,7 +1,7 @@
 # app/routes/submit.py
 import io
 import os
-from datetime import date
+from datetime import datetime
 from flask import Blueprint, request, session, flash, redirect, url_for, render_template, send_file
 from werkzeug.utils import secure_filename
 from app.models import get_db_connection
@@ -20,8 +20,6 @@ def allowed_file(filename):
 def submit_feedback():
 
     if request.method == 'GET':
-        # Render the same dashboard template but open the Submit section
-        # Assumes you pass in categories and user info as in history
         return redirect(url_for('views.user_dashboard', section='submitFeedback'))
 
     # 2) Grab and validate form data
@@ -52,7 +50,7 @@ def submit_feedback():
                     INSERT INTO feedback
                         (f_title, f_body, category, user_id, f_date, status, hide)
                     VALUES (%s, %s, %s, %s, %s, 1, %s)
-                """, (title, body, category, user_id, date.today(), int(hide)))
+                """, (title, body, category, user_id, datetime.utcnow(), int(hide)))
         feedback_id = cursor.lastrowid
 
 
@@ -102,7 +100,7 @@ def user_history():
             FROM feedback f
             JOIN category c ON c.category_id = f.category
            WHERE f.user_id = %s
-           ORDER BY f.f_date DESC
+           ORDER BY f.f_date DESC, f.f_id DESC 
         """, (user_id,))
     feedback_list = cursor.fetchall()
 

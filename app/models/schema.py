@@ -70,7 +70,7 @@ table_statements = [
       f_body   VARCHAR(5000) NOT NULL,
       category INT(11) NOT NULL,
       user_id  INT(11) NOT NULL,
-      f_date   DATE NOT NULL,
+      f_date   DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
       status   INT(10) NOT NULL DEFAULT 1,
       hide     TINYINT(1) NOT NULL DEFAULT 0,
       PRIMARY KEY (f_id),
